@@ -1,0 +1,184 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="English">
+  <head>
+    <meta charset="utf-8" />
+    <title>Welcome to Fieldosophy: a toolkit for random fields! &#8212; Fieldosophy 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             accesskey="N">next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Fieldosophy 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="welcome-to-fieldosophy-a-toolkit-for-random-fields">
+<h1>Welcome to Fieldosophy: a toolkit for random fields!<a class="headerlink" href="#welcome-to-fieldosophy-a-toolkit-for-random-fields" title="Permalink to this headline">¶</a></h1>
+<div class="figure align-default">
+<img alt="https://drive.google.com/uc?export=view&amp;id=17fSqlCPBd06zf0jM2ghjKJdPrpoQUyqN" src="https://drive.google.com/uc?export=view&amp;id=17fSqlCPBd06zf0jM2ghjKJdPrpoQUyqN" />
+</div>
+<p>If you are accessing this documentation from a local copy, the most up-to-date version of the Fieldosophy package is available online at <a class="reference external" href="https://github.com/andyGFHill/fieldosophy">https://github.com/andyGFHill/fieldosophy</a> and the complementary documentation can be accessed by <a class="reference external" href="https://andygfhill.github.io/fieldosophy">https://andygfhill.github.io/fieldosophy</a></p>
+<div class="section" id="what-is-fieldosophy">
+<h2>What is <strong>Fieldosophy</strong>?<a class="headerlink" href="#what-is-fieldosophy" title="Permalink to this headline">¶</a></h2>
+<p>The Fieldosophy package is a toolkit for random fields.
+As such the package provides functionality for prediction, parameter estimation, uncertainty quantification, and data generation in the context of spatially dependent data.
+Spatial here referring to data that is observed at different points in some, typically continuous, space.</p>
+<p>Random fields can be thought of as random functions.
+A random field model is a model describing the probability distribution of such a random function.
+These models are useful since they can be used to analyze data and explain observed processes.
+Specifically, they are important since many processes observed in real-life are not deterministic.
+The origin of this randomness is most often a lack of information, either information that was too costly to acquire or information for which its relevance to the observed process was unknown.
+In either case, the unexplained variability can be accounted for by a probabilistic model.</p>
+<p>A random field model can, for instance, be used to compute probabilities for certain events associated to values at several points in a &quot;space&quot; at the same time.
+Typical applications are, but not limited to, finance, meterology, and biology where the &quot;spaces&quot; are either an interval of time, regions of the surface of the earth, or a region of the three-dimensional atmosphere.
+However, most of the functionality provided by <strong>Fieldosophy</strong> can also be applied on arbitrary Riemannian manifolds.</p>
+<p>Computing probabilities and other important quantities from a random field model is generally quite complicated and demand a high computational cost.
+The <strong>Fieldosophy</strong> package provides important tools for making these tasks easier and quicker.</p>
+</div>
+<div class="section" id="contact">
+<h2>Contact<a class="headerlink" href="#contact" title="Permalink to this headline">¶</a></h2>
+<p>If you have questions, suggestions, want to make a contribution, or want to get into contact with the Fieldosophy project of any other reason, do not hesitate to contact: <a class="reference external" href="mailto:fieldosophyspdec&#37;&#52;&#48;gmail&#46;com">fieldosophyspdec<span>&#64;</span>gmail<span>&#46;</span>com</a>.</p>
+</div>
+<div class="section" id="table-of-content">
+<h2>Table of content<a class="headerlink" href="#table-of-content" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#compiling-the-low-level-library">Compiling the low-level library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#installing-the-python-package">Installing the Python package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#gaussian-random-fields">Gaussian random fields</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#purpose">Purpose</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#why-gaussian-random-fields">Why Gaussian random fields?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#the-stochastic-partial-differential-equation">The stochastic partial differential equation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#matern-covariance">Matérn covariance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#extending-the-matern-covariance">Extending the Matérn covariance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#finite-element-approximations">Finite element approximations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#rational-finite-element-approximations">Rational finite element approximations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="structure.html">Structure of Fieldosophy</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="structure.html#the-grf-sub-package">The GRF sub-package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="structure.html#the-marginal-sub-package">The marginal sub-package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="structure.html#the-mesh-sub-package">The mesh sub-package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="structure.html#the-misc-sub-package">The misc sub-package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial1D.html">Tutorial: 1D SPDE modeling using Fieldosophy</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api_reference.html">Fieldosophy API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.GRF.html">fieldosophy.GRF package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.marginal.html">fieldosophy.marginal package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.mesh.html">fieldosophy.mesh package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.misc.html">fieldosophy.misc package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">Bibliography</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Welcome to Fieldosophy: a toolkit for random fields!</a><ul>
+<li><a class="reference internal" href="#what-is-fieldosophy">What is <strong>Fieldosophy</strong>?</a></li>
+<li><a class="reference internal" href="#contact">Contact</a></li>
+<li><a class="reference internal" href="#table-of-content">Table of content</a></li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Next topic</h4>
+  <p class="topless"><a href="installation.html"
+                        title="next chapter">Installation</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             >next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Fieldosophy 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Anders Gunnar Felix Hildeman.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.0.
+    </div>
+  </body>
+</html>

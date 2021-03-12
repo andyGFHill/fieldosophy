@@ -28,7 +28,7 @@ from . import geometrical_functions as geom
     
     
 class Mesh:
-    # A class for representing a mesh
+    # A class for representing an explicit mesh
     
     topD = None # Dimensionality of manifold, i.e., topological dimension
     embD = None # Dimensionality of space embedded in (dimensionality of nodes)
@@ -89,82 +89,94 @@ class Mesh:
     # %% member functions        
     
     
-    def refine( self, maxDiam, maxNumNodes = None, transformation = None ):
+    def refine( self, maxDiam, maxNumNodes, neighs = None, transformation = None ):
         # Refine mesh or simplices thereof
         
         # If maxDiam is not an array
         if not isinstance(maxDiam, np.ndarray ):
             maxDiam = np.array([maxDiam])
+        if maxDiam.dtype is not np.float64:
+            maxDiam = maxDiam.astype(np.float64)
+        # If max diam does not have the right size
+        if (maxDiam.size != 1) and (maxDiam.size != self.N):
+            raise Exception( "maxDiam did not have the right size" )
             
-        
-        nodes = self.nodes.copy()
-        triangles = self.triangles.copy()
-        
-        # Loop until no more updates
-        oldNumNodes = 0
-        while (oldNumNodes < nodes.shape[0]):
-            # Update old number of nodes
-            oldNumNodes = nodes.shape[0]
-        
-            # Get all edges
-            edges = Mesh.getEdges( triangles, self.topD, 2, libInstance = self._libInstance )
-            edges = edges["edges"]
+        # If no neighborhood structure given
+        if neighs is None:
+            neighs = self.getNeighs()
+        if neighs.dtype is not np.uintc:
+            neighs = neighs.astype(np.uintc)
             
-            # Get length of edges
-            lengths = np.sqrt( np.sum( np.diff( nodes[ edges, : ] , axis=1)**2, axis=-1 ) ).reshape((-1))
-            sortInd = np.argsort(lengths)
+        nodes_p = self.nodes.ctypes.data_as(self.c_double_p) 
+        maxDiam_p = maxDiam.flatten().ctypes.data_as(self.c_double_p) 
+        triangles_p = self.triangles.ctypes.data_as(self.c_uint_p) 
+        neighs_p = neighs.ctypes.data_as(self.c_uint_p)         
+        
+        newNumNodes = ctypes.c_uint( 0 )
+        newNumSimplices = ctypes.c_uint( 0 )
+        meshId = ctypes.c_uint( 0 )
+        
+        def transformationWrapper( pointer, lengthOfPointer ):
             
-            # Loop through each edge
-            for iterEdge in range(sortInd.size)[::-1]:
-                
-                # Get current edge index
-                curEdgeInd = sortInd[iterEdge]
-                # Get current length
-                curLength = lengths[curEdgeInd]
-                
-                # If reached maximum number of nodes
-                if (maxNumNodes <= nodes.shape[0]):
-                    break
-                
-                # If specified for each node
-                if maxDiam.size > 1:
-                    # Get current nodes
-                    curNodes = edges[curEdgeInd, :]
-                    # If all nodes in edge has a maximum diameter larger than current length
-                    if np.all( curLength < maxDiam[ curNodes ] ):
-                        continue
-                    else:
-                        # Set new nodes maximum diameter
-                        maxDiam = np.append( maxDiam, np.array([ np.mean( maxDiam[ curNodes ] ) ]) )
-                else:
-                    # If current length is small enough
-                    if curLength < maxDiam:
-                        break
-                            
-                # Add new node 
-                nodes = np.append( nodes, 0.5 * np.sum( nodes[ edges[curEdgeInd, :], : ], axis = 0 ).reshape(1, -1), axis = 0 )
-                
-                # Transform if needed
-                if transformation is not None:
-                    nodes[-1, :] = transformation(nodes[-1, :])
+            if transformation is not None:
+                array = np.ctypeslib.as_array(pointer, shape=(lengthOfPointer*self.embD, ))
+                outdata = array.reshape( (lengthOfPointer, self.embD) ).copy()
+                outdata = transformation(outdata)
+                array[:] = outdata.flatten()
+                # outer = np.ctypeslib.as_array(output, shape=(lengthOfPointer * self.embD, ))
+                # outer[:] = outdata.flatten()
+            # for iter in range(lengthOfPointer):
+            #     outer[iter, :] = outdata[iter,:]
+            
+            return 0
                 
                 
-                # Get simplices involved with current edge
-                curSimplexInds = np.where( np.any(triangles == edges[curEdgeInd, 0], axis=1) & np.any(triangles == edges[curEdgeInd, 1], axis=1) )[0]
-                # Loop through each simplex
-                for iterSimplex in curSimplexInds:                    
-                    # Make sure that edge is present
-                    if ( set( triangles[ iterSimplex, : ] ).issuperset( set( edges[curEdgeInd, :] ) ) ):
-                        # Add a copy of current triangle
-                        triangles = np.append( triangles, triangles[ iterSimplex, : ].reshape((1,-1)), axis = 0 )
-                        # Set current triangle to replace the second element of current edge with new node
-                        triangles[ iterSimplex, triangles[iterSimplex, :] == edges[curEdgeInd, 0] ] = nodes.shape[0]-1
-                        # Set new triangle to replace the first element of current edge with new node
-                        triangles[ -1, triangles[iterSimplex, :] == edges[curEdgeInd, 1] ] = nodes.shape[0]-1
-                    
+        
+        CMPFUNC = ctypes.CFUNCTYPE( ctypes.c_int,  self.c_double_p, ctypes.c_uint )
+        cmp_func = CMPFUNC( transformationWrapper )
+        
+        # Call low-level mesh refinement
+        self._libInstance.mesh_refineMesh.restype = ctypes.c_int
+        self._libInstance.mesh_refineMesh.argtypes = [ \
+              self.c_double_p, ctypes.c_uint, ctypes.c_uint, \
+              self.c_uint_p, ctypes.c_uint, ctypes.c_uint, \
+              self.c_uint_p, \
+              self.c_uint_p, self.c_uint_p, self.c_uint_p, \
+              ctypes.c_uint, self.c_double_p, ctypes.c_uint,\
+              CMPFUNC ]
+        status = self._libInstance.mesh_refineMesh( \
+            nodes_p, ctypes.c_uint( self.N ), ctypes.c_uint( self.embD ), \
+            triangles_p, ctypes.c_uint( self.NT ), ctypes.c_uint( self.topD ), \
+            neighs_p, \
+            ctypes.byref(newNumNodes), ctypes.byref(newNumSimplices), ctypes.byref(meshId), \
+            ctypes.c_uint(np.uintc(maxNumNodes)), maxDiam_p, ctypes.c_uint(np.uintc(maxDiam.size)), \
+            cmp_func )
+        if status != 0:
+            raise Exception( "Uknown error occured! Error code " + str(status) + " from mesh_refineMesh()" ) 
+            
+        newNodes = np.zeros( (newNumNodes.value, self.embD), dtype=np.float64)
+        newNodes_p = newNodes.ctypes.data_as(self.c_double_p)
+        newSimplices = np.zeros( (newNumSimplices.value, self.topD+1), dtype=np.uintc )
+        newSimplices_p = newSimplices.ctypes.data_as(self.c_uint_p)
+        newNeighs = np.zeros( (newNumSimplices.value, self.topD+1), dtype=np.uintc )
+        newNeighs_p = newNeighs.ctypes.data_as(self.c_uint_p)
+            
+        # Acquire low-level mesh
+        self._libInstance.mesh_acquireMesh.restype = ctypes.c_int
+        self._libInstance.mesh_acquireMesh.argtypes = [ ctypes.c_uint, \
+              self.c_double_p, ctypes.c_uint, ctypes.c_uint, \
+              self.c_uint_p, ctypes.c_uint, ctypes.c_uint, \
+              self.c_uint_p ]
+        status = self._libInstance.mesh_acquireMesh( meshId, \
+            newNodes_p, newNumNodes, ctypes.c_uint( self.embD ), \
+            newSimplices_p, newNumSimplices, ctypes.c_uint( self.topD ), \
+            newNeighs_p )
+        if status != 0:
+            raise Exception( "Uknown error occured! Error code " + str(status) + " from mesh_acquireMesh()" ) 
+            
             
         # Return new mesh
-        return Mesh(triangles, nodes)
+        return ( Mesh(newSimplices, newNodes), newNeighs )
     
     
     
@@ -236,6 +248,20 @@ class Mesh:
             self.boundary = self.computeBoundary()
             
         return self.boundary
+    
+    def getNeighs(self):
+        # Get neighborhood of mesh
+        
+        if self.topD > 1:
+            # Get all edges
+            edges = Mesh.getEdges( self.triangles, self.topD, 2, libInstance = self._libInstance )
+            # Get all neighbors
+            neighs = Mesh.getSimplexNeighbors( edges["simplicesForEdges"], edges["edgesForSimplices"], libInstance = self._libInstance )
+        else:
+            neighs = np.stack( ( np.arange( 0,self.NT-2, dtype=np.uintc ), np.arange( 2,self.NT, dtype=np.uintc ) ) ).transpose()
+            neighs = np.concatenate( ( np.array([self.NT, 1]).reshape((1,-1)), neighs, np.array([self.NT-2, self.NT]).reshape((1,-1))) )
+        
+        return neighs
         
     
     def computeBoundary(self):
@@ -294,16 +320,7 @@ class Mesh:
         numActive = activePoints.shape[1]
         numTriangles = mesh.triangles.shape[0]
         
-        # Compute distance between all observation points and nodes
-        minDist = np.array( [None] * numNodes )
-        minDistInd = np.array( [None] * numNodes )
-        # Find distance between points
-        dist = geom.distanceBetweenPointsOnSphere( activePoints, mesh.nodes.transpose() ) 
-        # Go through each node
-        for iter in range(numNodes):                           
-            # Find shortest distance 
-            minDistInd[iter] = np.argmin( dist[:, iter] )
-            minDist[iter] = dist[ minDistInd[iter], iter ]        
+        minDistInd, minDist = geom.smallestDistanceBetweenPointsOnSphere( mesh.nodes, activePoints.transpose().copy(), self._libInstance )
         
         # Mark all nodes too far away as outside
         outside = minDist > distance        
@@ -347,16 +364,7 @@ class Mesh:
         numActive = activePoints.shape[1]
         numTriangles = mesh.triangles.shape[0]
         
-        # Compute distance between all observation points and nodes
-        minDist = np.array( [None] * numNodes )
-        minDistInd = np.array( [None] * numNodes )
-        # Find distance between points
-        dist = geom.distanceBetweenPoints( activePoints, mesh.nodes.transpose() ) 
-        # Go through each node
-        for iter in range(numNodes):                           
-            # Find shortest distance 
-            minDistInd[iter] = np.argmin( dist[:, iter] )
-            minDist[iter] = dist[ minDistInd[iter], iter ]        
+        minDistInd, minDist = geom.smallestDistanceBetweenPoints( mesh.nodes, activePoints.transpose().copy(), self._libInstance )
         
         # Mark all nodes too far away as outside
         outside = minDist > distance        
@@ -457,17 +465,17 @@ class Mesh:
               edgesOutput = True, simplicesForEdgesOutput = True, edgesForSimplicesOutput = True, \
               libPath = "./meshLIB.so", libInstance = None ):
         '''
-        ' Acquire array of edges
-        '
-        ' triangles : simplices as a 2D array where each row is a separate simlex and the columns represent the indices of nodes in the simplex
-        ' topD : The dimensionality of the simplex (topD = 2 means that the simplex is a triangle, and hence have 3 nodes)
-        ' edgeD : Number of elements in an edge (edgeD = 2 correspond to an edge being a pair of points)
-        ' edgeOutput : True if an explicit list of edges should be acquired. (Default is True)
-        ' simplicesForEdgesOutput : True if an explicit list of which simplices that are associated to each edge should be acquired. (Default is True)
-        ' edgeForSimplicesOutput : True if an explicit list of which edges each simplex has should be acquired. (Default is True)
-        ' libPath : The path to the dynamically linked library to use for computing the edges
-        ' libInstance : A possible instance of the dynamically linked library. 
-        '
+        Acquire array of edges
+        
+        :param triangles: simplices as a 2D array where each row is a separate simlex and the columns represent the indices of nodes in the simplex
+        :param topD: The dimensionality of the simplex (topD = 2 means that the simplex is a triangle, and hence have 3 nodes)
+        :param edgeD: Number of elements in an edge (edgeD = 2 correspond to an edge being a pair of points)
+        :param edgeOutput: True if an explicit list of edges should be acquired. (Default is True)
+        :param simplicesForEdgesOutput: True if an explicit list of which simplices that are associated to each edge should be acquired. (Default is True)
+        :param edgeForSimplicesOutput: True if an explicit list of which edges each simplex has should be acquired. (Default is True)
+        :param libPath: The path to the dynamically linked library to use for computing the edges
+        :param libInstance: A possible instance of the dynamically linked library. 
+        
         '''
         
         if libInstance is None:
@@ -640,13 +648,8 @@ class Mesh:
         triangles[10, :] = np.array([1,3,5])
         triangles[11, :] = np.array([3,5,7])
         
-        # Define spherical surface projection
         def transformation(x):
-            y = x
-            if x.ndim == 1:
-                y = x.reshape((1, -1))
-                
-            return y / np.linalg.norm(y, axis=1).reshape((-1,1)) * radius
+            return radius * geom.mapToHypersphere(x)
         
         # Transform nodes of box
         nodes = transformation(nodes)
@@ -655,10 +658,10 @@ class Mesh:
         mesh = Mesh(nodes = nodes, triangles = triangles)
     
         # Refine to perfection
-        mesh = mesh.refine( maxDiam = maxDiam, maxNumNodes = maxNumNodes, transformation = transformation )
+        mesh, neighs = mesh.refine( maxDiam = maxDiam, maxNumNodes = maxNumNodes, transformation = transformation )
         
         
            
-        return mesh
+        return (mesh, neighs)
     
     

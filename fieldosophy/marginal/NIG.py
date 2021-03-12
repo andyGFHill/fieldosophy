@@ -29,6 +29,9 @@ c_double_p = ctypes.POINTER(ctypes.c_double)
 
 
 class NIGDistribution:
+    """
+    Class representing a NIG distribution.
+    """
 
     c_double_p = ctypes.POINTER(ctypes.c_double) 
     
@@ -69,13 +72,21 @@ class NIGDistribution:
         
         
         
-    # function for getting dictiionary representation of distribution
+    
     def getDict(self):
+        """
+        Function for getting dictionary representation of distribution
+        """
+        
         return ( {"alpha":self._alpha, "beta":self._beta, "mu":self._mu, "delta":self._delta} )
         
         
     # function for copying object    
     def copy(self):
+        """
+        :return Deep copy os self.
+        """
+        
         out =  NIGDistribution( self.getDict(), libPath = self._libPath, log = self._log )
         
         out._stats = self._stats
@@ -83,8 +94,12 @@ class NIGDistribution:
         
         return(out)
     
-    # Linear transformation
+    
     def linearTrans( self, pMu, pDelta ):
+        """
+        Linear transformation
+        """
+        
         alphaTilde = self._alpha * self._delta
         betaTilde = self._beta * self._delta
         mu = self._mu + pMu
@@ -96,8 +111,12 @@ class NIGDistribution:
         return( out )
             
         
-    # Compute CDF, PDF and Q approximation
+    
     def initProbs(self):
+        """
+        Compute CDF, PDF and Q approximations using spline interpolation
+        """
+        
         # Get points covering feasible region
         def findBorders(distr, sens = 1e-4, pointDens = 50.0/10.0):
             
@@ -274,6 +293,9 @@ class NIGDistribution:
     
     
     def getStats(self):
+        """
+        Get statistics of probability distribution.
+        """
         
         if self._stats is None:        
             self._stats = self.computeStatistics()               
@@ -285,8 +307,16 @@ class NIGDistribution:
     
     
 
-    # Sample from NIG distribution
+    
     def sample( self, size, log = None ):
+        """
+        Sample from NIG distribution.
+        
+        :param size: The sample size.
+        :param log: Flag seting if the sample should be logarithmized.
+        
+        :return A sample from the distribution.
+        """
         
         if log is None:
             log = self._log
@@ -309,8 +339,11 @@ class NIGDistribution:
         return(out)
     
     
-    # limiting PDF
+    
     def limPDF( self, data, log = None ):
+        """
+        Limiting PDF
+        """
         
         if log is None:
             log = self._log
@@ -333,16 +366,22 @@ class NIGDistribution:
                 
     
 
-    # PDF function of NIG
+    
     def PDF( self, data, log = None ):    
+        """
+        PDF function of NIG
+        """
         
         if log is None:
             log = self._log
             
         return( np.exp(self.lPDF(data, log = log)) )    
     
-    # log-PDF function of NIG
+    
     def lPDF( self, data, log = None ):
+        """
+        log-PDF function of NIG
+        """
         
         if log is None:
             log = self._log
@@ -393,8 +432,11 @@ class NIGDistribution:
         
 
 
-    # CDF function of NIG
+    
     def CDF( self, data, log = None ):
+        """
+        CDF function of NIG.
+        """
         
         if log is None:
             log = self._log
@@ -424,8 +466,11 @@ class NIGDistribution:
         return( out )
     
     
-    # Approximate CDF function
+    
     def approximateCDF( self, x, log = None ):
+        """
+        Approximate CDF function
+        """
         
         if log is None:
             log = self._log
@@ -469,6 +514,9 @@ class NIGDistribution:
         return( y )
     
     def approximateQ( self, y, log = None ):
+        """
+        Approximate quantile function
+        """
         
         if log is None:
             log = self._log
@@ -511,8 +559,11 @@ class NIGDistribution:
     
         
 
-    # Quantile function of NIG
+    
     def Q( self, data, log = None ):
+        """
+        Quantile function of NIG
+        """
         
         if log is None:
             log = self._log
@@ -540,8 +591,11 @@ class NIGDistribution:
 
 
 
-    # Transform NIG distribution to Gaussian
+    
     def NIG2Gauss( self, data, log = None ):
+        """
+        Transform data from NIG distribution to Gaussian
+        """
         
         if log is None:
             log = self._log
@@ -566,8 +620,11 @@ class NIGDistribution:
 
     
     
-    # Transform Gaussian distribution to NIG
+    
     def Gauss2NIG( self, data, log = None ):
+        """
+        Transform data from Gaussian distribution to NIG
+        """
         
         if log is None:
             log = self._log
@@ -620,18 +677,22 @@ class NIGDistribution:
     
     
 class NIGEstimation:
-    # Capsule for NIG distribution estimations    
+    """
+    Class for estimating NIG distributions from data in different ways.
+    """
     
     c_double_p = ctypes.POINTER(ctypes.c_double) 
     
         
         
-    '''    
-    ' Compute maximum likelihood estimates of the NIG parameters    
-    '
-    ' Algorithm acquired from Karlis, D. (2002), "An EM type algorithm for maximum likelihood estimation of the normal-inverse Gaussian distribution"
-    ''' 
+    
     def EMMLE( x, init = None, maxIter = 100, tol = 0, libPath = os.path.join( os.path.dirname( __file__), "../libraries/libSPDEC.so" ) ):
+        """
+        Compute maximum likelihood estimates of the NIG parameters    
+        
+        Algorithm acquired from Karlis, D. (2002), "An EM type algorithm for maximum likelihood estimation of the normal-inverse Gaussian distribution"
+        """
+        
     
         # If init is not supplied    
         if init is None:
@@ -731,12 +792,11 @@ class NIGEstimation:
                 
                 
 
-    '''    
-    ' Estiamte ML by gradient based optimization
-    '
-    ' 
-    ''' 
+
     def gradientMLE( x, init = None, maxIter = 100, tol = 0 ):
+        """
+        Estimate a NIG distribution from data using gradient based optimization on maximum likelihood function.
+        """
         
         # If init is not supplied    
         if init is None:
@@ -985,6 +1045,11 @@ class NIGEstimation:
     ' Algorithm acquired from Karlis, D. (2002), "An EM type algorithm for maximum likelihood estimation of the normal-inverse Gaussian distribution"
     ''' 
     def MOM( x ):
+        """
+        Compute method of moments estimates of the NIG parameters    
+
+        Algorithm acquired from Karlis, D. (2002), "An EM type algorithm for maximum likelihood estimation of the normal-inverse Gaussian distribution"
+        """
         
         # Preallocate
         mu = np.zeros(x.shape[1], dtype = "float64")

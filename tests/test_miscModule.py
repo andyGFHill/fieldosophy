@@ -27,6 +27,8 @@ class test_miscModule( unittest.TestCase ):
     def test_simplexNeighbors2D(self):
         # Test case to make sure that the neighboring simplices are actually neighboring (in 2D).
 
+        print("Testing approximating power function with rational function!")
+        
         # Define the order of the numerator polynomial
         m = 2
         # Define the order of the denominator polynomial

@@ -1,0 +1,784 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="English">
+  <head>
+    <meta charset="utf-8" />
+    <title>fieldosophy.mesh package &#8212; Fieldosophy 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="fieldosophy.misc package" href="fieldosophy.misc.html" />
+    <link rel="prev" title="fieldosophy.marginal package" href="fieldosophy.marginal.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="fieldosophy.misc.html" title="fieldosophy.misc package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="fieldosophy.marginal.html" title="fieldosophy.marginal package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Fieldosophy 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api_reference.html" accesskey="U">Fieldosophy API</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="fieldosophy-mesh-package">
+<h1>fieldosophy.mesh package<a class="headerlink" href="#fieldosophy-mesh-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-fieldosophy.mesh.HyperRectMesh">
+<span id="fieldosophy-mesh-hyperrectmesh-module"></span><h2>fieldosophy.mesh.HyperRectMesh module<a class="headerlink" href="#module-fieldosophy.mesh.HyperRectMesh" title="Permalink to this headline">¶</a></h2>
+<p>Functionality for hyper rectangular mesh extensions into new dimensions.</p>
+<p>This file is part of Fieldosophy, a toolkit for random fields.</p>
+<p>Copyright (C) 2021 Anders Gunnar Felix Hildeman &lt;<a class="reference external" href="mailto:fieldosophySPDEC&#37;&#52;&#48;gmail&#46;com">fieldosophySPDEC<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</p>
+<p>This Source Code is subject to the terms of the BSD 3-Clause License.
+If a copy of the license was not distributed with this file, you can obtain one at <a class="reference external" href="https://opensource.org/licenses/BSD-3-Clause">https://opensource.org/licenses/BSD-3-Clause</a>.</p>
+<dl class="class">
+<dt id="fieldosophy.mesh.HyperRectMesh.HyperRectMesh">
+<em class="property">class </em><code class="sig-prename descclassname">fieldosophy.mesh.HyperRectMesh.</code><code class="sig-name descname">HyperRectMesh</code><span class="sig-paren">(</span><em class="sig-param">mesh</em>, <em class="sig-param">offset=None</em>, <em class="sig-param">stepLengths=None</em>, <em class="sig-param">numSteps=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.HyperRectMesh.HyperRectMesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="fieldosophy.mesh.HyperRectMesh.HyperRectMesh.N">
+<code class="sig-name descname">N</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.mesh.HyperRectMesh.HyperRectMesh.N" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.HyperRectMesh.HyperRectMesh.NT">
+<code class="sig-name descname">NT</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.mesh.HyperRectMesh.HyperRectMesh.NT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.HyperRectMesh.HyperRectMesh.c_bool_p">
+<code class="sig-name descname">c_bool_p</code><a class="headerlink" href="#fieldosophy.mesh.HyperRectMesh.HyperRectMesh.c_bool_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.misc.misc_templateMatching.LP_c_bool</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.HyperRectMesh.HyperRectMesh.c_double_p">
+<code class="sig-name descname">c_double_p</code><a class="headerlink" href="#fieldosophy.mesh.HyperRectMesh.HyperRectMesh.c_double_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.misc.misc_templateMatching.LP_c_double</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.HyperRectMesh.HyperRectMesh.c_uint_p">
+<code class="sig-name descname">c_uint_p</code><a class="headerlink" href="#fieldosophy.mesh.HyperRectMesh.HyperRectMesh.c_uint_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.misc.misc_templateMatching.LP_c_uint</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.HyperRectMesh.HyperRectMesh.embD">
+<code class="sig-name descname">embD</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.mesh.HyperRectMesh.HyperRectMesh.embD" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.HyperRectMesh.HyperRectMesh.logout">
+<code class="sig-name descname">logout</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.HyperRectMesh.HyperRectMesh.logout" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.HyperRectMesh.HyperRectMesh.topD">
+<code class="sig-name descname">topD</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.mesh.HyperRectMesh.HyperRectMesh.topD" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-fieldosophy.mesh.ImplicitMesh">
+<span id="fieldosophy-mesh-implicitmesh-module"></span><h2>fieldosophy.mesh.ImplicitMesh module<a class="headerlink" href="#module-fieldosophy.mesh.ImplicitMesh" title="Permalink to this headline">¶</a></h2>
+<p>Functionality for implicit extension of mesh.</p>
+<p>This file is part of Fieldosophy, a toolkit for random fields.</p>
+<p>Copyright (C) 2021 Anders Gunnar Felix Hildeman &lt;<a class="reference external" href="mailto:fieldosophySPDEC&#37;&#52;&#48;gmail&#46;com">fieldosophySPDEC<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</p>
+<p>This Source Code is subject to the terms of the BSD 3-Clause License.
+If a copy of the license was not distributed with this file, you can obtain one at <a class="reference external" href="https://opensource.org/licenses/BSD-3-Clause">https://opensource.org/licenses/BSD-3-Clause</a>.</p>
+<dl class="class">
+<dt id="fieldosophy.mesh.ImplicitMesh.ImplicitMesh">
+<em class="property">class </em><code class="sig-prename descclassname">fieldosophy.mesh.ImplicitMesh.</code><code class="sig-name descname">ImplicitMesh</code><span class="sig-paren">(</span><em class="sig-param">mesh</em>, <em class="sig-param">offset=None</em>, <em class="sig-param">numPerDimension=None</em>, <em class="sig-param">neighs=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.ImplicitMesh.ImplicitMesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="fieldosophy.mesh.ImplicitMesh.ImplicitMesh.N">
+<code class="sig-name descname">N</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.mesh.ImplicitMesh.ImplicitMesh.N" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.ImplicitMesh.ImplicitMesh.NT">
+<code class="sig-name descname">NT</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.mesh.ImplicitMesh.ImplicitMesh.NT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.ImplicitMesh.ImplicitMesh.c_bool_p">
+<code class="sig-name descname">c_bool_p</code><a class="headerlink" href="#fieldosophy.mesh.ImplicitMesh.ImplicitMesh.c_bool_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.misc.misc_templateMatching.LP_c_bool</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.ImplicitMesh.ImplicitMesh.c_double_p">
+<code class="sig-name descname">c_double_p</code><a class="headerlink" href="#fieldosophy.mesh.ImplicitMesh.ImplicitMesh.c_double_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.misc.misc_templateMatching.LP_c_double</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.ImplicitMesh.ImplicitMesh.c_uint_p">
+<code class="sig-name descname">c_uint_p</code><a class="headerlink" href="#fieldosophy.mesh.ImplicitMesh.ImplicitMesh.c_uint_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.misc.misc_templateMatching.LP_c_uint</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.ImplicitMesh.ImplicitMesh.fromNodeInd2SectorAndExplicit">
+<code class="sig-name descname">fromNodeInd2SectorAndExplicit</code><span class="sig-paren">(</span><em class="sig-param">nodeInd</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.ImplicitMesh.ImplicitMesh.fromNodeInd2SectorAndExplicit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.ImplicitMesh.ImplicitMesh.fromSectorAndExplicit2Node">
+<code class="sig-name descname">fromSectorAndExplicit2Node</code><span class="sig-paren">(</span><em class="sig-param">sector</em>, <em class="sig-param">explicitInd</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.ImplicitMesh.ImplicitMesh.fromSectorAndExplicit2Node" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.ImplicitMesh.ImplicitMesh.getFullNeighs">
+<code class="sig-name descname">getFullNeighs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.ImplicitMesh.ImplicitMesh.getFullNeighs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.ImplicitMesh.ImplicitMesh.logout">
+<code class="sig-name descname">logout</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.ImplicitMesh.ImplicitMesh.logout" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.ImplicitMesh.ImplicitMesh.nodeInSimplex">
+<code class="sig-name descname">nodeInSimplex</code><span class="sig-paren">(</span><em class="sig-param">nodeInd</em>, <em class="sig-param">simplexInd</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.ImplicitMesh.ImplicitMesh.nodeInSimplex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.ImplicitMesh.ImplicitMesh.pointInSimplex">
+<code class="sig-name descname">pointInSimplex</code><span class="sig-paren">(</span><em class="sig-param">point</em>, <em class="sig-param">simplexInd</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.ImplicitMesh.ImplicitMesh.pointInSimplex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.ImplicitMesh.ImplicitMesh.toFullMesh">
+<code class="sig-name descname">toFullMesh</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.ImplicitMesh.ImplicitMesh.toFullMesh" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-fieldosophy.mesh.Mesh">
+<span id="fieldosophy-mesh-mesh-module"></span><h2>fieldosophy.mesh.Mesh module<a class="headerlink" href="#module-fieldosophy.mesh.Mesh" title="Permalink to this headline">¶</a></h2>
+<p>Functionality for meshes.</p>
+<p>This file is part of Fieldosophy, a toolkit for random fields.</p>
+<p>Copyright (C) 2021 Anders Gunnar Felix Hildeman &lt;<a class="reference external" href="mailto:fieldosophySPDEC&#37;&#52;&#48;gmail&#46;com">fieldosophySPDEC<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</p>
+<p>This Source Code is subject to the terms of the BSD 3-Clause License.
+If a copy of the license was not distributed with this file, you can obtain one at <a class="reference external" href="https://opensource.org/licenses/BSD-3-Clause">https://opensource.org/licenses/BSD-3-Clause</a>.</p>
+<dl class="class">
+<dt id="fieldosophy.mesh.Mesh.Mesh">
+<em class="property">class </em><code class="sig-prename descclassname">fieldosophy.mesh.Mesh.</code><code class="sig-name descname">Mesh</code><span class="sig-paren">(</span><em class="sig-param">triangles</em>, <em class="sig-param">nodes</em>, <em class="sig-param">libPath=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="fieldosophy.mesh.Mesh.Mesh.N">
+<code class="sig-name descname">N</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.N" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.Mesh.Mesh.NT">
+<code class="sig-name descname">NT</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.NT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.Mesh.Mesh.boundary">
+<code class="sig-name descname">boundary</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.boundary" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.Mesh.Mesh.c_bool_p">
+<code class="sig-name descname">c_bool_p</code><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.c_bool_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.misc.misc_templateMatching.LP_c_bool</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.Mesh.Mesh.c_double_p">
+<code class="sig-name descname">c_double_p</code><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.c_double_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.misc.misc_templateMatching.LP_c_double</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.Mesh.Mesh.c_uint_p">
+<code class="sig-name descname">c_uint_p</code><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.c_uint_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.misc.misc_templateMatching.LP_c_uint</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.Mesh.Mesh.computeBoundary">
+<code class="sig-name descname">computeBoundary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.computeBoundary" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.Mesh.Mesh.copy">
+<code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.copy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.Mesh.Mesh.cutOutsideMesh">
+<code class="sig-name descname">cutOutsideMesh</code><span class="sig-paren">(</span><em class="sig-param">activePoints</em>, <em class="sig-param">distance</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.cutOutsideMesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove nodes in mesh outside of specified planar distance</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.Mesh.Mesh.cutOutsideMeshOnSphere">
+<code class="sig-name descname">cutOutsideMeshOnSphere</code><span class="sig-paren">(</span><em class="sig-param">activePoints</em>, <em class="sig-param">distance</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.cutOutsideMeshOnSphere" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove nodes in mesh outside of specified spherical distance</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.Mesh.Mesh.embD">
+<code class="sig-name descname">embD</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.embD" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.Mesh.Mesh.getBoundary">
+<code class="sig-name descname">getBoundary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.getBoundary" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.Mesh.Mesh.getBoundingBox">
+<code class="sig-name descname">getBoundingBox</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.getBoundingBox" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.Mesh.Mesh.getEdges">
+<code class="sig-name descname">getEdges</code><span class="sig-paren">(</span><em class="sig-param">topD</em>, <em class="sig-param">edgeD</em>, <em class="sig-param">edgesOutput=True</em>, <em class="sig-param">simplicesForEdgesOutput=True</em>, <em class="sig-param">edgesForSimplicesOutput=True</em>, <em class="sig-param">libPath='./meshLIB.so'</em>, <em class="sig-param">libInstance=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.getEdges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Acquire array of edges</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>triangles</strong> -- simplices as a 2D array where each row is a separate simlex and the columns represent the indices of nodes in the simplex</p></li>
+<li><p><strong>topD</strong> -- The dimensionality of the simplex (topD = 2 means that the simplex is a triangle, and hence have 3 nodes)</p></li>
+<li><p><strong>edgeD</strong> -- Number of elements in an edge (edgeD = 2 correspond to an edge being a pair of points)</p></li>
+<li><p><strong>edgeOutput</strong> -- True if an explicit list of edges should be acquired. (Default is True)</p></li>
+<li><p><strong>simplicesForEdgesOutput</strong> -- True if an explicit list of which simplices that are associated to each edge should be acquired. (Default is True)</p></li>
+<li><p><strong>edgeForSimplicesOutput</strong> -- True if an explicit list of which edges each simplex has should be acquired. (Default is True)</p></li>
+<li><p><strong>libPath</strong> -- The path to the dynamically linked library to use for computing the edges</p></li>
+<li><p><strong>libInstance</strong> -- A possible instance of the dynamically linked library.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.Mesh.Mesh.getNeighs">
+<code class="sig-name descname">getNeighs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.getNeighs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.Mesh.Mesh.getObsMat">
+<code class="sig-name descname">getObsMat</code><span class="sig-paren">(</span><em class="sig-param">points</em>, <em class="sig-param">embTol=0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.getObsMat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.Mesh.Mesh.getSimplexNeighbors">
+<code class="sig-name descname">getSimplexNeighbors</code><span class="sig-paren">(</span><em class="sig-param">edgesForSimplices</em>, <em class="sig-param">libPath='./meshLIB.so'</em>, <em class="sig-param">libInstance=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.getSimplexNeighbors" title="Permalink to this definition">¶</a></dt>
+<dd><p>' Compute neighboring simplices for every simplex in mesh
+'
+' simplicesForEdges: matrix where row correspond to edge index and columns correspond to simplex indices associated with edge in corresponding row.
+' edgesForSimplices: matrix where row correspond to simplex index and columns correspond to edge indices associated with simplex in corresponding row.
+' libPath : The path to the dynamically linked library to use for computing the edges
+' libInstance : A possible instance of the dynamically linked library.
+'</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.Mesh.Mesh.getSimplicesForNodes">
+<code class="sig-name descname">getSimplicesForNodes</code><span class="sig-paren">(</span><em class="sig-param">nodeIndices</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.getSimplicesForNodes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.Mesh.Mesh.getSimplicesForPoints">
+<code class="sig-name descname">getSimplicesForPoints</code><span class="sig-paren">(</span><em class="sig-param">points</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.getSimplicesForPoints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.Mesh.Mesh.getStatistics">
+<code class="sig-name descname">getStatistics</code><span class="sig-paren">(</span><em class="sig-param">calculate=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.getStatistics" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.Mesh.Mesh.loadMeshFromFile">
+<code class="sig-name descname">loadMeshFromFile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.loadMeshFromFile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.Mesh.Mesh.meshOnSphere">
+<code class="sig-name descname">meshOnSphere</code><span class="sig-paren">(</span><em class="sig-param">maxDiam</em>, <em class="sig-param">maxNumNodes</em>, <em class="sig-param">radius=1</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.meshOnSphere" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates triangular mesh on sphere surface.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.Mesh.Mesh.nodes">
+<code class="sig-name descname">nodes</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.nodes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.Mesh.Mesh.refine">
+<code class="sig-name descname">refine</code><span class="sig-paren">(</span><em class="sig-param">maxDiam</em>, <em class="sig-param">maxNumNodes</em>, <em class="sig-param">neighs=None</em>, <em class="sig-param">transformation=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.refine" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.Mesh.Mesh.saveMesh">
+<code class="sig-name descname">saveMesh</code><span class="sig-paren">(</span><em class="sig-param">msh_filename=None</em>, <em class="sig-param">vtk_filename=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.saveMesh" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.Mesh.Mesh.saveMeshToFile">
+<code class="sig-name descname">saveMeshToFile</code><span class="sig-paren">(</span><em class="sig-param">msh_filename=None</em>, <em class="sig-param">vtk_filename=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.saveMeshToFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves a mesh to file</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.Mesh.Mesh.topD">
+<code class="sig-name descname">topD</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.topD" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.Mesh.Mesh.triangles">
+<code class="sig-name descname">triangles</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.mesh.Mesh.Mesh.triangles" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-fieldosophy.mesh.MeshDistanceFinder">
+<span id="fieldosophy-mesh-meshdistancefinder-module"></span><h2>fieldosophy.mesh.MeshDistanceFinder module<a class="headerlink" href="#module-fieldosophy.mesh.MeshDistanceFinder" title="Permalink to this headline">¶</a></h2>
+<p>Functionality for finding distances between points.</p>
+<p>This file is part of Fieldosophy, a toolkit for random fields.</p>
+<p>Copyright (C) 2021 Anders Gunnar Felix Hildeman &lt;<a class="reference external" href="mailto:fieldosophySPDEC&#37;&#52;&#48;gmail&#46;com">fieldosophySPDEC<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</p>
+<p>This Source Code is subject to the terms of the BSD 3-Clause License.
+If a copy of the license was not distributed with this file, you can obtain one at <a class="reference external" href="https://opensource.org/licenses/BSD-3-Clause">https://opensource.org/licenses/BSD-3-Clause</a>.</p>
+<dl class="class">
+<dt id="fieldosophy.mesh.MeshDistanceFinder.MeshDistanceFinder">
+<em class="property">class </em><code class="sig-prename descclassname">fieldosophy.mesh.MeshDistanceFinder.</code><code class="sig-name descname">MeshDistanceFinder</code><span class="sig-paren">(</span><em class="sig-param">mesh</em>, <em class="sig-param">metricTensors</em>, <em class="sig-param">tensorMode</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.MeshDistanceFinder.MeshDistanceFinder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="fieldosophy.mesh.MeshDistanceFinder.MeshDistanceFinder.c_bool_p">
+<code class="sig-name descname">c_bool_p</code><a class="headerlink" href="#fieldosophy.mesh.MeshDistanceFinder.MeshDistanceFinder.c_bool_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.misc.misc_templateMatching.LP_c_bool</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.MeshDistanceFinder.MeshDistanceFinder.c_double_p">
+<code class="sig-name descname">c_double_p</code><a class="headerlink" href="#fieldosophy.mesh.MeshDistanceFinder.MeshDistanceFinder.c_double_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.misc.misc_templateMatching.LP_c_double</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.MeshDistanceFinder.MeshDistanceFinder.c_uint_p">
+<code class="sig-name descname">c_uint_p</code><a class="headerlink" href="#fieldosophy.mesh.MeshDistanceFinder.MeshDistanceFinder.c_uint_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.misc.misc_templateMatching.LP_c_uint</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.MeshDistanceFinder.MeshDistanceFinder.checkInternal">
+<code class="sig-name descname">checkInternal</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.MeshDistanceFinder.MeshDistanceFinder.checkInternal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.MeshDistanceFinder.MeshDistanceFinder.findShortestGraphPathAStar">
+<code class="sig-name descname">findShortestGraphPathAStar</code><span class="sig-paren">(</span><em class="sig-param">startNodeInd</em>, <em class="sig-param">startNodeSimplex</em>, <em class="sig-param">endNodeInd</em>, <em class="sig-param">endPointSimplex</em>, <em class="sig-param">startPoint=None</em>, <em class="sig-param">endPoint=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.MeshDistanceFinder.MeshDistanceFinder.findShortestGraphPathAStar" title="Permalink to this definition">¶</a></dt>
+<dd><p>' Find shortest path between a start point and a end point
+'</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.MeshDistanceFinder.MeshDistanceFinder.findShortestGraphPathDijkstra">
+<code class="sig-name descname">findShortestGraphPathDijkstra</code><span class="sig-paren">(</span><em class="sig-param">startNodeInd</em>, <em class="sig-param">startNodeSimplex</em>, <em class="sig-param">startPoint=None</em>, <em class="sig-param">endNodeInds=array([]</em>, <em class="sig-param">dtype=float64)</em>, <em class="sig-param">endPoints=None</em>, <em class="sig-param">endPointsSimplices=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.MeshDistanceFinder.MeshDistanceFinder.findShortestGraphPathDijkstra" title="Permalink to this definition">¶</a></dt>
+<dd><p>' Find shortest path between a start point and one or several end points
+'</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.MeshDistanceFinder.MeshDistanceFinder.getNodesFromGraphPath">
+<code class="sig-name descname">getNodesFromGraphPath</code><span class="sig-paren">(</span><em class="sig-param">origin</em>, <em class="sig-param">priorNodes</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.MeshDistanceFinder.MeshDistanceFinder.getNodesFromGraphPath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.MeshDistanceFinder.MeshDistanceFinder.logout">
+<code class="sig-name descname">logout</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.MeshDistanceFinder.MeshDistanceFinder.logout" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.MeshDistanceFinder.MeshDistanceFinder.tightenGraphPath">
+<code class="sig-name descname">tightenGraphPath</code><span class="sig-paren">(</span><em class="sig-param">pathNodes</em>, <em class="sig-param">startPoint=None</em>, <em class="sig-param">endPoint=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.MeshDistanceFinder.MeshDistanceFinder.tightenGraphPath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-fieldosophy.mesh.MeshGraph">
+<span id="fieldosophy-mesh-meshgraph-module"></span><h2>fieldosophy.mesh.MeshGraph module<a class="headerlink" href="#module-fieldosophy.mesh.MeshGraph" title="Permalink to this headline">¶</a></h2>
+<p>functionality for the mesh graph, i.e., a graph that divides the mesh up into chunks.</p>
+<p>This file is part of Fieldosophy, a toolkit for random fields.</p>
+<p>Copyright (C) 2021 Anders Gunnar Felix Hildeman &lt;<a class="reference external" href="mailto:fieldosophySPDEC&#37;&#52;&#48;gmail&#46;com">fieldosophySPDEC<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</p>
+<p>This Source Code is subject to the terms of the BSD 3-Clause License.
+If a copy of the license was not distributed with this file, you can obtain one at <a class="reference external" href="https://opensource.org/licenses/BSD-3-Clause">https://opensource.org/licenses/BSD-3-Clause</a>.</p>
+<dl class="class">
+<dt id="fieldosophy.mesh.MeshGraph.MeshGraph">
+<em class="property">class </em><code class="sig-prename descclassname">fieldosophy.mesh.MeshGraph.</code><code class="sig-name descname">MeshGraph</code><span class="sig-paren">(</span><em class="sig-param">triangles</em>, <em class="sig-param">nodes</em>, <em class="sig-param">minGraphDiam</em>, <em class="sig-param">maxNumGraphNodes=10</em>, <em class="sig-param">minNumTrianglesInGraph=1</em>, <em class="sig-param">libPath=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.MeshGraph.MeshGraph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="fieldosophy.mesh.MeshGraph.MeshGraph.boundaries">
+<code class="sig-name descname">boundaries</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.mesh.MeshGraph.MeshGraph.boundaries" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.MeshGraph.MeshGraph.c_double_p">
+<code class="sig-name descname">c_double_p</code><a class="headerlink" href="#fieldosophy.mesh.MeshGraph.MeshGraph.c_double_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.misc.misc_templateMatching.LP_c_double</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.MeshGraph.MeshGraph.c_uint_p">
+<code class="sig-name descname">c_uint_p</code><a class="headerlink" href="#fieldosophy.mesh.MeshGraph.MeshGraph.c_uint_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.misc.misc_templateMatching.LP_c_uint</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.MeshGraph.MeshGraph.prepareForPlotting">
+<code class="sig-name descname">prepareForPlotting</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.MeshGraph.MeshGraph.prepareForPlotting" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.MeshGraph.MeshGraph.triangleList">
+<code class="sig-name descname">triangleList</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.mesh.MeshGraph.MeshGraph.triangleList" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-fieldosophy.mesh.MeshPlotter">
+<span id="fieldosophy-mesh-meshplotter-module"></span><h2>fieldosophy.mesh.MeshPlotter module<a class="headerlink" href="#module-fieldosophy.mesh.MeshPlotter" title="Permalink to this headline">¶</a></h2>
+<p>Functionality for plotting meshes.</p>
+<p>This file is part of Fieldosophy, a toolkit for random fields.</p>
+<p>Copyright (C) 2021 Anders Gunnar Felix Hildeman &lt;<a class="reference external" href="mailto:fieldosophySPDEC&#37;&#52;&#48;gmail&#46;com">fieldosophySPDEC<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</p>
+<p>This Source Code is subject to the terms of the BSD 3-Clause License.
+If a copy of the license was not distributed with this file, you can obtain one at <a class="reference external" href="https://opensource.org/licenses/BSD-3-Clause">https://opensource.org/licenses/BSD-3-Clause</a>.</p>
+<dl class="class">
+<dt id="fieldosophy.mesh.MeshPlotter.MeshPlotter">
+<em class="property">class </em><code class="sig-prename descclassname">fieldosophy.mesh.MeshPlotter.</code><code class="sig-name descname">MeshPlotter</code><span class="sig-paren">(</span><em class="sig-param">mesh</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.MeshPlotter.MeshPlotter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="fieldosophy.mesh.MeshPlotter.MeshPlotter.boundaryEdges">
+<code class="sig-name descname">boundaryEdges</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.mesh.MeshPlotter.MeshPlotter.boundaryEdges" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.MeshPlotter.MeshPlotter.computeBoundaryEdges">
+<code class="sig-name descname">computeBoundaryEdges</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.MeshPlotter.MeshPlotter.computeBoundaryEdges" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.MeshPlotter.MeshPlotter.computeEdges">
+<code class="sig-name descname">computeEdges</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.MeshPlotter.MeshPlotter.computeEdges" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.MeshPlotter.MeshPlotter.edges">
+<code class="sig-name descname">edges</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.mesh.MeshPlotter.MeshPlotter.edges" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.MeshPlotter.MeshPlotter.getBoundaryLines">
+<code class="sig-name descname">getBoundaryLines</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.MeshPlotter.MeshPlotter.getBoundaryLines" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.MeshPlotter.MeshPlotter.getLines">
+<code class="sig-name descname">getLines</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.MeshPlotter.MeshPlotter.getLines" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.mesh.MeshPlotter.MeshPlotter.getSimplicesLines">
+<code class="sig-name descname">getSimplicesLines</code><span class="sig-paren">(</span><em class="sig-param">simpInds=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.MeshPlotter.MeshPlotter.getSimplicesLines" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-fieldosophy.mesh.geometrical_functions">
+<span id="fieldosophy-mesh-geometrical-functions-module"></span><h2>fieldosophy.mesh.geometrical_functions module<a class="headerlink" href="#module-fieldosophy.mesh.geometrical_functions" title="Permalink to this headline">¶</a></h2>
+<p>Geometrical functionality.</p>
+<p>This file is part of Fieldosophy, a toolkit for random fields.</p>
+<p>Copyright (C) 2021 Anders Gunnar Felix Hildeman &lt;<a class="reference external" href="mailto:fieldosophySPDEC&#37;&#52;&#48;gmail&#46;com">fieldosophySPDEC<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</p>
+<p>This Source Code is subject to the terms of the BSD 3-Clause License.
+If a copy of the license was not distributed with this file, you can obtain one at <a class="reference external" href="https://opensource.org/licenses/BSD-3-Clause">https://opensource.org/licenses/BSD-3-Clause</a>.</p>
+<dl class="function">
+<dt id="fieldosophy.mesh.geometrical_functions.addSphereDistance">
+<code class="sig-prename descclassname">fieldosophy.mesh.geometrical_functions.</code><code class="sig-name descname">addSphereDistance</code><span class="sig-paren">(</span><em class="sig-param">point, vec, angle, north=[0, 0, 1]</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.geometrical_functions.addSphereDistance" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.mesh.geometrical_functions.distanceBetweenPoints">
+<code class="sig-prename descclassname">fieldosophy.mesh.geometrical_functions.</code><code class="sig-name descname">distanceBetweenPoints</code><span class="sig-paren">(</span><em class="sig-param">points1</em>, <em class="sig-param">points2=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.geometrical_functions.distanceBetweenPoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find euclidean distance between points.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.mesh.geometrical_functions.distanceBetweenPointsOnSphere">
+<code class="sig-prename descclassname">fieldosophy.mesh.geometrical_functions.</code><code class="sig-name descname">distanceBetweenPointsOnSphere</code><span class="sig-paren">(</span><em class="sig-param">points1</em>, <em class="sig-param">points2=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.geometrical_functions.distanceBetweenPointsOnSphere" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find geodesic distance between points on unit sphere.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.mesh.geometrical_functions.distanceOnSphere">
+<code class="sig-prename descclassname">fieldosophy.mesh.geometrical_functions.</code><code class="sig-name descname">distanceOnSphere</code><span class="sig-paren">(</span><em class="sig-param">point1</em>, <em class="sig-param">point2</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.geometrical_functions.distanceOnSphere" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.mesh.geometrical_functions.extendRectBoundInPlane">
+<code class="sig-prename descclassname">fieldosophy.mesh.geometrical_functions.</code><code class="sig-name descname">extendRectBoundInPlane</code><span class="sig-paren">(</span><em class="sig-param">lon</em>, <em class="sig-param">lat</em>, <em class="sig-param">corrMin</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.geometrical_functions.extendRectBoundInPlane" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extend the boundary of (an assumed rectangular) domain in lon-lat coordinates on the sphere</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.mesh.geometrical_functions.extendRectBoundOnSphere">
+<code class="sig-prename descclassname">fieldosophy.mesh.geometrical_functions.</code><code class="sig-name descname">extendRectBoundOnSphere</code><span class="sig-paren">(</span><em class="sig-param">lon</em>, <em class="sig-param">lat</em>, <em class="sig-param">corrMin</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.geometrical_functions.extendRectBoundOnSphere" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extend the boundary of (an assumed rectangular) domain in lon-lat coordinates on the sphere</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.mesh.geometrical_functions.getLocalCoordOnSphere">
+<code class="sig-prename descclassname">fieldosophy.mesh.geometrical_functions.</code><code class="sig-name descname">getLocalCoordOnSphere</code><span class="sig-paren">(</span><em class="sig-param">point, north=[0, 0, 1]</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.geometrical_functions.getLocalCoordOnSphere" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.mesh.geometrical_functions.getRotationMatrix">
+<code class="sig-prename descclassname">fieldosophy.mesh.geometrical_functions.</code><code class="sig-name descname">getRotationMatrix</code><span class="sig-paren">(</span><em class="sig-param">angle</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.geometrical_functions.getRotationMatrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.mesh.geometrical_functions.lonlat2Sphere">
+<code class="sig-prename descclassname">fieldosophy.mesh.geometrical_functions.</code><code class="sig-name descname">lonlat2Sphere</code><span class="sig-paren">(</span><em class="sig-param">lonlat</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.geometrical_functions.lonlat2Sphere" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.mesh.geometrical_functions.mapToHypersphere">
+<code class="sig-prename descclassname">fieldosophy.mesh.geometrical_functions.</code><code class="sig-name descname">mapToHypersphere</code><span class="sig-paren">(</span><em class="sig-param">x</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.geometrical_functions.mapToHypersphere" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that maps points in R^d to the unit hypersphere</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> -- Points to map in n x d format, where 'n' is the number of points and 'd' the dimensionality.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.mesh.geometrical_functions.smallestDistanceBetweenPoints">
+<code class="sig-prename descclassname">fieldosophy.mesh.geometrical_functions.</code><code class="sig-name descname">smallestDistanceBetweenPoints</code><span class="sig-paren">(</span><em class="sig-param">points1</em>, <em class="sig-param">points2</em>, <em class="sig-param">lib</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.geometrical_functions.smallestDistanceBetweenPoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find smallest Euclidean distance between points in hyperplane.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.mesh.geometrical_functions.smallestDistanceBetweenPointsOnSphere">
+<code class="sig-prename descclassname">fieldosophy.mesh.geometrical_functions.</code><code class="sig-name descname">smallestDistanceBetweenPointsOnSphere</code><span class="sig-paren">(</span><em class="sig-param">points1</em>, <em class="sig-param">points2</em>, <em class="sig-param">lib</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.geometrical_functions.smallestDistanceBetweenPointsOnSphere" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find smallest geodesic distance between points on unit sphere.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.mesh.geometrical_functions.sphere2Lonlat">
+<code class="sig-prename descclassname">fieldosophy.mesh.geometrical_functions.</code><code class="sig-name descname">sphere2Lonlat</code><span class="sig-paren">(</span><em class="sig-param">coord</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.geometrical_functions.sphere2Lonlat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-fieldosophy.mesh.gmsh_functions">
+<span id="fieldosophy-mesh-gmsh-functions-module"></span><h2>fieldosophy.mesh.gmsh_functions module<a class="headerlink" href="#module-fieldosophy.mesh.gmsh_functions" title="Permalink to this headline">¶</a></h2>
+<p>Wrapper for the GMSH mesher.
+Should only be used if GMSH is installed on your computer.</p>
+<p>This file is part of Fieldosophy, a toolkit for random fields.</p>
+<p>Copyright (C) 2021 Anders Gunnar Felix Hildeman &lt;<a class="reference external" href="mailto:fieldosophySPDEC&#37;&#52;&#48;gmail&#46;com">fieldosophySPDEC<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</p>
+<p>This Source Code is subject to the terms of the BSD 3-Clause License.
+If a copy of the license was not distributed with this file, you can obtain one at <a class="reference external" href="https://opensource.org/licenses/BSD-3-Clause">https://opensource.org/licenses/BSD-3-Clause</a>.</p>
+<dl class="exception">
+<dt id="fieldosophy.mesh.gmsh_functions.MeshError">
+<em class="property">exception </em><code class="sig-prename descclassname">fieldosophy.mesh.gmsh_functions.</code><code class="sig-name descname">MeshError</code><span class="sig-paren">(</span><em class="sig-param">value</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.gmsh_functions.MeshError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Class for errors when using GMSH</p>
+<dl class="class">
+<dt id="fieldosophy.mesh.gmsh_functions.MeshError.ErrorEnum">
+<em class="property">class </em><code class="sig-name descname">ErrorEnum</code><a class="headerlink" href="#fieldosophy.mesh.gmsh_functions.MeshError.ErrorEnum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="fieldosophy.mesh.gmsh_functions.MeshError.ErrorEnum.general">
+<code class="sig-name descname">general</code><em class="property"> = 0</em><a class="headerlink" href="#fieldosophy.mesh.gmsh_functions.MeshError.ErrorEnum.general" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.gmsh_functions.MeshError.ErrorEnum.gmshLost">
+<code class="sig-name descname">gmshLost</code><em class="property"> = 1</em><a class="headerlink" href="#fieldosophy.mesh.gmsh_functions.MeshError.ErrorEnum.gmshLost" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.mesh.gmsh_functions.MeshError.mErrorCodes">
+<code class="sig-name descname">mErrorCodes</code><em class="property"> = ('General Error!', 'Could not allocate gmsh! Is GMSH installed?')</em><a class="headerlink" href="#fieldosophy.mesh.gmsh_functions.MeshError.mErrorCodes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.mesh.gmsh_functions.addGMSHCircle">
+<code class="sig-prename descclassname">fieldosophy.mesh.gmsh_functions.</code><code class="sig-name descname">addGMSHCircle</code><span class="sig-paren">(</span><em class="sig-param">number</em>, <em class="sig-param">startPoint</em>, <em class="sig-param">centerPoint</em>, <em class="sig-param">endPoint</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.gmsh_functions.addGMSHCircle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a circle to GMSH</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.mesh.gmsh_functions.addGMSHLine">
+<code class="sig-prename descclassname">fieldosophy.mesh.gmsh_functions.</code><code class="sig-name descname">addGMSHLine</code><span class="sig-paren">(</span><em class="sig-param">number</em>, <em class="sig-param">startPoint</em>, <em class="sig-param">endPoint</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.gmsh_functions.addGMSHLine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a line to GMSH</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.mesh.gmsh_functions.addGMSHLineLoop">
+<code class="sig-prename descclassname">fieldosophy.mesh.gmsh_functions.</code><code class="sig-name descname">addGMSHLineLoop</code><span class="sig-paren">(</span><em class="sig-param">number</em>, <em class="sig-param">points</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.gmsh_functions.addGMSHLineLoop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a line loop to GMSH</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.mesh.gmsh_functions.addGMSHPoint">
+<code class="sig-prename descclassname">fieldosophy.mesh.gmsh_functions.</code><code class="sig-name descname">addGMSHPoint</code><span class="sig-paren">(</span><em class="sig-param">number</em>, <em class="sig-param">point</em>, <em class="sig-param">charLength</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.gmsh_functions.addGMSHPoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a point to GMSH</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.mesh.gmsh_functions.meshInPlane">
+<code class="sig-prename descclassname">fieldosophy.mesh.gmsh_functions.</code><code class="sig-name descname">meshInPlane</code><span class="sig-paren">(</span><em class="sig-param">boundaryPolygon</em>, <em class="sig-param">maxDiam</em>, <em class="sig-param">geo_filename</em>, <em class="sig-param">msh_filename=None</em>, <em class="sig-param">vtk_filename=None</em>, <em class="sig-param">gmshExec='gmsh'</em>, <em class="sig-param">activePoints=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.gmsh_functions.meshInPlane" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates triangular mesh in plane.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.mesh.gmsh_functions.meshOnSphere">
+<code class="sig-prename descclassname">fieldosophy.mesh.gmsh_functions.</code><code class="sig-name descname">meshOnSphere</code><span class="sig-paren">(</span><em class="sig-param">boundaryRect</em>, <em class="sig-param">corrMin</em>, <em class="sig-param">geo_filename</em>, <em class="sig-param">msh_filename=None</em>, <em class="sig-param">vtk_filename=None</em>, <em class="sig-param">gmshExec='gmsh'</em>, <em class="sig-param">activePoints=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.gmsh_functions.meshOnSphere" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates triangular mesh on the sphere of the rectangular region specified by lon and lat.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-fieldosophy.mesh.regularMesh_functions">
+<span id="fieldosophy-mesh-regularmesh-functions-module"></span><h2>fieldosophy.mesh.regularMesh_functions module<a class="headerlink" href="#module-fieldosophy.mesh.regularMesh_functions" title="Permalink to this headline">¶</a></h2>
+<p>Functionality for creating regularly spaced meshes.</p>
+<p>This file is part of Fieldosophy, a toolkit for random fields.</p>
+<p>Copyright (C) 2021 Anders Gunnar Felix Hildeman &lt;<a class="reference external" href="mailto:fieldosophySPDEC&#37;&#52;&#48;gmail&#46;com">fieldosophySPDEC<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</p>
+<p>This Source Code is subject to the terms of the BSD 3-Clause License.
+If a copy of the license was not distributed with this file, you can obtain one at <a class="reference external" href="https://opensource.org/licenses/BSD-3-Clause">https://opensource.org/licenses/BSD-3-Clause</a>.</p>
+<dl class="function">
+<dt id="fieldosophy.mesh.regularMesh_functions.extendMeshRegularly">
+<code class="sig-prename descclassname">fieldosophy.mesh.regularMesh_functions.</code><code class="sig-name descname">extendMeshRegularly</code><span class="sig-paren">(</span><em class="sig-param">mesh</em>, <em class="sig-param">spacing</em>, <em class="sig-param">num=1</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.regularMesh_functions.extendMeshRegularly" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extends mesh to new dimension by regular spacings</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.mesh.regularMesh_functions.meshInPlaneRegular">
+<code class="sig-prename descclassname">fieldosophy.mesh.regularMesh_functions.</code><code class="sig-name descname">meshInPlaneRegular</code><span class="sig-paren">(</span><em class="sig-param">boundaryPolygon</em>, <em class="sig-param">maxDiam</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.mesh.regularMesh_functions.meshInPlaneRegular" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates triangular mesh in plane.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-fieldosophy.mesh">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-fieldosophy.mesh" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">fieldosophy.mesh package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-fieldosophy.mesh.HyperRectMesh">fieldosophy.mesh.HyperRectMesh module</a></li>
+<li><a class="reference internal" href="#module-fieldosophy.mesh.ImplicitMesh">fieldosophy.mesh.ImplicitMesh module</a></li>
+<li><a class="reference internal" href="#module-fieldosophy.mesh.Mesh">fieldosophy.mesh.Mesh module</a></li>
+<li><a class="reference internal" href="#module-fieldosophy.mesh.MeshDistanceFinder">fieldosophy.mesh.MeshDistanceFinder module</a></li>
+<li><a class="reference internal" href="#module-fieldosophy.mesh.MeshGraph">fieldosophy.mesh.MeshGraph module</a></li>
+<li><a class="reference internal" href="#module-fieldosophy.mesh.MeshPlotter">fieldosophy.mesh.MeshPlotter module</a></li>
+<li><a class="reference internal" href="#module-fieldosophy.mesh.geometrical_functions">fieldosophy.mesh.geometrical_functions module</a></li>
+<li><a class="reference internal" href="#module-fieldosophy.mesh.gmsh_functions">fieldosophy.mesh.gmsh_functions module</a></li>
+<li><a class="reference internal" href="#module-fieldosophy.mesh.regularMesh_functions">fieldosophy.mesh.regularMesh_functions module</a></li>
+<li><a class="reference internal" href="#module-fieldosophy.mesh">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="fieldosophy.marginal.html"
+                        title="previous chapter">fieldosophy.marginal package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="fieldosophy.misc.html"
+                        title="next chapter">fieldosophy.misc package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/fieldosophy.mesh.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="fieldosophy.misc.html" title="fieldosophy.misc package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="fieldosophy.marginal.html" title="fieldosophy.marginal package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Fieldosophy 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api_reference.html" >Fieldosophy API</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Anders Gunnar Felix Hildeman.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.0.
+    </div>
+  </body>
+</html>

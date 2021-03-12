@@ -14,8 +14,17 @@ If a copy of the license was not distributed with this file, you can obtain one 
 
 import numpy as np
 
-# function for transforming using the Box-Cox transform
+
 def boxCoxTransform( data, paramLambda, useGrads = False ):
+    """
+    Function for transforming data using the Box-Cox transform.
+    
+    :param data: Data to be transformed. An array of size N x n where N are the number of data points using the same parameter and n are the number of parameters.
+    :param paramLambda: The lambda parameter. An array of size n.
+    :param useGrads: Flag setting if the output should include the gradient of the Box-Cox transform w.r.t. lambda.
+    
+    """
+    
     # Logarithmize
     lData = np.log( data )    
     # Init output
@@ -48,6 +57,9 @@ def boxCoxTransform( data, paramLambda, useGrads = False ):
     
 
 def boxCoxInverseTransform( data, paramLambda, useGrads = False ):
+    """
+    Inverse transformation using the Box-Cox transform.
+    """
      
     # Init output
     out = [np.zeros( data.shape, dtype="float64" )]

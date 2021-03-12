@@ -1,0 +1,11 @@
+Usage
+======
+
+
+The Fieldosophy package provides tools for working with a certain class of Gaussian random fields defined through 
+
+comprises 4 different sub-modules. 
+
+
+.. math::
+    \nabla_i X(\boldsymbol{s})

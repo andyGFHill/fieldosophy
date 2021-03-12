@@ -1,0 +1,338 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="English">
+  <head>
+    <meta charset="utf-8" />
+    <title>fieldosophy.marginal package &#8212; Fieldosophy 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="fieldosophy.mesh package" href="fieldosophy.mesh.html" />
+    <link rel="prev" title="fieldosophy.GRF package" href="fieldosophy.GRF.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="fieldosophy.mesh.html" title="fieldosophy.mesh package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="fieldosophy.GRF.html" title="fieldosophy.GRF package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Fieldosophy 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api_reference.html" accesskey="U">Fieldosophy API</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="fieldosophy-marginal-package">
+<h1>fieldosophy.marginal package<a class="headerlink" href="#fieldosophy-marginal-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-fieldosophy.marginal.NIG">
+<span id="fieldosophy-marginal-nig-module"></span><h2>fieldosophy.marginal.NIG module<a class="headerlink" href="#module-fieldosophy.marginal.NIG" title="Permalink to this headline">¶</a></h2>
+<p>Functionality for normal-inverse Gaussian distributions.</p>
+<p>This file is part of Fieldosophy, a toolkit for random fields.</p>
+<p>Copyright (C) 2021 Anders Gunnar Felix Hildeman &lt;<a class="reference external" href="mailto:fieldosophySPDEC&#37;&#52;&#48;gmail&#46;com">fieldosophySPDEC<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</p>
+<p>This Source Code is subject to the terms of the BSD 3-Clause License.
+If a copy of the license was not distributed with this file, you can obtain one at <a class="reference external" href="https://opensource.org/licenses/BSD-3-Clause">https://opensource.org/licenses/BSD-3-Clause</a>.</p>
+<dl class="class">
+<dt id="fieldosophy.marginal.NIG.NIGDistribution">
+<em class="property">class </em><code class="sig-prename descclassname">fieldosophy.marginal.NIG.</code><code class="sig-name descname">NIGDistribution</code><span class="sig-paren">(</span><em class="sig-param">params</em>, <em class="sig-param">libPath=None</em>, <em class="sig-param">log=False</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGDistribution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class representing a NIG distribution.</p>
+<dl class="method">
+<dt id="fieldosophy.marginal.NIG.NIGDistribution.CDF">
+<code class="sig-name descname">CDF</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">log=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGDistribution.CDF" title="Permalink to this definition">¶</a></dt>
+<dd><p>CDF function of NIG.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.marginal.NIG.NIGDistribution.Gauss2NIG">
+<code class="sig-name descname">Gauss2NIG</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">log=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGDistribution.Gauss2NIG" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform data from Gaussian distribution to NIG</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.marginal.NIG.NIGDistribution.NIG2Gauss">
+<code class="sig-name descname">NIG2Gauss</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">log=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGDistribution.NIG2Gauss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform data from NIG distribution to Gaussian</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.marginal.NIG.NIGDistribution.PDF">
+<code class="sig-name descname">PDF</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">log=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGDistribution.PDF" title="Permalink to this definition">¶</a></dt>
+<dd><p>PDF function of NIG</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.marginal.NIG.NIGDistribution.Q">
+<code class="sig-name descname">Q</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">log=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGDistribution.Q" title="Permalink to this definition">¶</a></dt>
+<dd><p>Quantile function of NIG</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.marginal.NIG.NIGDistribution.approximateCDF">
+<code class="sig-name descname">approximateCDF</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">log=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGDistribution.approximateCDF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Approximate CDF function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.marginal.NIG.NIGDistribution.approximateQ">
+<code class="sig-name descname">approximateQ</code><span class="sig-paren">(</span><em class="sig-param">y</em>, <em class="sig-param">log=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGDistribution.approximateQ" title="Permalink to this definition">¶</a></dt>
+<dd><p>Approximate quantile function</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.marginal.NIG.NIGDistribution.c_double_p">
+<code class="sig-name descname">c_double_p</code><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGDistribution.c_double_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.misc.misc_templateMatching.LP_c_double</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.marginal.NIG.NIGDistribution.computeStatistics">
+<code class="sig-name descname">computeStatistics</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGDistribution.computeStatistics" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.marginal.NIG.NIGDistribution.copy">
+<code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGDistribution.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>:return Deep copy os self.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.marginal.NIG.NIGDistribution.getDict">
+<code class="sig-name descname">getDict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGDistribution.getDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function for getting dictionary representation of distribution</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.marginal.NIG.NIGDistribution.getProbs">
+<code class="sig-name descname">getProbs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGDistribution.getProbs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.marginal.NIG.NIGDistribution.getStats">
+<code class="sig-name descname">getStats</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGDistribution.getStats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get statistics of probability distribution.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.marginal.NIG.NIGDistribution.initProbs">
+<code class="sig-name descname">initProbs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGDistribution.initProbs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute CDF, PDF and Q approximations using spline interpolation</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.marginal.NIG.NIGDistribution.lPDF">
+<code class="sig-name descname">lPDF</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">log=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGDistribution.lPDF" title="Permalink to this definition">¶</a></dt>
+<dd><p>log-PDF function of NIG</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.marginal.NIG.NIGDistribution.limPDF">
+<code class="sig-name descname">limPDF</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">log=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGDistribution.limPDF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Limiting PDF</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.marginal.NIG.NIGDistribution.linearTrans">
+<code class="sig-name descname">linearTrans</code><span class="sig-paren">(</span><em class="sig-param">pMu</em>, <em class="sig-param">pDelta</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGDistribution.linearTrans" title="Permalink to this definition">¶</a></dt>
+<dd><p>Linear transformation</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.marginal.NIG.NIGDistribution.sample">
+<code class="sig-name descname">sample</code><span class="sig-paren">(</span><em class="sig-param">size</em>, <em class="sig-param">log=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGDistribution.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sample from NIG distribution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>size</strong> -- The sample size.</p></li>
+<li><p><strong>log</strong> -- Flag seting if the sample should be logarithmized.</p></li>
+</ul>
+</dd>
+</dl>
+<p>:return A sample from the distribution.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fieldosophy.marginal.NIG.NIGEstimation">
+<em class="property">class </em><code class="sig-prename descclassname">fieldosophy.marginal.NIG.</code><code class="sig-name descname">NIGEstimation</code><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGEstimation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class for estimating NIG distributions from data in different ways.</p>
+<dl class="method">
+<dt id="fieldosophy.marginal.NIG.NIGEstimation.EMMLE">
+<code class="sig-name descname">EMMLE</code><span class="sig-paren">(</span><em class="sig-param">init=None</em>, <em class="sig-param">maxIter=100</em>, <em class="sig-param">tol=0</em>, <em class="sig-param">libPath='/home/andy/Projects/SPDEC/fieldosophy/marginal/../libraries/libSPDEC.so'</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGEstimation.EMMLE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute maximum likelihood estimates of the NIG parameters</p>
+<p>Algorithm acquired from Karlis, D. (2002), &quot;An EM type algorithm for maximum likelihood estimation of the normal-inverse Gaussian distribution&quot;</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.marginal.NIG.NIGEstimation.EMMLEOld">
+<code class="sig-name descname">EMMLEOld</code><span class="sig-paren">(</span><em class="sig-param">alpha</em>, <em class="sig-param">beta</em>, <em class="sig-param">mu</em>, <em class="sig-param">delta</em>, <em class="sig-param">maxIter</em>, <em class="sig-param">tol</em>, <em class="sig-param">libPath</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGEstimation.EMMLEOld" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.marginal.NIG.NIGEstimation.Gauss">
+<code class="sig-name descname">Gauss</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGEstimation.Gauss" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.marginal.NIG.NIGEstimation.MOM">
+<code class="sig-name descname">MOM</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGEstimation.MOM" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute method of moments estimates of the NIG parameters</p>
+<p>Algorithm acquired from Karlis, D. (2002), &quot;An EM type algorithm for maximum likelihood estimation of the normal-inverse Gaussian distribution&quot;</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.marginal.NIG.NIGEstimation.c_double_p">
+<code class="sig-name descname">c_double_p</code><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGEstimation.c_double_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.misc.misc_templateMatching.LP_c_double</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.marginal.NIG.NIGEstimation.filterParams">
+<code class="sig-name descname">filterParams</code><span class="sig-paren">(</span><em class="sig-param">b</em>, <em class="sig-param">d</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGEstimation.filterParams" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.marginal.NIG.NIGEstimation.gradientMLE">
+<code class="sig-name descname">gradientMLE</code><span class="sig-paren">(</span><em class="sig-param">init=None</em>, <em class="sig-param">maxIter=100</em>, <em class="sig-param">tol=0</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.NIG.NIGEstimation.gradientMLE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate a NIG distribution from data using gradient based optimization on maximum likelihood function.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-fieldosophy.marginal.boxcox">
+<span id="fieldosophy-marginal-boxcox-module"></span><h2>fieldosophy.marginal.boxcox module<a class="headerlink" href="#module-fieldosophy.marginal.boxcox" title="Permalink to this headline">¶</a></h2>
+<p>Functionality for Box-Cox transformation.</p>
+<p>This file is part of Fieldosophy, a toolkit for random fields.</p>
+<p>Copyright (C) 2021 Anders Gunnar Felix Hildeman &lt;<a class="reference external" href="mailto:fieldosophySPDEC&#37;&#52;&#48;gmail&#46;com">fieldosophySPDEC<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</p>
+<p>This Source Code is subject to the terms of the BSD 3-Clause License.
+If a copy of the license was not distributed with this file, you can obtain one at <a class="reference external" href="https://opensource.org/licenses/BSD-3-Clause">https://opensource.org/licenses/BSD-3-Clause</a>.</p>
+<dl class="function">
+<dt id="fieldosophy.marginal.boxcox.boxCoxInverseTransform">
+<code class="sig-prename descclassname">fieldosophy.marginal.boxcox.</code><code class="sig-name descname">boxCoxInverseTransform</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">paramLambda</em>, <em class="sig-param">useGrads=False</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.boxcox.boxCoxInverseTransform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inverse transformation using the Box-Cox transform.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.marginal.boxcox.boxCoxTransform">
+<code class="sig-prename descclassname">fieldosophy.marginal.boxcox.</code><code class="sig-name descname">boxCoxTransform</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">paramLambda</em>, <em class="sig-param">useGrads=False</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.boxcox.boxCoxTransform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function for transforming data using the Box-Cox transform.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> -- Data to be transformed. An array of size N x n where N are the number of data points using the same parameter and n are the number of parameters.</p></li>
+<li><p><strong>paramLambda</strong> -- The lambda parameter. An array of size n.</p></li>
+<li><p><strong>useGrads</strong> -- Flag setting if the output should include the gradient of the Box-Cox transform w.r.t. lambda.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.marginal.boxcox.testBoxCox">
+<code class="sig-prename descclassname">fieldosophy.marginal.boxcox.</code><code class="sig-name descname">testBoxCox</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.marginal.boxcox.testBoxCox" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-fieldosophy.marginal">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-fieldosophy.marginal" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">fieldosophy.marginal package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-fieldosophy.marginal.NIG">fieldosophy.marginal.NIG module</a></li>
+<li><a class="reference internal" href="#module-fieldosophy.marginal.boxcox">fieldosophy.marginal.boxcox module</a></li>
+<li><a class="reference internal" href="#module-fieldosophy.marginal">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="fieldosophy.GRF.html"
+                        title="previous chapter">fieldosophy.GRF package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="fieldosophy.mesh.html"
+                        title="next chapter">fieldosophy.mesh package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/fieldosophy.marginal.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="fieldosophy.mesh.html" title="fieldosophy.mesh package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="fieldosophy.GRF.html" title="fieldosophy.GRF package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Fieldosophy 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api_reference.html" >Fieldosophy API</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Anders Gunnar Felix Hildeman.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.0.
+    </div>
+  </body>
+</html>

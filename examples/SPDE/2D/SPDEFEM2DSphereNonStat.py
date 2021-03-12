@@ -66,7 +66,7 @@ print("Compute Mesh")
 meshPlane = None
 
 # Create spherical mesh
-meshSphere = mesher.Mesh.meshOnSphere( None, maxDiam = 2 * np.sin( 2 * extension / 180.0 * np.pi / 2.0 ), maxNumNodes = np.inf, radius = 1)
+meshSphere, neighs = mesher.Mesh.meshOnSphere( None, maxDiam = 2 * np.sin( 2 * extension / 180.0 * np.pi / 2.0 ), maxNumNodes = int(1e4), radius = 1)
 
 
 # Cut away unwanted regions
@@ -74,16 +74,12 @@ meshSphere = meshSphere.cutOutsideMeshOnSphere( \
    mesher.geometrical.lonlat2Sphere( dataPoints.transpose() ), \
    distance = 1.1 * extension / 180.0 * np.pi )
 
-# Define spherical transformation
-def transformation(x):
-    # Map added nodes to surface of sphere
-    return x / np.linalg.norm(x)
 
 # Create refined sphere
-meshSphere = meshSphere.refine( \
-   maxDiam = 1 * np.sin( extension / 180.0 * np.pi / 2.0 ), \
-   maxNumNodes = meshSphere.N + 10000, \
-   transformation = transformation )
+meshSphere, neighs = meshSphere.refine( \
+    maxDiam = 1 * np.sin( extension / 180.0 * np.pi / 2.0 ), \
+    maxNumNodes = meshSphere.N + 10000, \
+    transformation = mesher.geometrical.mapToHypersphere, neighs = neighs )
     
 # Cut away unwanted regions
 meshSphere = meshSphere.cutOutsideMeshOnSphere( \
@@ -91,10 +87,10 @@ meshSphere = meshSphere.cutOutsideMeshOnSphere( \
     distance = 1.0 * extension / 180.0 * np.pi )    
 
 # Create refined sphere
-meshSphere = meshSphere.refine( \
+meshSphere, neighs = meshSphere.refine( \
     maxDiam = 2/5 * np.sin( corrMin / 180.0 * np.pi / 2.0 ), \
     maxNumNodes = meshSphere.N + 10000, \
-    transformation = transformation )
+    transformation = mesher.geometrical.mapToHypersphere, neighs = neighs )
 
 
 

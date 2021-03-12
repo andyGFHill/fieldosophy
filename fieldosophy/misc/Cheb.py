@@ -19,8 +19,12 @@ from scipy import signal
 # %% Define functions
 
 def ClenshawLord( f, N, domain, m, n ):
-    # Function for computing Clenshaw-Lord approximation of chebychev polynomial on -1,1
-    # A port of the function "chabpade" from the Matlab-library "chebfun".
+    """
+    Function for computing Clenshaw-Lord approximation of chebychev polynomial on -1,1
+    
+    A port of the function "chabpade" from the Matlab-library "chebfun".
+    """
+    
     
     # Acquire Chebyshev approximation of f
     chebPoly = np.polynomial.chebyshev.Chebyshev.interpolate(f, deg = N, domain = domain )

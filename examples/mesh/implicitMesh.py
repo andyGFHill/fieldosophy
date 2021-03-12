@@ -91,12 +91,9 @@ plt.scatter(chosenPoint[0], chosenPoint[0]*0, color="black")
 # Create unrefined mesh
 mesh3 = mesher.Mesh( np.array([ [0,1,2], [1,2,3]], dtype=int), np.array( [ [0,0], [0,1], [1,0], [1,1] ], dtype=np.float64) )
 # Set maximum diameter for each node
-maxDiamArray = 1.0
+maxDiamArray = 1
 # Refine mesh
-mesh3 = mesh3.refine( maxDiam = maxDiamArray, maxNumNodes = mesh3.N + 10 )
-# Get edges and neighbors
-edges3 = mesher.Mesh.getEdges( mesh3.triangles, mesh3.topD, mesh3.topD, libInstance = mesh3._libInstance )
-neighs3 = mesher.Mesh.getSimplexNeighbors( edges3["simplicesForEdges"], edges3["edgesForSimplices"], libInstance = mesh3._libInstance )
+mesh3, neighs3 = mesh3.refine( maxDiam = maxDiamArray, maxNumNodes = mesh3.N + 100 )
 
 
 
@@ -106,8 +103,8 @@ offset = np.array( [-8,17], dtype=np.float64 )
 numPerDimension = np.array( [3,2] )
 # Get implicit mesh of mesh0
 implicitMesh2D = mesher.ImplicitMesh( mesh3, offset, numPerDimension, neighs3 )
-[implicitMesh2D.fromSectorAndExplicit2Node(3,iter) for iter in range(9)]
-implicitMesh2D.fromNodeInd2SectorAndExplicit(24)
+[implicitMesh2D.fromSectorAndExplicit2Node(3,iter) for iter in range(4)]
+implicitMesh2D.fromNodeInd2SectorAndExplicit(10)
 mesh4 = implicitMesh2D.toFullMesh()
 neighs4 = implicitMesh2D.getFullNeighs()
 

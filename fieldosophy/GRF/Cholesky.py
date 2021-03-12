@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Functionality for Cholesky decomposition. 
+Functionality for Cholesky decomposition of a symmetric and positive-definite matrix. 
 
 This file is part of Fieldosophy, a toolkit for random fields.
-
 Copyright (C) 2021 Anders Gunnar Felix Hildeman <fieldosophySPDEC@gmail.com>
-
 This Source Code is subject to the terms of the BSD 3-Clause License.
 If a copy of the license was not distributed with this file, you can obtain one at https://opensource.org/licenses/BSD-3-Clause.
 
@@ -83,10 +81,13 @@ class SparseCholeskyAbstract(abc.ABC):
     
 
 class InhouseSparseCholesky(SparseCholeskyAbstract):
-    # class representing a sparse cholesky factorization
+    """
+    Class representing a sparse cholesky factorization based on Fieldosophy-specific C-code, the scipy-sparse package and the Eigen library.
+    """
+
     
     # Declare pointer types
-    c_double_p = ctypes.POINTER(ctypes.c_double)   
+    c_double_p = ctypes.POINTER(ctypes.c_double)       
     c_uint_p = ctypes.POINTER(ctypes.c_uint)  
         
     L = None # The lower triangular Cholesky decomposition
@@ -166,7 +167,14 @@ class InhouseSparseCholesky(SparseCholeskyAbstract):
         
         
     def solveL( self, inData, transpose = False ):
-        # Solve linear system with Cholesky triangle
+        """
+        Solve linear system using lower Cholesky triangle.
+        
+        :param inData: Vector (or collection of vectors) to be solved.
+        :param transpose: Specifies if the Cholesky triangle should be transposed or not before solving.
+        
+        :return: An output of the same shape as inData.
+        """
     
         out = None
         
@@ -188,6 +196,12 @@ class InhouseSparseCholesky(SparseCholeskyAbstract):
         return out
 
     def multiply(self, inData):
+        """
+        Multiplies input data with the matrix (which is represented by a Cholesky decomposition internally).
+        
+        :param inData: Vector (or collection of vectors) to be multiplied.        
+        :return: An output of the same shape as inData.
+        """
         
         out = inData.copy()
         out = self.permute( out, toChol = True )
@@ -196,11 +210,24 @@ class InhouseSparseCholesky(SparseCholeskyAbstract):
         out = self.permute( out, toChol = False )
     
     def permute( self, inData, toChol ):
-        # permute matrix to Cholesky permutation or from
+        """
+        Permutes input data to sparse Cholesky permutation, or from.
+        
+        :param inData: Vector (or collection of vectors) to be permuted.
+        :param toChol: Specifies whether the permutation should be to sparse Cholesky or from.
+        :return: An output of the same shape as inData.
+        """
+
         return self.getP(toChol = toChol) * inData
         
         
     def solve(self, inData):
+        """
+        Solve linear system using Cholesky decomposition of matrix.
+        
+        :param inData: Vector (or collection of vectors) to be solved.        
+        :return: An output of the same shape as inData.
+        """
         
         out = inData.copy()
         out = self.permute( out, toChol = True )
@@ -211,6 +238,13 @@ class InhouseSparseCholesky(SparseCholeskyAbstract):
         return out
     
     def getL(self, upper = False):
+        """
+        Get lower Cholesky triangle
+        
+        :param upper: True if lower triangular Cholesky triangle should be transposed before it is returned.
+        :return: A sparse Cholesky triangle.
+        """
+        
         # Get Cholesky triangle
         if upper:
             return self.L.transpose()
@@ -218,7 +252,12 @@ class InhouseSparseCholesky(SparseCholeskyAbstract):
             return self.L
 
     def getP(self, toChol = False):
-        # Get Permutation matrix
+        """
+        Get permutation matrix.
+        
+        :param toChol: If the permutation matrix should map to sparse Cholesky representation, or from it.
+        :return: Permutation matrix.
+        """
         
         if toChol:
             return self.P
@@ -228,11 +267,18 @@ class InhouseSparseCholesky(SparseCholeskyAbstract):
         return
     
     def getLogDet(self):
+        """
+        :return: The log-determinant of original matrix
+        """
+        
         # Get log determinant
         return 2 * np.sum( np.log( self.L.diagonal() ) )
     
     def getDet(self):
-        # Get determinant
+        """
+        :return: The determinant of original matrix
+        """
+        
         return self.L.diagonal()**2
         
         
@@ -518,7 +564,9 @@ class InhouseSparseCholesky(SparseCholeskyAbstract):
     
     
 class SKSparseCholesky(SparseCholeskyAbstract):
-    # A representation using the sparse cholesky from Sci-kit
+    """
+    Wrapper class representing a sparse cholesky factorization using Scikit.sparse.
+    """
     
     
     _chol = None
@@ -552,7 +600,14 @@ class SKSparseCholesky(SparseCholeskyAbstract):
         
         
     def solveL( self, inData, transpose = False ):
-        # Solve linear system with Cholesky triangle
+        """
+        Solve linear system using lower Cholesky triangle.
+        
+        :param inData: Vector (or collection of vectors) to be solved.
+        :param transpose: Specifies if the Cholesky triangle should be transposed or not before solving.
+        
+        :return: An output of the same shape as inData.
+        """
         D = self._chol.D()
         out = sparse.diags( 1/np.sqrt(D) )
         if transpose:
@@ -564,7 +619,12 @@ class SKSparseCholesky(SparseCholeskyAbstract):
         return out
         
     def multiply(self, inData):
-        # Multiply vector or matrix with original matrix
+        """
+        Multiplies input data with the matrix (which is represented by a Cholesky decomposition internally).
+        
+        :param inData: Vector (or collection of vectors) to be multiplied.        
+        :return: An output of the same shape as inData.
+        """
         out = self.permute(inData, toChol = True)
         out = self.getL(upper = True) * out
         out = self.getL(upper = False) * out
@@ -573,18 +633,34 @@ class SKSparseCholesky(SparseCholeskyAbstract):
         return out
     
     def permute( self, inData, toChol ):
-        # permute matrix to Cholesky permutation or from
+        """
+        Permutes input data to sparse Cholesky permutation, or from.
+        
+        :param inData: Vector (or collection of vectors) to be permuted.
+        :param toChol: Specifies whether the permutation should be to sparse Cholesky or from.
+        :return: An output of the same shape as inData.
+        """
         if toChol:
             return self._chol.apply_P(inData)
         else:
             return self._chol.apply_Pt(inData)
         
     def solve(self, inData):
-        # Solve with original matrix
+        """
+        Solve linear system using Cholesky decomposition of matrix.
+        
+        :param inData: Vector (or collection of vectors) to be solved.        
+        :return: An output of the same shape as inData.
+        """
         return self._chol.solve_A(inData)
         
     def getL(self, upper = False):
-        # Get Cholesky triangle
+        """
+        Get lower Cholesky triangle
+        
+        :param upper: True if lower triangular Cholesky triangle should be transposed before it is returned.
+        :return: A sparse Cholesky triangle.
+        """
         L, D = self._chol.L_D()        
         out = np.sqrt( D )
         if upper:
@@ -595,7 +671,12 @@ class SKSparseCholesky(SparseCholeskyAbstract):
         return out.tocsc()
     
     def getP(self, toChol = False):
-        # Get Permutation matrix
+        """
+        Get permutation matrix.
+        
+        :param toChol: If the permutation matrix should map to sparse Cholesky representation, or from it.
+        :return: Permutation matrix.
+        """
         mat = sparse.identity(self.N)        
         
         if toChol:
@@ -611,18 +692,24 @@ class SKSparseCholesky(SparseCholeskyAbstract):
             return self._chol.P().transpose()
         
     def getLogDet(self):
-        # Get log determinant
+        """
+        :return: The log-determinant of original matrix
+        """
         try:
             return self._chol.logdet()
         except:
             raise SparseCholeskyAbstract.PosDef
     
     def getDet(self):
-        # Get determinant
+        """
+        :return: The determinant of original matrix
+        """
         return self._chol.det()
     
     def getMatrix(self):
-        # Get original matrix
+        """
+        :return: The original matrix that has been factorized.
+        """
         mat = self.getL()
         mat = self._chol.apply_Pt(mat)
         mat = mat * mat.transpose()

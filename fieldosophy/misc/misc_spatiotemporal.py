@@ -22,7 +22,9 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
 class SpatiotemporalViewer(tk.Tk):
-    # General class for presenting spatiotemporal data 
+    """
+    General class for presenting spatiotemporal data 
+    """
     
     
     def __init__(self, *args, **kwargs):
@@ -62,7 +64,9 @@ class SpatiotemporalViewer(tk.Tk):
         
         
     def setupWidgets( self, userControllers = None ):
-        # Define buttons and other widgets
+        """
+        Define buttons and other widgets
+        """
         
         controlFrame = tk.Frame(self)
         
@@ -156,7 +160,9 @@ class SpatiotemporalViewer(tk.Tk):
     
     
     def getSliderInd( self, x ):
-        # This function retrieves the corresponding time instance of the current slider
+        """
+        This function retrieves the corresponding time instance of the current slider
+        """
         
         # Get index of time
         ind = int(np.round( x * (self.time.size-1) ))
@@ -164,7 +170,9 @@ class SpatiotemporalViewer(tk.Tk):
         return ind
     
     def increaseTime( self ):
-        # This function steps forward one step length
+        """
+        This function steps forward one step length
+        """
         
         # Get current slider value
         ind = self.getSliderInd( self.controls.slider.get() )
@@ -174,7 +182,9 @@ class SpatiotemporalViewer(tk.Tk):
         return
 
     def decreaseTime( self ):
-        # This function steps back one step length
+        """
+        This function steps back one step length
+        """
         
         # Get current slider value
         ind = self.getSliderInd( self.controls.slider.get() )
@@ -184,7 +194,9 @@ class SpatiotemporalViewer(tk.Tk):
         return
 
     def updateTime( self, ind ):
-        # This will update the plot and time
+        """
+        This will update the plot and time
+        """
 
         ts = (self.time[ind] - np.datetime64(0, 'h')) / np.timedelta64(1, 's')
         dt = datetime.datetime.utcfromtimestamp(ts)
@@ -197,7 +209,9 @@ class SpatiotemporalViewer(tk.Tk):
         return
     
     def startStopAnim( self ):
-        # This function is called when pressing the play/Stop button
+        """
+        This function is called when pressing the play/Stop button
+        """
         
         # If should stop animation
         if self.controls.buttonBar.play_button["text"] == "Stop":
@@ -208,7 +222,9 @@ class SpatiotemporalViewer(tk.Tk):
         return
     
     def anim( self ):
-        # This function will update each 5:th of a second while animating
+        """
+        This function will update each 5:th of a second while animating
+        """
         
         # If animation is on
         if self.controls.buttonBar.play_button["text"] == "Stop":
@@ -226,7 +242,9 @@ class SpatiotemporalViewer(tk.Tk):
         return
         
     def plotInstantWrapper(self, ind):
-        # Wrapper function for calling user defined plotInstant function
+        """
+        Wrapper function for calling user defined plotInstant function
+        """
         
         self.plotInstant(self, ind)
         self.canvas.draw_idle()
@@ -235,7 +253,9 @@ class SpatiotemporalViewer(tk.Tk):
     
     
     def doExit(self):
-        # This function closes the window
+        """
+        This function closes the window
+        """
         
         plt.close(self.fig)
         self.destroy()

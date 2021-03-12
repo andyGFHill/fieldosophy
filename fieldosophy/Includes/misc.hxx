@@ -104,6 +104,13 @@ extern "C"
         const unsigned int pTemplateStart, const unsigned int pSearchStart,
         unsigned int * const pOutput, const bool * const pEstimInd = NULL, double * const pCrossCorr = NULL
         );
+        
+    // For each point in point1, compute smallest distance between the point and all points in point2
+    int misc_computeSmallestDistance( const unsigned int pDims, 
+        const double * const pPoints1, const unsigned pNumPoints1, 
+        const double * const pPoints2, const unsigned pNumPoints2,
+        unsigned int * const pIndex, double * const pDistance = NULL,
+        const int pDistanceType = 0 );
 }
 
 

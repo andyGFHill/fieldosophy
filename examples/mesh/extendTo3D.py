@@ -1,15 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-This script show how to extend a 2D mesh to 3D.
+Created on Wed May 13 14:41:49 2020
 
-This file is part of Fieldosophy, a toolkit for random fields.
-
-Copyright (C) 2021 Anders Gunnar Felix Hildeman <fieldosophySPDEC@gmail.com>
-
-This Source Code is subject to the terms of the BSD 3-Clause License.
-If a copy of the license was not distributed with this file, you can obtain one at https://opensource.org/licenses/BSD-3-Clause.
-
+@author: Anders Hildeman
 """
 
 

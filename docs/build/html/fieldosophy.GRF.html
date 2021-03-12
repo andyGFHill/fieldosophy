@@ -1,0 +1,1207 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="English">
+  <head>
+    <meta charset="utf-8" />
+    <title>fieldosophy.GRF package &#8212; Fieldosophy 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="fieldosophy.marginal package" href="fieldosophy.marginal.html" />
+    <link rel="prev" title="Fieldosophy API" href="api_reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="fieldosophy.marginal.html" title="fieldosophy.marginal package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api_reference.html" title="Fieldosophy API"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Fieldosophy 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api_reference.html" accesskey="U">Fieldosophy API</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="fieldosophy-grf-package">
+<h1>fieldosophy.GRF package<a class="headerlink" href="#fieldosophy-grf-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-fieldosophy.GRF.Cholesky">
+<span id="fieldosophy-grf-cholesky-module"></span><h2>fieldosophy.GRF.Cholesky module<a class="headerlink" href="#module-fieldosophy.GRF.Cholesky" title="Permalink to this headline">¶</a></h2>
+<p>Functionality for Cholesky decomposition of a symmetric and positive-definite matrix.</p>
+<p>This file is part of Fieldosophy, a toolkit for random fields.
+Copyright (C) 2021 Anders Gunnar Felix Hildeman &lt;<a class="reference external" href="mailto:fieldosophySPDEC&#37;&#52;&#48;gmail&#46;com">fieldosophySPDEC<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;
+This Source Code is subject to the terms of the BSD 3-Clause License.
+If a copy of the license was not distributed with this file, you can obtain one at <a class="reference external" href="https://opensource.org/licenses/BSD-3-Clause">https://opensource.org/licenses/BSD-3-Clause</a>.</p>
+<dl class="class">
+<dt id="fieldosophy.GRF.Cholesky.InhouseSparseCholesky">
+<em class="property">class </em><code class="sig-prename descclassname">fieldosophy.GRF.Cholesky.</code><code class="sig-name descname">InhouseSparseCholesky</code><span class="sig-paren">(</span><em class="sig-param">matrix</em>, <em class="sig-param">libPath=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.InhouseSparseCholesky" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#fieldosophy.GRF.Cholesky.SparseCholeskyAbstract" title="fieldosophy.GRF.Cholesky.SparseCholeskyAbstract"><code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.GRF.Cholesky.SparseCholeskyAbstract</span></code></a></p>
+<p>Class representing a sparse cholesky factorization based on Fieldosophy-specific C-code, the scipy-sparse package and the Eigen library.</p>
+<dl class="attribute">
+<dt id="fieldosophy.GRF.Cholesky.InhouseSparseCholesky.L">
+<code class="sig-name descname">L</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.Cholesky.InhouseSparseCholesky.L" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.Cholesky.InhouseSparseCholesky.P">
+<code class="sig-name descname">P</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.Cholesky.InhouseSparseCholesky.P" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.Cholesky.InhouseSparseCholesky.c_double_p">
+<code class="sig-name descname">c_double_p</code><a class="headerlink" href="#fieldosophy.GRF.Cholesky.InhouseSparseCholesky.c_double_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.misc.misc_templateMatching.LP_c_double</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.Cholesky.InhouseSparseCholesky.c_uint_p">
+<code class="sig-name descname">c_uint_p</code><a class="headerlink" href="#fieldosophy.GRF.Cholesky.InhouseSparseCholesky.c_uint_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.misc.misc_templateMatching.LP_c_uint</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.InhouseSparseCholesky.getDet">
+<code class="sig-name descname">getDet</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.InhouseSparseCholesky.getDet" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The determinant of original matrix</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.InhouseSparseCholesky.getL">
+<code class="sig-name descname">getL</code><span class="sig-paren">(</span><em class="sig-param">upper=False</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.InhouseSparseCholesky.getL" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get lower Cholesky triangle</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>upper</strong> -- True if lower triangular Cholesky triangle should be transposed before it is returned.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A sparse Cholesky triangle.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.InhouseSparseCholesky.getLogDet">
+<code class="sig-name descname">getLogDet</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.InhouseSparseCholesky.getLogDet" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The log-determinant of original matrix</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.InhouseSparseCholesky.getP">
+<code class="sig-name descname">getP</code><span class="sig-paren">(</span><em class="sig-param">toChol=False</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.InhouseSparseCholesky.getP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get permutation matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>toChol</strong> -- If the permutation matrix should map to sparse Cholesky representation, or from it.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Permutation matrix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.InhouseSparseCholesky.multiply">
+<code class="sig-name descname">multiply</code><span class="sig-paren">(</span><em class="sig-param">inData</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.InhouseSparseCholesky.multiply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Multiplies input data with the matrix (which is represented by a Cholesky decomposition internally).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>inData</strong> -- Vector (or collection of vectors) to be multiplied.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An output of the same shape as inData.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.InhouseSparseCholesky.permute">
+<code class="sig-name descname">permute</code><span class="sig-paren">(</span><em class="sig-param">inData</em>, <em class="sig-param">toChol</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.InhouseSparseCholesky.permute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Permutes input data to sparse Cholesky permutation, or from.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inData</strong> -- Vector (or collection of vectors) to be permuted.</p></li>
+<li><p><strong>toChol</strong> -- Specifies whether the permutation should be to sparse Cholesky or from.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An output of the same shape as inData.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.InhouseSparseCholesky.solve">
+<code class="sig-name descname">solve</code><span class="sig-paren">(</span><em class="sig-param">inData</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.InhouseSparseCholesky.solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solve linear system using Cholesky decomposition of matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>inData</strong> -- Vector (or collection of vectors) to be solved.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An output of the same shape as inData.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.InhouseSparseCholesky.solveL">
+<code class="sig-name descname">solveL</code><span class="sig-paren">(</span><em class="sig-param">inData</em>, <em class="sig-param">transpose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.InhouseSparseCholesky.solveL" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solve linear system using lower Cholesky triangle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inData</strong> -- Vector (or collection of vectors) to be solved.</p></li>
+<li><p><strong>transpose</strong> -- Specifies if the Cholesky triangle should be transposed or not before solving.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An output of the same shape as inData.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fieldosophy.GRF.Cholesky.SKSparseCholesky">
+<em class="property">class </em><code class="sig-prename descclassname">fieldosophy.GRF.Cholesky.</code><code class="sig-name descname">SKSparseCholesky</code><span class="sig-paren">(</span><em class="sig-param">matrix</em>, <em class="sig-param">AAt=False</em>, <em class="sig-param">ordering='AMD'</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.SKSparseCholesky" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#fieldosophy.GRF.Cholesky.SparseCholeskyAbstract" title="fieldosophy.GRF.Cholesky.SparseCholeskyAbstract"><code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.GRF.Cholesky.SparseCholeskyAbstract</span></code></a></p>
+<p>Wrapper class representing a sparse cholesky factorization using Scikit.sparse.</p>
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.SKSparseCholesky.copy">
+<code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.SKSparseCholesky.copy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.SKSparseCholesky.getDet">
+<code class="sig-name descname">getDet</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.SKSparseCholesky.getDet" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The determinant of original matrix</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.SKSparseCholesky.getL">
+<code class="sig-name descname">getL</code><span class="sig-paren">(</span><em class="sig-param">upper=False</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.SKSparseCholesky.getL" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get lower Cholesky triangle</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>upper</strong> -- True if lower triangular Cholesky triangle should be transposed before it is returned.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A sparse Cholesky triangle.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.SKSparseCholesky.getLogDet">
+<code class="sig-name descname">getLogDet</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.SKSparseCholesky.getLogDet" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The log-determinant of original matrix</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.SKSparseCholesky.getMatrix">
+<code class="sig-name descname">getMatrix</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.SKSparseCholesky.getMatrix" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The original matrix that has been factorized.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.SKSparseCholesky.getP">
+<code class="sig-name descname">getP</code><span class="sig-paren">(</span><em class="sig-param">toChol=False</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.SKSparseCholesky.getP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get permutation matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>toChol</strong> -- If the permutation matrix should map to sparse Cholesky representation, or from it.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Permutation matrix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.SKSparseCholesky.getPIndex">
+<code class="sig-name descname">getPIndex</code><span class="sig-paren">(</span><em class="sig-param">toChol=False</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.SKSparseCholesky.getPIndex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.SKSparseCholesky.multiply">
+<code class="sig-name descname">multiply</code><span class="sig-paren">(</span><em class="sig-param">inData</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.SKSparseCholesky.multiply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Multiplies input data with the matrix (which is represented by a Cholesky decomposition internally).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>inData</strong> -- Vector (or collection of vectors) to be multiplied.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An output of the same shape as inData.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.SKSparseCholesky.permute">
+<code class="sig-name descname">permute</code><span class="sig-paren">(</span><em class="sig-param">inData</em>, <em class="sig-param">toChol</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.SKSparseCholesky.permute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Permutes input data to sparse Cholesky permutation, or from.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inData</strong> -- Vector (or collection of vectors) to be permuted.</p></li>
+<li><p><strong>toChol</strong> -- Specifies whether the permutation should be to sparse Cholesky or from.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An output of the same shape as inData.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.SKSparseCholesky.solve">
+<code class="sig-name descname">solve</code><span class="sig-paren">(</span><em class="sig-param">inData</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.SKSparseCholesky.solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solve linear system using Cholesky decomposition of matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>inData</strong> -- Vector (or collection of vectors) to be solved.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An output of the same shape as inData.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.SKSparseCholesky.solveL">
+<code class="sig-name descname">solveL</code><span class="sig-paren">(</span><em class="sig-param">inData</em>, <em class="sig-param">transpose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.SKSparseCholesky.solveL" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solve linear system using lower Cholesky triangle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inData</strong> -- Vector (or collection of vectors) to be solved.</p></li>
+<li><p><strong>transpose</strong> -- Specifies if the Cholesky triangle should be transposed or not before solving.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An output of the same shape as inData.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fieldosophy.GRF.Cholesky.SparseCholeskyAbstract">
+<em class="property">class </em><code class="sig-prename descclassname">fieldosophy.GRF.Cholesky.</code><code class="sig-name descname">SparseCholeskyAbstract</code><a class="headerlink" href="#fieldosophy.GRF.Cholesky.SparseCholeskyAbstract" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<dl class="attribute">
+<dt id="fieldosophy.GRF.Cholesky.SparseCholeskyAbstract.N">
+<code class="sig-name descname">N</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.Cholesky.SparseCholeskyAbstract.N" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="fieldosophy.GRF.Cholesky.SparseCholeskyAbstract.PositiveDefiniteException">
+<em class="property">exception </em><code class="sig-name descname">PositiveDefiniteException</code><a class="headerlink" href="#fieldosophy.GRF.Cholesky.SparseCholeskyAbstract.PositiveDefiniteException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.SparseCholeskyAbstract.copy">
+<em class="property">abstract </em><code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.SparseCholeskyAbstract.copy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.SparseCholeskyAbstract.getDet">
+<em class="property">abstract </em><code class="sig-name descname">getDet</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.SparseCholeskyAbstract.getDet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.SparseCholeskyAbstract.getL">
+<em class="property">abstract </em><code class="sig-name descname">getL</code><span class="sig-paren">(</span><em class="sig-param">upper=False</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.SparseCholeskyAbstract.getL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.SparseCholeskyAbstract.getLogDet">
+<em class="property">abstract </em><code class="sig-name descname">getLogDet</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.SparseCholeskyAbstract.getLogDet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.SparseCholeskyAbstract.getMatrix">
+<em class="property">abstract </em><code class="sig-name descname">getMatrix</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.SparseCholeskyAbstract.getMatrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.SparseCholeskyAbstract.getP">
+<em class="property">abstract </em><code class="sig-name descname">getP</code><span class="sig-paren">(</span><em class="sig-param">toChol=False</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.SparseCholeskyAbstract.getP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.SparseCholeskyAbstract.multiply">
+<em class="property">abstract </em><code class="sig-name descname">multiply</code><span class="sig-paren">(</span><em class="sig-param">inData</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.SparseCholeskyAbstract.multiply" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.SparseCholeskyAbstract.permute">
+<em class="property">abstract </em><code class="sig-name descname">permute</code><span class="sig-paren">(</span><em class="sig-param">inData</em>, <em class="sig-param">toChol</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.SparseCholeskyAbstract.permute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.SparseCholeskyAbstract.solve">
+<em class="property">abstract </em><code class="sig-name descname">solve</code><span class="sig-paren">(</span><em class="sig-param">inData</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.SparseCholeskyAbstract.solve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.Cholesky.SparseCholeskyAbstract.solveL">
+<em class="property">abstract </em><code class="sig-name descname">solveL</code><span class="sig-paren">(</span><em class="sig-param">inData</em>, <em class="sig-param">transpose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.Cholesky.SparseCholeskyAbstract.solveL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-fieldosophy.GRF.FEM">
+<span id="fieldosophy-grf-fem-module"></span><h2>fieldosophy.GRF.FEM module<a class="headerlink" href="#module-fieldosophy.GRF.FEM" title="Permalink to this headline">¶</a></h2>
+<p>Functionality for finite element approximations.</p>
+<p>This file is part of Fieldosophy, a toolkit for random fields.
+Copyright (C) 2021 Anders Gunnar Felix Hildeman &lt;<a class="reference external" href="mailto:fieldosophySPDEC&#37;&#52;&#48;gmail&#46;com">fieldosophySPDEC<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;
+This Source Code is subject to the terms of the BSD 3-Clause License.
+If a copy of the license was not distributed with this file, you can obtain one at <a class="reference external" href="https://opensource.org/licenses/BSD-3-Clause">https://opensource.org/licenses/BSD-3-Clause</a>.</p>
+<dl class="class">
+<dt id="fieldosophy.GRF.FEM.FEM">
+<em class="property">class </em><code class="sig-prename descclassname">fieldosophy.GRF.FEM.</code><code class="sig-name descname">FEM</code><span class="sig-paren">(</span><em class="sig-param">mesh=None, matMapsCalculate=['M'], matMapsCalculateEdges=None, libPath=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Class representing a FEM approximation of a stochastic differential equation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mesh</strong> -- A mesh object to base the FEM approximation on.</p></li>
+<li><p><strong>matMapsCalculate</strong> -- Defines which mappings from inner products on simplices to system matrices that should be computed.</p></li>
+<li><p><strong>matMapsCalculateEdges</strong> -- Defines which mappings from inner products on edge simplices to edge system matrices that should be computed.</p></li>
+<li><p><strong>libPath</strong> -- A path to the dynamically linked library &quot;libSPDEC.so&quot; to access the low-level API of fieldosophy.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.FEM.BCDirichlet">
+<code class="sig-name descname">BCDirichlet</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.BCDirichlet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.FEM.BCDirichletIndex">
+<code class="sig-name descname">BCDirichletIndex</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.BCDirichletIndex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.FEM.Pr">
+<code class="sig-name descname">Pr</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.Pr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.FEM.QChol">
+<code class="sig-name descname">QChol</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.QChol" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.FEM.assembleK">
+<code class="sig-name descname">assembleK</code><span class="sig-paren">(</span><em class="sig-param">MCoeff</em>, <em class="sig-param">BCoeff</em>, <em class="sig-param">GCoeff</em>, <em class="sig-param">BCRobinFunction</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.assembleK" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assembles the system matrix 'K' of the FEM system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>MCoeff</strong> -- The inner product over each simplex for each basis function sorted in a T x N array (where T are the number of simplices and N the number of nodes, i.e., basis functions). Here, representing the constant term in the differential operator where the inner product is between two basis functions multiplied with some constant that can be specific for the triangle.</p></li>
+<li><p><strong>BCoeff</strong> -- Similar to MCoeff but here representing the inner product between a basis function and the gradient of another basis function. BCoeff is a list with D number of elements; one element for each dimension in the hyperplane in which the spatial domain is embedded.</p></li>
+<li><p><strong>GCoeff</strong> -- Similar to BCoeff but here representing the inner product between the gradient of one basis function and the gradient of another basis function. Therefore being a list with DxD number of elements.</p></li>
+<li><p><strong>BCRobinFunction</strong> -- A Robin boundary condition means that, on some part of the boundary, we know that n * grad X = a X + b. Hence, the boundary condition can be enforced by the inner product of a X with some basis function and b with some basis function. When constructing K, only the first part where X is multiplied with the basis function is used. This is the input of BCRobinFunction. BCRobinFunction has one value for each edge. The Robin boundary condition can be overridden on a part of (or all of) the boundary by setting Dirichlet condition on this part instead; since Dirichlet conditions have precedence over Neumann and Robin in Fieldosophy.</p></li>
+</ul>
+</dd>
+</dl>
+<p>:return The sparse K matrix.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.FEM.c_double_p">
+<code class="sig-name descname">c_double_p</code><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.c_double_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.misc.misc_templateMatching.LP_c_double</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.FEM.c_uint_p">
+<code class="sig-name descname">c_uint_p</code><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.c_uint_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.misc.misc_templateMatching.LP_c_uint</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.FEM.computeImplicitMean">
+<code class="sig-name descname">computeImplicitMean</code><span class="sig-paren">(</span><em class="sig-param">mu</em>, <em class="sig-param">sourceCoeff</em>, <em class="sig-param">BCRobinConstant</em>, <em class="sig-param">Pl</em>, <em class="sig-param">Pr</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.computeImplicitMean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assembles the right hand side of the FEM system and solve to get the mean.</p>
+<p>The actual mean of the GRF depends not only on the explicitly given mean, but also on the source term and the source part of a Robin boundary condition.
+This function computes this implicit mean.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mu</strong> -- The explicit mean defined by the user.</p></li>
+<li><p><strong>sourceCoeff</strong> -- The source term given by the user.</p></li>
+<li><p><strong>BCRobinConstant</strong> -- The source term part of the Robin boundary condition.</p></li>
+<li><p><strong>Pl</strong> -- The Pl matrix acquired from the rational approximation to fractional derivatives of the K matrix.</p></li>
+<li><p><strong>Pr</strong> -- The Pr matrix acquired from the rational approximation to fractional derivatives of the K matrix.</p></li>
+</ul>
+</dd>
+</dl>
+<p>:return The implicit mean.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.FEM.cond">
+<code class="sig-name descname">cond</code><span class="sig-paren">(</span><em class="sig-param">y</em>, <em class="sig-param">A</em>, <em class="sig-param">sigmaEps</em>, <em class="sig-param">QChol=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.cond" title="Permalink to this definition">¶</a></dt>
+<dd><p>Acquire conditional distribution given model and observations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y</strong> -- Observed data, a KxL array where L are the number of replicates and K are the number of joint observations.</p></li>
+<li><p><strong>A</strong> -- An observation matrix relating the observations to the mesh.</p></li>
+<li><p><strong>sigmaEps</strong> -- The independent centered observation noise given as a standard deviation. Can be different for different observation points.</p></li>
+<li><p><strong>QCond</strong> -- It is possible to provide a conditional precision matrix (if already computed) such that the computation does not have to be performed again. If left as None the precision matrix will instead be computed as part of the operation.</p></li>
+</ul>
+</dd>
+</dl>
+<p>:return A new FEM object representing the conditioned random field.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.FEM.condMean">
+<code class="sig-name descname">condMean</code><span class="sig-paren">(</span><em class="sig-param">y</em>, <em class="sig-param">A</em>, <em class="sig-param">sigmaEps</em>, <em class="sig-param">QChol=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.condMean" title="Permalink to this definition">¶</a></dt>
+<dd><p>If already have conditional distribution, use this function to get a new (or several) conditional means</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y</strong> -- Observed data, a KxL array where L are the number of replicates and K are the number of joint observations.</p></li>
+<li><p><strong>A</strong> -- An observation matrix relating the observations to the mesh.</p></li>
+<li><p><strong>sigmaEps</strong> -- The independent centered observation noise given as a standard deviation. Can be different for different observation points.</p></li>
+<li><p><strong>QCond</strong> -- It is possible to provide a conditional precision matrix (if already computed) such that the computation does not have to be performed again. If left as None the precision matrix will instead be computed as part of the operation.</p></li>
+</ul>
+</dd>
+</dl>
+<p>:return A new FEM object representing the conditioned random field.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.FEM.condQChol">
+<code class="sig-name descname">condQChol</code><span class="sig-paren">(</span><em class="sig-param">A</em>, <em class="sig-param">sigmaEps</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.condQChol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute conditional Q Cholesky factor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>A</strong> -- An observation matrix relating the observations to the mesh.</p></li>
+<li><p><strong>sigmaEps</strong> -- The independent centered observation noise given as a standard deviation. Can be different for different observation points.</p></li>
+</ul>
+</dd>
+</dl>
+<p>:return The Cholesky factorized matrix</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.FEM.copy">
+<em class="property">abstract </em><code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>:return A deep copy of self.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.FEM.copyParent">
+<code class="sig-name descname">copyParent</code><span class="sig-paren">(</span><em class="sig-param">out</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.copyParent" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>out</strong> -- out becomes a deep copy of this object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.FEM.generateRandom">
+<code class="sig-name descname">generateRandom</code><span class="sig-paren">(</span><em class="sig-param">n</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.generateRandom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate realizations from model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>n</strong> -- Number of realizations.</p>
+</dd>
+</dl>
+<p>:return A N x n array, where N are the number of nodes in the mesh and n is the number of realizations.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.FEM.kappaMin">
+<code class="sig-name descname">kappaMin</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.kappaMin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.FEM.loglik">
+<code class="sig-name descname">loglik</code><span class="sig-paren">(</span><em class="sig-param">y</em>, <em class="sig-param">A</em>, <em class="sig-param">sigmaEps</em>, <em class="sig-param">QCond=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.loglik" title="Permalink to this definition">¶</a></dt>
+<dd><p>Log-likelihood of model given observations</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y</strong> -- Observed data, a KxL array where L are the number of replicates and K are the number of joint observations.</p></li>
+<li><p><strong>A</strong> -- An observation matrix relating the observations to the mesh.</p></li>
+<li><p><strong>sigmaEps</strong> -- The independent centered observation noise given as a standard deviation. Can be different for different observation points.</p></li>
+<li><p><strong>QCond</strong> -- It is possible to provide a conditional precision matrix (if already computed) such that the computation does not have to be performed again. If left as None the precision matrix will instead be computed as part of the operation.</p></li>
+</ul>
+</dd>
+</dl>
+<p>:return The log-likelihood.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.FEM.matMaps">
+<code class="sig-name descname">matMaps</code><em class="property"> = ['M']</em><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.matMaps" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.FEM.matMapsEdges">
+<code class="sig-name descname">matMapsEdges</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.matMapsEdges" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.FEM.mesh">
+<code class="sig-name descname">mesh</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.mesh" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.FEM.mu">
+<code class="sig-name descname">mu</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.mu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.FEM.multiplyWithCovariance">
+<code class="sig-name descname">multiplyWithCovariance</code><span class="sig-paren">(</span><em class="sig-param">matrix</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.multiplyWithCovariance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Multiply vector or matrix with the covariance function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>matrix</strong> -- An N x n array for which N is the number of nodes in the mesh and n are the number of vectors to multiply.</p>
+</dd>
+</dl>
+<p>:return An N x n array.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.FEM.nu">
+<code class="sig-name descname">nu</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.nu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.FEM.rationalApproximation">
+<code class="sig-name descname">rationalApproximation</code><span class="sig-paren">(</span><em class="sig-param">CInvSqrt</em>, <em class="sig-param">eigenNorm</em>, <em class="sig-param">nu</em>, <em class="sig-param">d</em>, <em class="sig-param">N=20</em>, <em class="sig-param">m=2</em>, <em class="sig-param">n=1</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.rationalApproximation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute rational approximation as suggested in Bolin et al. 2019.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>K</strong> -- The system matrix of the FEM system.</p></li>
+<li><p><strong>CInvSqrt</strong> -- A diagonal matrix representing the square root of the inverse of C (assuming &quot;mass lumping&quot; to acquire a diagonal matrix).</p></li>
+<li><p><strong>eigenNorm</strong> -- The maximal value of the eigen values of the differential operator.</p></li>
+<li><p><strong>nu</strong> -- The smoothness of the field, i.e., beta = nu/2 + d/4, where nu is the Hölder constant of realizations almost everywhere.</p></li>
+<li><p><strong>d</strong> -- The dimensionality of the manifold (not generally the dimensionality of the hyperplane in which it is embedded in).</p></li>
+<li><p><strong>N</strong> -- The degree of the Chebyshev polynomial used in the rational approximation in the Cleenshaw-Lord approximation.</p></li>
+<li><p><strong>m</strong> -- The degree of the polynomial corresponding to Pl.</p></li>
+<li><p><strong>n</strong> -- The degree of the polynomial corresponding to Pr.</p></li>
+</ul>
+</dd>
+</dl>
+<p>:return The Pl and Pr matrices for the rational FEM approximation of the solution.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.FEM.sigma">
+<code class="sig-name descname">sigma</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.sigma" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.FEM.tau">
+<code class="sig-name descname">tau</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.tau" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.FEM.updateSystem">
+<code class="sig-name descname">updateSystem</code><span class="sig-paren">(</span><em class="sig-param">MCoeff</em>, <em class="sig-param">tau</em>, <em class="sig-param">nu</em>, <em class="sig-param">mu=0</em>, <em class="sig-param">BCoeff=None</em>, <em class="sig-param">GCoeff=None</em>, <em class="sig-param">sourceCoeff=None</em>, <em class="sig-param">BCRobin=None</em>, <em class="sig-param">BCDirichlet=None</em>, <em class="sig-param">factorize=True</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.FEM.updateSystem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update system with new parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>MCoeff</strong> -- Coefficients of constant term (simplex wise).</p></li>
+<li><p><strong>tau</strong> -- Value of the tau-parameter. Tau can be either a scalar or a vector the same size as the number of nodes in the mesh.</p></li>
+<li><p><strong>nu</strong> -- The smoothness parameter. Can be any positive real value.</p></li>
+<li><p><strong>mu</strong> -- The mean value. Either a constant or a vector the same size as the number of nodes of the mesh. If set to None, the implicit mean is not computed (can save computations when applicable)</p></li>
+<li><p><strong>BCoeff</strong> -- Coefficients of the first derivative term (simplex wise and with the number of elements as the dimensionality of the hyperplane that the manifold is embedded in).</p></li>
+<li><p><strong>GCoeff</strong> -- Coefficients of the second derivative term (simplex wise and with the number of elements as the squared dimensionality of the hyperplane that the manifold is embedded in).</p></li>
+<li><p><strong>sourceCoeff</strong> -- An optional deterministic term to the source of the differential equation (same dimensionality as the number of simplices).</p></li>
+<li><p><strong>BCRobin</strong> -- Sets the Robin boundary conditions. Set to None if no Robin boundary conditions should be enforced.
+Otherwise, an array where the number of rows equal either one or the number of simplices on the edge and with two columns.
+The first column corresponds to the coefficient for the constant term and thesecond column corresponding to the coefficient for the first-derivative term.</p></li>
+<li><p><strong>BCDirichlet</strong> -- Sets the Dirichlet boundary conditions. If None, no Dirichlet boundary conditions are enforced.
+Otherwise, BCDirichlet is a vector the same size as the number of nodes in the mesh.
+The vale corresponds to the enforced constant value of that specific node unless the value is nan, which means that the given node is not enforced to a Dircihlet condition.</p></li>
+<li><p><strong>factorize</strong> -- If the Choleksy factorization should be performed now.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fieldosophy.GRF.FEM.MatMaps">
+<em class="property">class </em><code class="sig-prename descclassname">fieldosophy.GRF.FEM.</code><code class="sig-name descname">MatMaps</code><span class="sig-paren">(</span><em class="sig-param">simplices, nodes, calculate=['M'], libPath=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.MatMaps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class representing the mapping from values at simplices to values for and between nodes</p>
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.MatMaps.B">
+<code class="sig-name descname">B</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.FEM.MatMaps.B" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.MatMaps.D">
+<code class="sig-name descname">D</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.FEM.MatMaps.D" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.MatMaps.G">
+<code class="sig-name descname">G</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.FEM.MatMaps.G" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.MatMaps.M">
+<code class="sig-name descname">M</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.FEM.MatMaps.M" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.MatMaps.NN">
+<code class="sig-name descname">NN</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.FEM.MatMaps.NN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.MatMaps.NT">
+<code class="sig-name descname">NT</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.FEM.MatMaps.NT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.MatMaps.U">
+<code class="sig-name descname">U</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.FEM.MatMaps.U" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.MatMaps.acquireSmallerMatrix">
+<code class="sig-name descname">acquireSmallerMatrix</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.MatMaps.acquireSmallerMatrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make matrix smaller by removing zero rows</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>COOMat</strong> -- The large sparse matrix.</p>
+</dd>
+</dl>
+<p>:return The compressed large sparse matrix. Stored as a smaller sparse matrix with all uneccessary rows removed, and an indexing of which rows these are.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.MatMaps.c_double_p">
+<code class="sig-name descname">c_double_p</code><a class="headerlink" href="#fieldosophy.GRF.FEM.MatMaps.c_double_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.misc.misc_templateMatching.LP_c_double</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.MatMaps.c_uint_p">
+<code class="sig-name descname">c_uint_p</code><a class="headerlink" href="#fieldosophy.GRF.FEM.MatMaps.c_uint_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.misc.misc_templateMatching.LP_c_uint</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.MatMaps.computeB">
+<code class="sig-name descname">computeB</code><span class="sig-paren">(</span><em class="sig-param">simplices</em>, <em class="sig-param">nodes</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.MatMaps.computeB" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes inner products between any basis function and the gradient of any basis function for each simplex in mesh.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>simplices</strong> -- The simplices of the mesh.</p></li>
+<li><p><strong>nodes</strong> -- The nodes of the mesh.</p></li>
+</ul>
+</dd>
+</dl>
+<p>:return The matrix mapping vector of size the number of simplices to each combination of basis function pairs. The matrix will be very sparse and is stored in a special format defined in 'acquireSmallerMatrix'. The output is a list with one element for each dimension in the hyperplane for which the manifold is embedded in.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.MatMaps.computeG">
+<code class="sig-name descname">computeG</code><span class="sig-paren">(</span><em class="sig-param">simplices</em>, <em class="sig-param">nodes</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.MatMaps.computeG" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes inner products between the gradient of any basis function and the gradient of any other basis function for each simplex in mesh.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>simplices</strong> -- The simplices of the mesh.</p></li>
+<li><p><strong>nodes</strong> -- The nodes of the mesh.</p></li>
+</ul>
+</dd>
+</dl>
+<p>:return The matrix mapping vector of size the number of simplices to each combination of basis function pairs. The matrix will be very sparse and is stored in a special format defined in 'acquireSmallerMatrix'. The output is a list with one element for each combination of dimension pairs in the hyperplane for which the manifold is embedded in.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.MatMaps.computeGeneric">
+<code class="sig-name descname">computeGeneric</code><span class="sig-paren">(</span><em class="sig-param">simplices</em>, <em class="sig-param">nodes</em>, <em class="sig-param">matId</em>, <em class="sig-param">tempMat</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.MatMaps.computeGeneric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function for computing either M, B, G, or U matrices using the low-level library.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>simplices</strong> -- The simplices of the mesh.</p></li>
+<li><p><strong>nodes</strong> -- The nodes of the mesh.</p></li>
+<li><p><strong>matId</strong> -- Code informing on which matrix to compute. 0 being the M matrix, 1 to D+1 being the different dimensions of B matrix, D+2 to 1 + D + D^2 being the different dimensions of the G matrix, and 2 + D + D^2 being the U matrix.</p></li>
+<li><p><strong>tempMat</strong> -- A sparse matrix, typically preallocated to an appropriate size.</p></li>
+</ul>
+</dd>
+</dl>
+<p>:return the corresponding sparse N^2 x T matrix, where N is the number of nodes and T the number of simplices.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.MatMaps.computeM">
+<code class="sig-name descname">computeM</code><span class="sig-paren">(</span><em class="sig-param">simplices</em>, <em class="sig-param">nodes</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.MatMaps.computeM" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes inner products between pairs of basis functions for each simplex in mesh.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>simplices</strong> -- The simplices of the mesh.</p></li>
+<li><p><strong>nodes</strong> -- The nodes of the mesh.</p></li>
+</ul>
+</dd>
+</dl>
+<p>:return The matrix mapping vector of size the number of simplices to each combination of basis function pairs. The matrix will be very sparse and is stored in a special format defined in 'acquireSmallerMatrix'.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.MatMaps.computeU">
+<code class="sig-name descname">computeU</code><span class="sig-paren">(</span><em class="sig-param">simplices</em>, <em class="sig-param">nodes</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.MatMaps.computeU" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes inner products between any basis function and 1 for each simplex in mesh.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>simplices</strong> -- The simplices of the mesh.</p></li>
+<li><p><strong>nodes</strong> -- The nodes of the mesh.</p></li>
+</ul>
+</dd>
+</dl>
+<p>:return The matrix mapping vector of size the number of simplices to each number of nodes in the mesh. The matrix will be very sparse and is stored in a special format defined in 'acquireSmallerMatrix'.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.MatMaps.copy">
+<code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.MatMaps.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>:return Deep copy of self.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.MatMaps.mapTriVals2Mat">
+<code class="sig-name descname">mapTriVals2Mat</code><span class="sig-paren">(</span><em class="sig-param">vector</em>, <em class="sig-param">N</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.MatMaps.mapTriVals2Mat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Map values at triangles to a system matrix on the nodes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>matrix</strong> -- A matrix acquired using computeGeneric or any of the wrapper of it, viz. computeM, computeB, computeG, and computeU.</p></li>
+<li><p><strong>vector</strong> -- A vector of constants for each simplex.</p></li>
+<li><p><strong>N</strong> -- The shape of the output matrix.</p></li>
+</ul>
+</dd>
+</dl>
+<p>:return A N[0] x N[1] matrix to use for the system of linear equations in the finite element method.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.MatMaps.topD">
+<code class="sig-name descname">topD</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.FEM.MatMaps.topD" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fieldosophy.GRF.FEM.MaternFEM">
+<em class="property">class </em><code class="sig-prename descclassname">fieldosophy.GRF.FEM.</code><code class="sig-name descname">MaternFEM</code><span class="sig-paren">(</span><em class="sig-param">mesh</em>, <em class="sig-param">childParams</em>, <em class="sig-param">nu</em>, <em class="sig-param">sigma</em>, <em class="sig-param">mu=0</em>, <em class="sig-param">libPath=None</em>, <em class="sig-param">BCDirichlet=None</em>, <em class="sig-param">BCRobin=None</em>, <em class="sig-param">sourceCoeff=None</em>, <em class="sig-param">factorize=True</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.MaternFEM" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#fieldosophy.GRF.FEM.abstractDeformed" title="fieldosophy.GRF.FEM.abstractDeformed"><code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.GRF.FEM.abstractDeformed</span></code></a></p>
+<p>Class representing the classical matern model.</p>
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.MaternFEM.matMapsCalculate">
+<code class="sig-name descname">matMapsCalculate</code><em class="property"> = ['M', 'G']</em><a class="headerlink" href="#fieldosophy.GRF.FEM.MaternFEM.matMapsCalculate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.MaternFEM.matMapsCalculateEdges">
+<code class="sig-name descname">matMapsCalculateEdges</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.FEM.MaternFEM.matMapsCalculateEdges" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.MaternFEM.paramsFunction">
+<code class="sig-name descname">paramsFunction</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.MaternFEM.paramsFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the standard Matérn SPDE model parameterized by a correlation range ('r').</p>
+<p>:return The coefficients for the M, B, and G matrices.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fieldosophy.GRF.FEM.abstractDeformed">
+<em class="property">class </em><code class="sig-prename descclassname">fieldosophy.GRF.FEM.</code><code class="sig-name descname">abstractDeformed</code><span class="sig-paren">(</span><em class="sig-param">mesh</em>, <em class="sig-param">childParams</em>, <em class="sig-param">nu</em>, <em class="sig-param">sigma</em>, <em class="sig-param">mu=0</em>, <em class="sig-param">libPath=None</em>, <em class="sig-param">BCDirichlet=None</em>, <em class="sig-param">BCRobin=None</em>, <em class="sig-param">sourceCoeff=None</em>, <em class="sig-param">factorize=True</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.abstractDeformed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#fieldosophy.GRF.FEM.FEM" title="fieldosophy.GRF.FEM.FEM"><code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.GRF.FEM.FEM</span></code></a></p>
+<p>Generic FEM child class for the deformed Matern models.</p>
+<p>The childParams parameter completely decides the model.</p>
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.abstractDeformed.childParams">
+<code class="sig-name descname">childParams</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.FEM.abstractDeformed.childParams" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.abstractDeformed.copy">
+<code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.abstractDeformed.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>:return A deep copy of self.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.abstractDeformed.matMapsCalculate">
+<code class="sig-name descname">matMapsCalculate</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.FEM.abstractDeformed.matMapsCalculate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.abstractDeformed.matMapsCalculateEdges">
+<code class="sig-name descname">matMapsCalculateEdges</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.FEM.abstractDeformed.matMapsCalculateEdges" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.abstractDeformed.paramsFunction">
+<em class="property">abstract </em><code class="sig-name descname">paramsFunction</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.abstractDeformed.paramsFunction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.abstractDeformed.updateSystem">
+<code class="sig-name descname">updateSystem</code><span class="sig-paren">(</span><em class="sig-param">childParams</em>, <em class="sig-param">nu</em>, <em class="sig-param">sigma</em>, <em class="sig-param">mu=None</em>, <em class="sig-param">BCDirichlet=None</em>, <em class="sig-param">BCRobin=None</em>, <em class="sig-param">sourceCoeff=None</em>, <em class="sig-param">factorize=True</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.abstractDeformed.updateSystem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update system with new parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>MCoeff</strong> -- Coefficients of constant term (simplex wise).</p></li>
+<li><p><strong>tau</strong> -- Value of the tau-parameter. Tau can be either a scalar or a vector the same size as the number of nodes in the mesh.</p></li>
+<li><p><strong>nu</strong> -- The smoothness parameter. Can be any positive real value.</p></li>
+<li><p><strong>mu</strong> -- The mean value. Either a constant or a vector the same size as the number of nodes of the mesh. If set to None, the implicit mean is not computed (can save computations when applicable)</p></li>
+<li><p><strong>BCoeff</strong> -- Coefficients of the first derivative term (simplex wise and with the number of elements as the dimensionality of the hyperplane that the manifold is embedded in).</p></li>
+<li><p><strong>GCoeff</strong> -- Coefficients of the second derivative term (simplex wise and with the number of elements as the squared dimensionality of the hyperplane that the manifold is embedded in).</p></li>
+<li><p><strong>sourceCoeff</strong> -- An optional deterministic term to the source of the differential equation (same dimensionality as the number of simplices).</p></li>
+<li><p><strong>BCRobin</strong> -- Sets the Robin boundary conditions. Set to None if no Robin boundary conditions should be enforced.
+Otherwise, an array where the number of rows equal either one or the number of simplices on the edge and with two columns.
+The first column corresponds to the coefficient for the constant term and thesecond column corresponding to the coefficient for the first-derivative term.</p></li>
+<li><p><strong>BCDirichlet</strong> -- Sets the Dirichlet boundary conditions. If None, no Dirichlet boundary conditions are enforced.
+Otherwise, BCDirichlet is a vector the same size as the number of nodes in the mesh.
+The vale corresponds to the enforced constant value of that specific node unless the value is nan, which means that the given node is not enforced to a Dircihlet condition.</p></li>
+<li><p><strong>factorize</strong> -- If the Choleksy factorization should be performed now.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.GRF.FEM.angleToVecs2D">
+<code class="sig-prename descclassname">fieldosophy.GRF.FEM.</code><code class="sig-name descname">angleToVecs2D</code><span class="sig-paren">(</span><em class="sig-param">angle</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.angleToVecs2D" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>angle</strong> -- An angle [radians] for the main direction.</p>
+</dd>
+</dl>
+<p>:return A 2D-array which columns are two orthogonal unit vectors, the first pointing in the direction of angle</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="fieldosophy.GRF.FEM.anisotropicMaternFEM">
+<em class="property">class </em><code class="sig-prename descclassname">fieldosophy.GRF.FEM.</code><code class="sig-name descname">anisotropicMaternFEM</code><span class="sig-paren">(</span><em class="sig-param">mesh</em>, <em class="sig-param">childParams</em>, <em class="sig-param">nu</em>, <em class="sig-param">sigma</em>, <em class="sig-param">mu=0</em>, <em class="sig-param">libPath=None</em>, <em class="sig-param">BCDirichlet=None</em>, <em class="sig-param">BCRobin=None</em>, <em class="sig-param">sourceCoeff=None</em>, <em class="sig-param">factorize=True</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.anisotropicMaternFEM" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#fieldosophy.GRF.FEM.abstractDeformed" title="fieldosophy.GRF.FEM.abstractDeformed"><code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.GRF.FEM.abstractDeformed</span></code></a></p>
+<p>Class representing the anisotropic matern model in two dimensions.</p>
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.anisotropicMaternFEM.matMapsCalculate">
+<code class="sig-name descname">matMapsCalculate</code><em class="property"> = ['M', 'G']</em><a class="headerlink" href="#fieldosophy.GRF.FEM.anisotropicMaternFEM.matMapsCalculate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.anisotropicMaternFEM.matMapsCalculateEdges">
+<code class="sig-name descname">matMapsCalculateEdges</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.FEM.anisotropicMaternFEM.matMapsCalculateEdges" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.anisotropicMaternFEM.paramsFunction">
+<code class="sig-name descname">paramsFunction</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.anisotropicMaternFEM.paramsFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate FEM model for anisotropic Matérn model in two dimensions given an angle of the main direction ('angle') and two correlation ranges ('r').</p>
+<p>:return The coefficients for the M, B, and G matrices.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fieldosophy.GRF.FEM.nonStatFEM">
+<em class="property">class </em><code class="sig-prename descclassname">fieldosophy.GRF.FEM.</code><code class="sig-name descname">nonStatFEM</code><span class="sig-paren">(</span><em class="sig-param">mesh</em>, <em class="sig-param">childParams</em>, <em class="sig-param">nu</em>, <em class="sig-param">sigma</em>, <em class="sig-param">mu=0</em>, <em class="sig-param">libPath=None</em>, <em class="sig-param">BCDirichlet=None</em>, <em class="sig-param">BCRobin=None</em>, <em class="sig-param">sourceCoeff=None</em>, <em class="sig-param">factorize=True</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.nonStatFEM" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#fieldosophy.GRF.FEM.abstractDeformed" title="fieldosophy.GRF.FEM.abstractDeformed"><code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.GRF.FEM.abstractDeformed</span></code></a></p>
+<p>Class representing the general deformed Matern model.</p>
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.nonStatFEM.matMapsCalculate">
+<code class="sig-name descname">matMapsCalculate</code><em class="property"> = ['M', 'G']</em><a class="headerlink" href="#fieldosophy.GRF.FEM.nonStatFEM.matMapsCalculate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.FEM.nonStatFEM.matMapsCalculateEdges">
+<code class="sig-name descname">matMapsCalculateEdges</code><em class="property"> = None</em><a class="headerlink" href="#fieldosophy.GRF.FEM.nonStatFEM.matMapsCalculateEdges" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.GRF.FEM.nonStatFEM.paramsFunction">
+<code class="sig-name descname">paramsFunction</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.nonStatFEM.paramsFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to map child parameters to FEM parameters.
+Either a function is provided under the name 'f' or it is assumed that the parameters 'logGSqrt' and 'GInv' are provided.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.GRF.FEM.orthVectorsToG">
+<code class="sig-prename descclassname">fieldosophy.GRF.FEM.</code><code class="sig-name descname">orthVectorsToG</code><span class="sig-paren">(</span><em class="sig-param">vectors</em>, <em class="sig-param">scalers</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.orthVectorsToG" title="Permalink to this definition">¶</a></dt>
+<dd><p>Acquire parameters to the SPDE given the deformation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vectors</strong> -- An array where each column is a vector. The set of vectors assumed to be orthogonal.</p></li>
+<li><p><strong>scalers</strong> -- The correlation range in each of the vector directions.</p></li>
+</ul>
+</dd>
+</dl>
+<p>:return the logarithm of teh squared determinant of G, and the inverse of G. Here, G being the metric tensor.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-fieldosophy.GRF.GRF">
+<span id="fieldosophy-grf-grf-module"></span><h2>fieldosophy.GRF.GRF module<a class="headerlink" href="#module-fieldosophy.GRF.GRF" title="Permalink to this headline">¶</a></h2>
+<p>Functionality for Gaussian random fields.</p>
+<p>This file is part of Fieldosophy, a toolkit for random fields.</p>
+<p>Copyright (C) 2021 Anders Gunnar Felix Hildeman &lt;<a class="reference external" href="mailto:fieldosophySPDEC&#37;&#52;&#48;gmail&#46;com">fieldosophySPDEC<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</p>
+<p>This Source Code is subject to the terms of the BSD 3-Clause License.
+If a copy of the license was not distributed with this file, you can obtain one at <a class="reference external" href="https://opensource.org/licenses/BSD-3-Clause">https://opensource.org/licenses/BSD-3-Clause</a>.</p>
+<dl class="function">
+<dt id="fieldosophy.GRF.GRF.EigenRepr2Dense">
+<code class="sig-prename descclassname">fieldosophy.GRF.GRF.</code><code class="sig-name descname">EigenRepr2Dense</code><span class="sig-paren">(</span><em class="sig-param">A</em>, <em class="sig-param">rowMajor=True</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.GRF.EigenRepr2Dense" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="fieldosophy.GRF.GRF.EigenSparseStruct">
+<em class="property">class </em><code class="sig-prename descclassname">fieldosophy.GRF.GRF.</code><code class="sig-name descname">EigenSparseStruct</code><a class="headerlink" href="#fieldosophy.GRF.GRF.EigenSparseStruct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_ctypes.Structure</span></code></p>
+<dl class="attribute">
+<dt id="fieldosophy.GRF.GRF.EigenSparseStruct.innerIndex">
+<code class="sig-name descname">innerIndex</code><a class="headerlink" href="#fieldosophy.GRF.GRF.EigenSparseStruct.innerIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.GRF.EigenSparseStruct.numCols">
+<code class="sig-name descname">numCols</code><a class="headerlink" href="#fieldosophy.GRF.GRF.EigenSparseStruct.numCols" title="Permalink to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.GRF.EigenSparseStruct.numNonZeros">
+<code class="sig-name descname">numNonZeros</code><a class="headerlink" href="#fieldosophy.GRF.GRF.EigenSparseStruct.numNonZeros" title="Permalink to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.GRF.EigenSparseStruct.numRows">
+<code class="sig-name descname">numRows</code><a class="headerlink" href="#fieldosophy.GRF.GRF.EigenSparseStruct.numRows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.GRF.EigenSparseStruct.outerIndex">
+<code class="sig-name descname">outerIndex</code><a class="headerlink" href="#fieldosophy.GRF.GRF.EigenSparseStruct.outerIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.GRF.EigenSparseStruct.values">
+<code class="sig-name descname">values</code><a class="headerlink" href="#fieldosophy.GRF.GRF.EigenSparseStruct.values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.GRF.GRF.MaternCorr">
+<code class="sig-prename descclassname">fieldosophy.GRF.GRF.</code><code class="sig-name descname">MaternCorr</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">nu</em>, <em class="sig-param">kappa</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.GRF.MaternCorr" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Matérn correlation function, i.e. normalized such that the value at 0 is 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> -- The distances to evaluate.</p></li>
+<li><p><strong>nu</strong> -- Smoothness parameter, correspond to the Hölder constant almost everywhere of realizations.</p></li>
+<li><p><strong>kappa</strong> -- The scaling constant.</p></li>
+</ul>
+</dd>
+</dl>
+<p>:return The Matérn correlation evaluated at x.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.GRF.GRF.MaternCorrParamDer">
+<code class="sig-prename descclassname">fieldosophy.GRF.GRF.</code><code class="sig-name descname">MaternCorrParamDer</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">nu</em>, <em class="sig-param">kappa</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.GRF.MaternCorrParamDer" title="Permalink to this definition">¶</a></dt>
+<dd><p>The derivative of the Mat'ern correlation function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> -- At what distances to evaluate the derivative.</p></li>
+<li><p><strong>nu</strong> -- The smoothness parameter.</p></li>
+<li><p><strong>kappa</strong> -- The scaling constant.</p></li>
+</ul>
+</dd>
+</dl>
+<p>:return An 2 x n array where first row is the derivative w.r.t. nu for each x and the second row the derivative w.r.t. kappa for each x. Also provide the correlation value for each x as a separate output.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.GRF.GRF.anisotropicMaternCorr">
+<code class="sig-prename descclassname">fieldosophy.GRF.GRF.</code><code class="sig-name descname">anisotropicMaternCorr</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">nu</em>, <em class="sig-param">v</em>, <em class="sig-param">r</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.GRF.anisotropicMaternCorr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Anisotropic Matern</p>
+<p>x - array D x N. Here, x is not only distance but vector values (also direction).
+D is dimensionality an N are number of 'distances'.
+nu - smoothness.
+v - orthogonal matrix where each column is the corresponding vector for ranges r.
+r - correlation range in each v direction.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.GRF.GRF.dense2EigenRepr">
+<code class="sig-prename descclassname">fieldosophy.GRF.GRF.</code><code class="sig-name descname">dense2EigenRepr</code><span class="sig-paren">(</span><em class="sig-param">A</em>, <em class="sig-param">eigenRepr</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.GRF.dense2EigenRepr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.GRF.GRF.kv">
+<code class="sig-prename descclassname">fieldosophy.GRF.GRF.</code><code class="sig-name descname">kv</code><span class="sig-paren">(</span><em class="sig-param">v</em>, <em class="sig-param">z</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.GRF.kv" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.GRF.GRF.matPtr">
+<code class="sig-prename descclassname">fieldosophy.GRF.GRF.</code><code class="sig-name descname">matPtr</code><a class="headerlink" href="#fieldosophy.GRF.GRF.matPtr" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">fieldosophy.GRF.GRF.LP_EigenSparseStruct</span></code></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-fieldosophy.GRF">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-fieldosophy.GRF" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">fieldosophy.GRF package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-fieldosophy.GRF.Cholesky">fieldosophy.GRF.Cholesky module</a></li>
+<li><a class="reference internal" href="#module-fieldosophy.GRF.FEM">fieldosophy.GRF.FEM module</a></li>
+<li><a class="reference internal" href="#module-fieldosophy.GRF.GRF">fieldosophy.GRF.GRF module</a></li>
+<li><a class="reference internal" href="#module-fieldosophy.GRF">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api_reference.html"
+                        title="previous chapter">Fieldosophy API</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="fieldosophy.marginal.html"
+                        title="next chapter">fieldosophy.marginal package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/fieldosophy.GRF.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="fieldosophy.marginal.html" title="fieldosophy.marginal package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api_reference.html" title="Fieldosophy API"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Fieldosophy 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api_reference.html" >Fieldosophy API</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Anders Gunnar Felix Hildeman.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.0.
+    </div>
+  </body>
+</html>

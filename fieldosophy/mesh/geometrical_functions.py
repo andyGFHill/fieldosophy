@@ -13,6 +13,7 @@ If a copy of the license was not distributed with this file, you can obtain one 
 """
 
 import numpy as np
+import ctypes
 
 
 
@@ -34,8 +35,10 @@ def sphere2Lonlat( coord ):
         coord = coord.reshape((1,-1))
     
     lat = np.arcsin( coord[:, 2] )    
-    coord[:, 0] = coord[:, 0] / np.cos(lat)
-    lon = np.arccos( coord[:, 0] )
+    lon = coord[:, 0] / np.cos(lat)
+    lon[ lon < -1] = -1
+    lon[ lon > 1] = 1
+    lon = np.arccos(lon)
     lon[ coord[:, 1] < 0 ] = - lon[ coord[:, 1] < 0 ]
     
     lon[np.isnan(lon)] = np.sign(lat[np.isnan(lon)]) * np.pi/2
@@ -150,8 +153,102 @@ def distanceBetweenPointsOnSphere( points1, points2 = None ):
     
     for iter1 in range( points1.shape[1] ):
         dist[iter1, :] = distanceOnSphere( points1[:, iter1], points2 )
-#        for iter2 in range( points2.shape[1] ):
             
             
     return dist
+
+
+def smallestDistanceBetweenPointsOnSphere( points1, points2, lib ):
+    """ Find smallest geodesic distance between points on unit sphere. """
     
+    dims = points1.shape[1]
+    if points2.shape[1] != dims:
+        raise Exception( "No matching dimensions!" )
+    # Get number of points
+    numPoints1 = points1.shape[0]
+    numPoints2 = points2.shape[0]
+    
+    # Declare pointer types
+    c_double_p = ctypes.POINTER(ctypes.c_double)   
+    c_uint_p = ctypes.POINTER(ctypes.c_uint)  
+    
+    indices = np.zeros( numPoints1, dtype=np.uintc )
+    dists = np.zeros( numPoints1, dtype=np.float64 )
+    
+    points1_p = points1.ctypes.data_as(c_double_p)
+    points2_p = points2.ctypes.data_as(c_double_p)
+    dists_p = dists.ctypes.data_as(c_double_p)
+    indices_p = indices.ctypes.data_as(c_uint_p)
+    
+    # Setup function
+    lib.misc_computeSmallestDistance.restype = ctypes.c_int
+    lib.misc_computeSmallestDistance.argtypes = \
+        [ ctypes.c_uint, \
+         c_double_p, ctypes.c_uint, \
+         c_double_p, ctypes.c_uint, \
+         c_uint_p, c_double_p, \
+         ctypes.c_int ]
+            
+    status = lib.misc_computeSmallestDistance( ctypes.c_uint( dims ), \
+        points1_p, ctypes.c_uint( numPoints1 ), \
+        points2_p, ctypes.c_uint( numPoints2 ), \
+        indices_p, dists_p, ctypes.c_int(1) )
+    if status != 0:
+        raise Exception( "Uknown error occured! Error code " + str(status) + " from misc_computeSmallestDistance()" ) 
+
+    return indices, dists
+
+def smallestDistanceBetweenPoints( points1, points2, lib ):
+    """ Find smallest Euclidean distance between points in hyperplane. """
+    
+    dims = points1.shape[1]
+    if points2.shape[1] != dims:
+        raise Exception( "No matching dimensions!" )
+    # Get number of points
+    numPoints1 = points1.shape[0]
+    numPoints2 = points2.shape[0]
+    
+    # Declare pointer types
+    c_double_p = ctypes.POINTER(ctypes.c_double)   
+    c_uint_p = ctypes.POINTER(ctypes.c_uint)  
+    
+    indices = np.zeros( numPoints1, dtype=np.uintc )
+    dists = np.zeros( numPoints1, dtype=np.float64 )
+    
+    points1_p = points1.ctypes.data_as(c_double_p)
+    points2_p = points2.ctypes.data_as(c_double_p)
+    dists_p = dists.ctypes.data_as(c_double_p)
+    indices_p = indices.ctypes.data_as(c_uint_p)
+    
+    # Setup function
+    lib.misc_computeSmallestDistance.restype = ctypes.c_int
+    lib.misc_computeSmallestDistance.argtypes = \
+        [ ctypes.c_uint, \
+         c_double_p, ctypes.c_uint, \
+         c_double_p, ctypes.c_uint, \
+         c_uint_p, c_double_p, \
+         ctypes.c_int ]
+            
+    status = lib.misc_computeSmallestDistance( ctypes.c_uint( dims ), \
+        points1_p, ctypes.c_uint( numPoints1 ), \
+        points2_p, ctypes.c_uint( numPoints2 ), \
+        indices_p, dists_p, ctypes.c_int(0) )
+    if status != 0:
+        raise Exception( "Uknown error occured! Error code " + str(status) + " from misc_computeSmallestDistance()" ) 
+
+    return indices, dists
+
+
+
+def mapToHypersphere(x):
+    """
+    Function that maps points in R^d to the unit hypersphere
+    
+    :param x: Points to map in n x d format, where 'n' is the number of points and 'd' the dimensionality.
+    """
+    
+    y = x
+    if x.ndim == 1:
+        y = x.reshape((1, -1))
+        
+    return y / np.linalg.norm(y, axis=1).reshape((-1,1))

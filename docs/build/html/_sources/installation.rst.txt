@@ -1,0 +1,43 @@
+
+
+Installation
+============
+
+
+Compiling the low-level library
+--------------------------------
+
+Although Fieldosophy is a Python package, much of its functionality is based on lower level functions written in C and C++. 
+These are packaged into a dynamically linked library that needs to be compiled before installing the package.
+
+Before compiling this library some third-party libraries hves to be installed on your system. These are:
+
+* Eigen 
+    Can be downloaded from: https://eigen.tuxfamily.org.
+    Once installed, go to the "Makefile"-file in the main directory of Fieldosophy and point the variable "EIGENPATH" to the location of the "Eigen" directory of the Eigen library.
+* GNU Scientific library
+    Can be downloaded from: https://www.gnu.org/software/gsl. 
+    Make sure to install it so that the libraries and headers are available in the default search paths of the compiler.
+
+When these libraries are installed and set up, compile the Fieldosophy library by typing "make" in the main directory of the Fieldosophy package. 
+The library-file should now reside in the "./fieldosophy/libraries" directory.
+
+Installing the Python package
+------------------------------
+
+If Fieldosophy's low-level library has been compiled successfully and resides in the "./fieldosophy/libraries" directory, the Python package can be installed by typing: "pip install .".
+Fieldosophy is now installed and can be imported in python using "import fieldosophy".
+
+If you want to make sure that the installation is working properly you can type "python -m unittest". This will execute the suite of unit tests to confirm the installation. 
+
+
+
+
+
+
+
+
+
+
+
+

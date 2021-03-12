@@ -57,11 +57,12 @@ class ConstMesh
         // Get variables
         inline const double * getNodes() const {return mNodes;}
         inline const unsigned int * getSimplices() const {return mSimplices;}
+        inline const unsigned int * getNeighs() const {return mNeighs;}
         inline const unsigned int getNN() const {return mNumNodes;}
         inline const unsigned int getNT() const {return mNumSimplices;}
         inline const unsigned int getD() const {return mD;}
         inline const unsigned int getTopD() const {return mTopD;}
-        inline const unsigned int * getNeighs() const {return mNeighs;}
+        inline const bool hasNeighs() const {return (mNeighs != NULL);}
         
         
         // Get a simplex index for a simplex where points are part
@@ -84,9 +85,12 @@ class ConstMesh
         std::set<unsigned int> getUniqueNodesOfSimplexCollection( const unsigned int * const pSimplices, const unsigned int pNumSimplices ) const;
         // Populate arrays with corresponding mesh
         int populateArrays( double * const pNodes, const unsigned int pD, const unsigned int pNumNodes, 
-            unsigned int * const pSimplices, const unsigned int pNumSimplices, const unsigned int pTopD ) const;
+            unsigned int * const pSimplices, const unsigned int pNumSimplices, const unsigned int pTopD,
+            unsigned int * const pNeighs = NULL ) const;
         // Computes a mesh graph of mesh
         int computeMeshGraph( const unsigned int pMaxNumNodes, const double pMinDiam, const unsigned int pMinNumTriangles );
+        // See if two simplices are neighbors
+        bool areSimplicesNeighbors( const unsigned int pSimpInd1, const unsigned int pSimpInd2 ) const;
         // See if node is part of simplex
         inline bool isNodePartOfSimplex( const unsigned int pNode, const unsigned int pSimplex ) const
         {
@@ -129,15 +133,17 @@ class FullMesh : public ConstMesh
     public:
 
         FullMesh( const double * const pNodes, const unsigned int pD, const unsigned int pNumNodes, 
-                const unsigned int * const pSimplices, const unsigned int pNumSimplices, const unsigned int pTopD );
+                const unsigned int * const pSimplices, const unsigned int pNumSimplices, const unsigned int pTopD,
+                const unsigned int * const pNeighs = NULL );
         
         // Method refining all simplices accordingly
-        int refine( const unsigned int pMaxNumNodes, const double pMaxDiam, const bool * const pChoosenSimplices = NULL );
+        int refine( const unsigned int pMaxNumNodes, std::vector<double> & pMaxDiam, int (* transformationPtr)(double *, unsigned int) );
         // Method refining a simplex
         int refineSimplex( const unsigned int pChosenSimplex, const double pMaxDiam, const unsigned int pMaxNewSimplices = 1);
         // Overloaded member function for populating arrays from mesh
         int populateArrays( double * const pNodes, const unsigned int pD, const unsigned int pNumNodes, 
-            unsigned int * const pSimplices, const unsigned int pNumSimplices, const unsigned int pTopD );    
+            unsigned int * const pSimplices, const unsigned int pNumSimplices, const unsigned int pTopD,
+            unsigned int * const pNeighs = NULL );    
 
     private:
     
@@ -147,6 +153,7 @@ class FullMesh : public ConstMesh
             // Set pointers to data
             mNodes = (mFullNodes.size() == 0) ? NULL : mFullNodes.data();
             mSimplices = (mFullSimplices.size() == 0) ? NULL : mFullSimplices.data();
+            mNeighs = (mFullNeighs.size() == 0) ? NULL : mFullNeighs.data();
             return;
         }
     
@@ -154,6 +161,8 @@ class FullMesh : public ConstMesh
         std::vector< unsigned int > mFullSimplices;
         // Store nodes
         std::vector< double > mFullNodes;
+        // Store neigbors
+        std::vector< unsigned int > mFullNeighs;
 
 };
 
@@ -457,13 +466,16 @@ extern "C"
     // Refines chosen simplices
     int mesh_refineMesh( const double * const pNodes, const unsigned int pNumNodes, const unsigned int pD,
         const unsigned int * const pSimplices, const unsigned int pNumSimplices, const unsigned int pTopD,
+        const unsigned int * const pNeighs,
         unsigned int * const pNewNumNodes, unsigned int * const pNewNumSimplices, unsigned int * const pId,
-        const unsigned int pMaxNumNodes, const double pMaxDiam = 0.0d, const bool * const pRefine = NULL);
+        const unsigned int pMaxNumNodes, const double * const pMaxDiam, const unsigned int pNumMaxDiam,
+        int (* transformationPtr)(double *, unsigned int) );
         
     // Populate new mesh
     int mesh_acquireMesh( const unsigned int pId, 
         double * const pNodes, const unsigned int pNumNodes, const unsigned int pD,
-        unsigned int * const pSimplices, const unsigned int pNumSimplices, const unsigned int pTopD );
+        unsigned int * const pSimplices, const unsigned int pNumSimplices, const unsigned int pTopD,
+        unsigned int * const pNeighs = NULL );
         
     // Binomial coefficient
     inline unsigned int mesh_nchoosek( unsigned int n, unsigned int k );

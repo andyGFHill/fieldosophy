@@ -114,8 +114,17 @@ def kv(v, z):
 
 
 
-# The Mat'ern correlation function
 def MaternCorr( x, nu, kappa ):
+    """
+    The Matérn correlation function, i.e. normalized such that the value at 0 is 1.
+    
+    :param x: The distances to evaluate.
+    :param nu: Smoothness parameter, correspond to the Hölder constant almost everywhere of realizations.
+    :param kappa: The scaling constant.
+    
+    :return The Matérn correlation evaluated at x.
+    """
+    
     zeroInd = (x==0)    
     
     # If kappa is array
@@ -134,8 +143,19 @@ def MaternCorr( x, nu, kappa ):
     
     return( out )
 
-# The Mat'ern correlation function derivative
+
 def MaternCorrParamDer( x, nu, kappa ):
+    """
+    The derivative of the Mat'ern correlation function.
+    
+    :param x: At what distances to evaluate the derivative.
+    :param nu: The smoothness parameter.
+    :param kappa: The scaling constant.
+    
+    :return An 2 x n array where first row is the derivative w.r.t. nu for each x and the second row the derivative w.r.t. kappa for each x. Also provide the correlation value for each x as a separate output.
+    
+    """
+    
     zeroInd = (x==0)
     
     h = kappa * x[~zeroInd]    
@@ -165,11 +185,12 @@ def MaternCorrParamDer( x, nu, kappa ):
 
 def anisotropicMaternCorr(x, nu, v, r):    
     """ Anisotropic Matern
-        x - array D x N. Here, x is not only distance but vector values (also direction).
-        D is dimensionality an N are number of 'distances'.
-        nu - smoothness.
-        v - orthogonal matrix where each column is the corresponding vector for ranges r.
-        r - correlation range in each v direction.
+    
+    x - array D x N. Here, x is not only distance but vector values (also direction).
+    D is dimensionality an N are number of 'distances'.
+    nu - smoothness.
+    v - orthogonal matrix where each column is the corresponding vector for ranges r.
+    r - correlation range in each v direction.
     """
     
     # map x to deformed vectors

@@ -1,0 +1,282 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="English">
+  <head>
+    <meta charset="utf-8" />
+    <title>fieldosophy.misc package &#8212; Fieldosophy 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Bibliography" href="bibliography.html" />
+    <link rel="prev" title="fieldosophy.mesh package" href="fieldosophy.mesh.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="bibliography.html" title="Bibliography"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="fieldosophy.mesh.html" title="fieldosophy.mesh package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Fieldosophy 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api_reference.html" accesskey="U">Fieldosophy API</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="fieldosophy-misc-package">
+<h1>fieldosophy.misc package<a class="headerlink" href="#fieldosophy-misc-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-fieldosophy.misc.Cheb">
+<span id="fieldosophy-misc-cheb-module"></span><h2>fieldosophy.misc.Cheb module<a class="headerlink" href="#module-fieldosophy.misc.Cheb" title="Permalink to this headline">¶</a></h2>
+<p>A Port of some of the functionality of the &quot;chebpade&quot; function in the &quot;chebfun&quot; library.</p>
+<p>Copyright 2017 by The University of Oxford and The Chebfun Developers.
+All rights reserved. See <a class="reference external" href="http://www.chebfun.org/">http://www.chebfun.org/</a> for Chebfun information.</p>
+<p>This file is part of Fieldosophy, a toolkit for random fields.</p>
+<dl class="function">
+<dt id="fieldosophy.misc.Cheb.ClenshawLord">
+<code class="sig-prename descclassname">fieldosophy.misc.Cheb.</code><code class="sig-name descname">ClenshawLord</code><span class="sig-paren">(</span><em class="sig-param">f</em>, <em class="sig-param">N</em>, <em class="sig-param">domain</em>, <em class="sig-param">m</em>, <em class="sig-param">n</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.misc.Cheb.ClenshawLord" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function for computing Clenshaw-Lord approximation of chebychev polynomial on -1,1</p>
+<p>A port of the function &quot;chabpade&quot; from the Matlab-library &quot;chebfun&quot;.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-fieldosophy.misc.misc_functions">
+<span id="fieldosophy-misc-misc-functions-module"></span><h2>fieldosophy.misc.misc_functions module<a class="headerlink" href="#module-fieldosophy.misc.misc_functions" title="Permalink to this headline">¶</a></h2>
+<p>Miscellaneous functions</p>
+<p>This file is part of Fieldosophy, a toolkit for random fields.</p>
+<p>Copyright (C) 2021 Anders Gunnar Felix Hildeman &lt;<a class="reference external" href="mailto:fieldosophySPDEC&#37;&#52;&#48;gmail&#46;com">fieldosophySPDEC<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</p>
+<p>This Source Code is subject to the terms of the BSD 3-Clause License.
+If a copy of the license was not distributed with this file, you can obtain one at <a class="reference external" href="https://opensource.org/licenses/BSD-3-Clause">https://opensource.org/licenses/BSD-3-Clause</a>.</p>
+<dl class="function">
+<dt id="fieldosophy.misc.misc_functions.cosinBasisMatrix">
+<code class="sig-prename descclassname">fieldosophy.misc.misc_functions.</code><code class="sig-name descname">cosinBasisMatrix</code><span class="sig-paren">(</span><em class="sig-param">points</em>, <em class="sig-param">coefSetup</em>, <em class="sig-param">boundingBox</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.misc.misc_functions.cosinBasisMatrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matrix giving evaluated superpositioned sinus functions for chosen points</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.misc.misc_functions.cosinusBasis">
+<code class="sig-prename descclassname">fieldosophy.misc.misc_functions.</code><code class="sig-name descname">cosinusBasis</code><span class="sig-paren">(</span><em class="sig-param">points</em>, <em class="sig-param">coefficients</em>, <em class="sig-param">boundingBox</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.misc.misc_functions.cosinusBasis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function for evaluating superpositioned sinus function</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-fieldosophy.misc.misc_spatiotemporal">
+<span id="fieldosophy-misc-misc-spatiotemporal-module"></span><h2>fieldosophy.misc.misc_spatiotemporal module<a class="headerlink" href="#module-fieldosophy.misc.misc_spatiotemporal" title="Permalink to this headline">¶</a></h2>
+<p>A class for interactively visualizing 3-dimensional data.</p>
+<p>This file is part of Fieldosophy, a toolkit for random fields.</p>
+<p>Copyright (C) 2021 Anders Gunnar Felix Hildeman &lt;<a class="reference external" href="mailto:fieldosophySPDEC&#37;&#52;&#48;gmail&#46;com">fieldosophySPDEC<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</p>
+<p>This Source Code is subject to the terms of the BSD 3-Clause License.
+If a copy of the license was not distributed with this file, you can obtain one at <a class="reference external" href="https://opensource.org/licenses/BSD-3-Clause">https://opensource.org/licenses/BSD-3-Clause</a>.</p>
+<dl class="class">
+<dt id="fieldosophy.misc.misc_spatiotemporal.SpatiotemporalViewer">
+<em class="property">class </em><code class="sig-prename descclassname">fieldosophy.misc.misc_spatiotemporal.</code><code class="sig-name descname">SpatiotemporalViewer</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.misc.misc_spatiotemporal.SpatiotemporalViewer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tkinter.Tk</span></code></p>
+<p>General class for presenting spatiotemporal data</p>
+<dl class="method">
+<dt id="fieldosophy.misc.misc_spatiotemporal.SpatiotemporalViewer.anim">
+<code class="sig-name descname">anim</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.misc.misc_spatiotemporal.SpatiotemporalViewer.anim" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function will update each 5:th of a second while animating</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.misc.misc_spatiotemporal.SpatiotemporalViewer.decreaseTime">
+<code class="sig-name descname">decreaseTime</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.misc.misc_spatiotemporal.SpatiotemporalViewer.decreaseTime" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function steps back one step length</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.misc.misc_spatiotemporal.SpatiotemporalViewer.doExit">
+<code class="sig-name descname">doExit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.misc.misc_spatiotemporal.SpatiotemporalViewer.doExit" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function closes the window</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.misc.misc_spatiotemporal.SpatiotemporalViewer.getSliderInd">
+<code class="sig-name descname">getSliderInd</code><span class="sig-paren">(</span><em class="sig-param">x</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.misc.misc_spatiotemporal.SpatiotemporalViewer.getSliderInd" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function retrieves the corresponding time instance of the current slider</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.misc.misc_spatiotemporal.SpatiotemporalViewer.increaseTime">
+<code class="sig-name descname">increaseTime</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.misc.misc_spatiotemporal.SpatiotemporalViewer.increaseTime" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function steps forward one step length</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.misc.misc_spatiotemporal.SpatiotemporalViewer.plotInstantWrapper">
+<code class="sig-name descname">plotInstantWrapper</code><span class="sig-paren">(</span><em class="sig-param">ind</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.misc.misc_spatiotemporal.SpatiotemporalViewer.plotInstantWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper function for calling user defined plotInstant function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.misc.misc_spatiotemporal.SpatiotemporalViewer.setupWidgets">
+<code class="sig-name descname">setupWidgets</code><span class="sig-paren">(</span><em class="sig-param">userControllers=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.misc.misc_spatiotemporal.SpatiotemporalViewer.setupWidgets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define buttons and other widgets</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.misc.misc_spatiotemporal.SpatiotemporalViewer.startStopAnim">
+<code class="sig-name descname">startStopAnim</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.misc.misc_spatiotemporal.SpatiotemporalViewer.startStopAnim" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is called when pressing the play/Stop button</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.misc.misc_spatiotemporal.SpatiotemporalViewer.updateTime">
+<code class="sig-name descname">updateTime</code><span class="sig-paren">(</span><em class="sig-param">ind</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.misc.misc_spatiotemporal.SpatiotemporalViewer.updateTime" title="Permalink to this definition">¶</a></dt>
+<dd><p>This will update the plot and time</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-fieldosophy.misc.misc_templateMatching">
+<span id="fieldosophy-misc-misc-templatematching-module"></span><h2>fieldosophy.misc.misc_templateMatching module<a class="headerlink" href="#module-fieldosophy.misc.misc_templateMatching" title="Permalink to this headline">¶</a></h2>
+<p>Functionality for matching templates using cross-correlation.</p>
+<p>This file is part of Fieldosophy, a toolkit for random fields.</p>
+<p>Copyright (C) 2021 Anders Gunnar Felix Hildeman &lt;<a class="reference external" href="mailto:fieldosophySPDEC&#37;&#52;&#48;gmail&#46;com">fieldosophySPDEC<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</p>
+<p>This Source Code is subject to the terms of the BSD 3-Clause License.
+If a copy of the license was not distributed with this file, you can obtain one at <a class="reference external" href="https://opensource.org/licenses/BSD-3-Clause">https://opensource.org/licenses/BSD-3-Clause</a>.</p>
+<dl class="class">
+<dt id="fieldosophy.misc.misc_templateMatching.TemplateMatching">
+<em class="property">class </em><code class="sig-prename descclassname">fieldosophy.misc.misc_templateMatching.</code><code class="sig-name descname">TemplateMatching</code><span class="sig-paren">(</span><em class="sig-param">libPath=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.misc.misc_templateMatching.TemplateMatching" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>class for template matching</p>
+<dl class="method">
+<dt id="fieldosophy.misc.misc_templateMatching.TemplateMatching.acquireVectorField">
+<code class="sig-name descname">acquireVectorField</code><span class="sig-paren">(</span><em class="sig-param">maxCrossCorr</em>, <em class="sig-param">X</em>, <em class="sig-param">Y</em>, <em class="sig-param">crossCorrThresh=1</em>, <em class="sig-param">medianSize=None</em>, <em class="sig-param">meanSize=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.misc.misc_templateMatching.TemplateMatching.acquireVectorField" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function for computing vector field representation of template matching</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.misc.misc_templateMatching.TemplateMatching.c_bool_p">
+<code class="sig-name descname">c_bool_p</code><a class="headerlink" href="#fieldosophy.misc.misc_templateMatching.TemplateMatching.c_bool_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">LP_c_bool</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.misc.misc_templateMatching.TemplateMatching.c_double_p">
+<code class="sig-name descname">c_double_p</code><a class="headerlink" href="#fieldosophy.misc.misc_templateMatching.TemplateMatching.c_double_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">LP_c_double</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fieldosophy.misc.misc_templateMatching.TemplateMatching.c_uint_p">
+<code class="sig-name descname">c_uint_p</code><a class="headerlink" href="#fieldosophy.misc.misc_templateMatching.TemplateMatching.c_uint_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">LP_c_uint</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.misc.misc_templateMatching.TemplateMatching.griddedTemplateMatching">
+<code class="sig-name descname">griddedTemplateMatching</code><span class="sig-paren">(</span><em class="sig-param">img1</em>, <em class="sig-param">img2</em>, <em class="sig-param">templateRadius</em>, <em class="sig-param">searchRadius</em>, <em class="sig-param">estimateInds=None</em>, <em class="sig-param">templateSkip=0</em>, <em class="sig-param">searchSkip=0</em>, <em class="sig-param">templateStart=0</em>, <em class="sig-param">searchStart=0</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.misc.misc_templateMatching.TemplateMatching.griddedTemplateMatching" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function for performing template matching between two sets of bitmapped images</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fieldosophy.misc.misc_templateMatching.TemplateMatching.resampleOnGrid">
+<code class="sig-name descname">resampleOnGrid</code><span class="sig-paren">(</span><em class="sig-param">values</em>, <em class="sig-param">resolution</em>, <em class="sig-param">boundingBox=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.misc.misc_templateMatching.TemplateMatching.resampleOnGrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function for resampling unstructured (or structured) spatial observations</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-fieldosophy.misc">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-fieldosophy.misc" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">fieldosophy.misc package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-fieldosophy.misc.Cheb">fieldosophy.misc.Cheb module</a></li>
+<li><a class="reference internal" href="#module-fieldosophy.misc.misc_functions">fieldosophy.misc.misc_functions module</a></li>
+<li><a class="reference internal" href="#module-fieldosophy.misc.misc_spatiotemporal">fieldosophy.misc.misc_spatiotemporal module</a></li>
+<li><a class="reference internal" href="#module-fieldosophy.misc.misc_templateMatching">fieldosophy.misc.misc_templateMatching module</a></li>
+<li><a class="reference internal" href="#module-fieldosophy.misc">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="fieldosophy.mesh.html"
+                        title="previous chapter">fieldosophy.mesh package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="bibliography.html"
+                        title="next chapter">Bibliography</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/fieldosophy.misc.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="bibliography.html" title="Bibliography"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="fieldosophy.mesh.html" title="fieldosophy.mesh package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Fieldosophy 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api_reference.html" >Fieldosophy API</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Anders Gunnar Felix Hildeman.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.0.
+    </div>
+  </body>
+</html>

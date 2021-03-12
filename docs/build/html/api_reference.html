@@ -1,0 +1,150 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="English">
+  <head>
+    <meta charset="utf-8" />
+    <title>Fieldosophy API &#8212; Fieldosophy 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="fieldosophy.GRF package" href="fieldosophy.GRF.html" />
+    <link rel="prev" title="Tutorial: 1D SPDE modeling using Fieldosophy" href="tutorial1D.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="fieldosophy.GRF.html" title="fieldosophy.GRF package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="tutorial1D.html" title="Tutorial: 1D SPDE modeling using Fieldosophy"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Fieldosophy 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="fieldosophy-api">
+<h1>Fieldosophy API<a class="headerlink" href="#fieldosophy-api" title="Permalink to this headline">¶</a></h1>
+<p><strong>Fieldosophy</strong> is divided into four subpackages, viz., <em>GRF</em>, <em>marginal</em>, <em>mesh</em>, and <em>misc</em>.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fieldosophy.GRF.html">fieldosophy.GRF package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.GRF.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.GRF.html#module-fieldosophy.GRF.Cholesky">fieldosophy.GRF.Cholesky module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.GRF.html#module-fieldosophy.GRF.FEM">fieldosophy.GRF.FEM module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.GRF.html#module-fieldosophy.GRF.GRF">fieldosophy.GRF.GRF module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.GRF.html#module-fieldosophy.GRF">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fieldosophy.marginal.html">fieldosophy.marginal package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.marginal.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.marginal.html#module-fieldosophy.marginal.NIG">fieldosophy.marginal.NIG module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.marginal.html#module-fieldosophy.marginal.boxcox">fieldosophy.marginal.boxcox module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.marginal.html#module-fieldosophy.marginal">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fieldosophy.mesh.html">fieldosophy.mesh package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.mesh.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.mesh.html#module-fieldosophy.mesh.HyperRectMesh">fieldosophy.mesh.HyperRectMesh module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.mesh.html#module-fieldosophy.mesh.ImplicitMesh">fieldosophy.mesh.ImplicitMesh module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.mesh.html#module-fieldosophy.mesh.Mesh">fieldosophy.mesh.Mesh module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.mesh.html#module-fieldosophy.mesh.MeshDistanceFinder">fieldosophy.mesh.MeshDistanceFinder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.mesh.html#module-fieldosophy.mesh.MeshGraph">fieldosophy.mesh.MeshGraph module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.mesh.html#module-fieldosophy.mesh.MeshPlotter">fieldosophy.mesh.MeshPlotter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.mesh.html#module-fieldosophy.mesh.geometrical_functions">fieldosophy.mesh.geometrical_functions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.mesh.html#module-fieldosophy.mesh.gmsh_functions">fieldosophy.mesh.gmsh_functions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.mesh.html#module-fieldosophy.mesh.regularMesh_functions">fieldosophy.mesh.regularMesh_functions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.mesh.html#module-fieldosophy.mesh">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fieldosophy.misc.html">fieldosophy.misc package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.misc.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.misc.html#module-fieldosophy.misc.Cheb">fieldosophy.misc.Cheb module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.misc.html#module-fieldosophy.misc.misc_functions">fieldosophy.misc.misc_functions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.misc.html#module-fieldosophy.misc.misc_spatiotemporal">fieldosophy.misc.misc_spatiotemporal module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.misc.html#module-fieldosophy.misc.misc_templateMatching">fieldosophy.misc.misc_templateMatching module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldosophy.misc.html#module-fieldosophy.misc">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="tutorial1D.html"
+                        title="previous chapter">Tutorial: 1D SPDE modeling using Fieldosophy</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="fieldosophy.GRF.html"
+                        title="next chapter">fieldosophy.GRF package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/api_reference.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="fieldosophy.GRF.html" title="fieldosophy.GRF package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="tutorial1D.html" title="Tutorial: 1D SPDE modeling using Fieldosophy"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Fieldosophy 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Anders Gunnar Felix Hildeman.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.0.
+    </div>
+  </body>
+</html>

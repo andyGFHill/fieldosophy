@@ -35,12 +35,6 @@ from scipy import optimize
         
 print("Running two-dimensional FEM test case")
 
-# Choose datapath to store temporary files when meshing with GMRF
-#dataPath = "/home/andy/Data/MESH_slask/"
-dataPath = "/media/hildeman/internal/Data/Projects/MESH_slask"
-print("")
-
-
 plt.figure(1)
 plt.clf()
 plt.figure(2)
@@ -157,21 +151,21 @@ orderInd =  np.argsort(runx)
 runx = runx[orderInd]
 
 # Compute estimated covariance from realization
-runy = ( ZObs[orderInd[0], :] - np.mean(ZObs[orderInd[0], :]) ).reshape((1,-1)) * (ZObs - np.mean(ZObs, axis=1).reshape((-1,1)))
-runy = np.mean(runy, axis=1)
-runy = runy[orderInd]
+runySample = ( ZObs[orderInd[0], :] - np.mean(ZObs[orderInd[0], :]) ).reshape((1,-1)) * (ZObs - np.mean(ZObs, axis=1).reshape((-1,1)))
+runySample = np.mean(runySample, axis=1)
+runySample = runySample[orderInd]
 
 # Plot empirical covariance
-plt.plot(runx, runy, label = "SPDE empirical", color="green", linestyle="dashed")
+plt.plot(runx, runySample, label = "SPDE empirical", color="green", linestyle="dashed")
 
 # Compute SPDE correlation
-runy = obsMat.tocsr()[orderInd, :] * fem.multiplyWithCovariance(obsMat.tocsr()[orderInd[0], :].transpose())
+runyFEM = obsMat.tocsr()[orderInd, :] * fem.multiplyWithCovariance(obsMat.tocsr()[orderInd[0], :].transpose())
 # Plot true covariance from model
-plt.plot(runx, runy, label = "SPDE", color="red", linewidth=2)
+plt.plot(runx, runyFEM, label = "SPDE", color="red", linewidth=2)
       
 # Compute theoretical Matérn correlation
-runy = GRF.MaternCorr( runx, nu = nu, kappa = np.sqrt(8*nu)/r )
-plt.plot(runx, runy, label = "Matern", color="blue")
+runyMatern = GRF.MaternCorr( runx, nu = nu, kappa = np.sqrt(8*nu)/r )
+plt.plot(runx, runyMatern, label = "Matern", color="blue")
 plt.legend()
 plt.xlabel("Time [s]")
 

@@ -16,6 +16,9 @@
 
 #include <math.h>
 #include <omp.h>
+#include <limits>
+#include "Eigen/Dense"
+
 #include "misc.hxx"
 
 
@@ -291,6 +294,122 @@ extern "C"
         return 0;    
     }
     
+    
+    
+    // Distance between points on unit hyper sphere
+    double misc_distanceOnSphere( const unsigned int pDims,
+        const double * const pPoint1, const double * const pPoint2,
+        const bool pNormalize )
+    {
+    
+        // Get points in Eigen vector format
+        Eigen::Map<const Eigen::VectorXd> lPoint1( pPoint1, pDims );
+        Eigen::Map<const Eigen::VectorXd> lPoint2( pPoint2, pDims );
+        
+        // Take dot product
+        double lDotProd = lPoint1.dot(lPoint2);
+        // If should normalize
+        if (pNormalize)
+            lDotProd /= lPoint1.norm() * lPoint2.norm();
+        if (lDotProd > 1.0d)
+            lDotProd = 1.0d;
+        if (lDotProd < -1.0d)
+            lDotProd = -1.0d;
+            
+        // Acquire angle
+        const double lAngle = acos(lDotProd);
+        
+        return lAngle;
+    }   
+    
+    
+    // For each point in point1, compute smallest distance between the point and all points in point2
+    int misc_computeSmallestDistance( const unsigned int pDims, 
+        const double * const pPoints1, const unsigned pNumPoints1, 
+        const double * const pPoints2, const unsigned pNumPoints2,
+        unsigned int * const pIndex, double * const pDistance,
+        const int pDistanceType )
+    {
+    
+        // Loop through all point1        
+        int lStatus = 0;
+        #pragma omp parallel for reduction(|:lStatus)
+        for (unsigned int lIter1 = 0; lIter1 < pNumPoints1; lIter1++)
+        {
+            if (lStatus)
+                continue;
+        
+            const double * const lCurPoint1 = &pPoints1[lIter1*pDims];
+            unsigned int & lCurIndex = pIndex[lIter1];
+        
+            // Initiate current minimum distance to infinity
+            double lMinDistance = 1.0d/0.0d;
+            // Initiate current index to above maximum index
+            lCurIndex = pNumPoints2;
+            
+            // Loop through all points2
+            const double * lCurPoint2 = pPoints2;
+            for (unsigned int lIter2 = 0; lIter2 < pNumPoints2; lIter2++)
+            {
+                // Preallocate distance
+                double lDist = 0.0d;
+                // Handle distance type
+                switch ( pDistanceType )
+                {
+                    // Euclidean distance
+                    case 0:
+                    {
+                        // Loop through all dimensions
+                        for (unsigned int lIterDims = 0; lIterDims < pDims; lIterDims++)
+                        {
+                            // Get difference between the two points
+                            const double lCurCoordDiff = lCurPoint2[lIterDims] - lCurPoint1[lIterDims];
+                            // Add the square of this to the current distance
+                            lDist += lCurCoordDiff * lCurCoordDiff;
+                        }
+                        lDist = sqrt(lDist);                        
+                        break;
+                    }
+                    // Hyperspherical distance
+                    case 1:
+                    {
+                        lDist = misc_distanceOnSphere( pDims, lCurPoint1, lCurPoint2, true );
+                        break;
+                    }
+
+                    // Error
+                    default:
+                    {
+                        // Signal error
+                        lStatus = 1;
+                        break;
+                    }
+                }
+                if (lStatus)
+                    break;
+                
+                // If current squared distance is current minimum
+                if (lDist < lMinDistance)
+                {
+                    // Set minimum to current squared distance
+                    lMinDistance = lDist;
+                    // Set current index to minimum index
+                    lCurIndex = lIter2;
+                }
+                // Increment pointers        
+                lCurPoint2 = &lCurPoint2[pDims];
+            }   // End of loop over all points2     
+            
+            if (lStatus)
+                continue;
+                   
+            // If distance should be an output
+            if (pDistance != NULL)
+                pDistance[lIter1] = lMinDistance;
+        }
+    
+        return 0;
+    }
         
 }
 

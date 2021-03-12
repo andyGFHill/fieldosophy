@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Functionality for finite element approximation.
+Functionality for finite element approximations.
 
 This file is part of Fieldosophy, a toolkit for random fields.
-
 Copyright (C) 2021 Anders Gunnar Felix Hildeman <fieldosophySPDEC@gmail.com>
-
 This Source Code is subject to the terms of the BSD 3-Clause License.
 If a copy of the license was not distributed with this file, you can obtain one at https://opensource.org/licenses/BSD-3-Clause.
 
@@ -21,14 +19,19 @@ import ctypes
 import os
 import abc
 
-from . import GRF
-from .. import mesh as mesher
 from ..misc import Cheb
 from . import Cholesky
     
     
 class FEM(abc.ABC):
-    # class for taking care of FEM tasks
+    """
+    Class representing a FEM approximation of a stochastic differential equation.
+    
+    :param mesh: A mesh object to base the FEM approximation on. 
+    :param matMapsCalculate: Defines which mappings from inner products on simplices to system matrices that should be computed.
+    :param matMapsCalculateEdges: Defines which mappings from inner products on edge simplices to edge system matrices that should be computed.
+    :param libPath: A path to the dynamically linked library "libSPDEC.so" to access the low-level API of fieldosophy.
+    """
         
     # Declare pointer types
     c_double_p = ctypes.POINTER(ctypes.c_double)   
@@ -55,7 +58,6 @@ class FEM(abc.ABC):
 
     
     def __init__(self, mesh = None, matMapsCalculate = ['M'], matMapsCalculateEdges = None, libPath = None):
-        # Initiate
         
         if mesh is None:
             return
@@ -76,10 +78,17 @@ class FEM(abc.ABC):
     
     @abc.abstractmethod
     def copy(self):
+        """
+        :return A deep copy of self.
+        """
+        
         # Deep copies object
         return
     
     def copyParent(self, out):
+        """
+        :param out: out becomes a deep copy of this object.
+        """
         
         out.mesh = self.mesh.copy()
         out.matMaps = self.matMaps.copy()
@@ -116,7 +125,24 @@ class FEM(abc.ABC):
     
     
     def updateSystem(self, MCoeff, tau, nu, mu = 0, BCoeff = None, GCoeff = None, sourceCoeff = None, BCRobin = None, BCDirichlet = None, factorize = True):
-        # Update system with new parameters
+        """
+        Update system with new parameters.
+        
+        :param MCoeff: Coefficients of constant term (simplex wise).
+        :param tau: Value of the tau-parameter. Tau can be either a scalar or a vector the same size as the number of nodes in the mesh.
+        :param nu: The smoothness parameter. Can be any positive real value.
+        :param mu: The mean value. Either a constant or a vector the same size as the number of nodes of the mesh. If set to None, the implicit mean is not computed (can save computations when applicable)
+        :param BCoeff: Coefficients of the first derivative term (simplex wise and with the number of elements as the dimensionality of the hyperplane that the manifold is embedded in).
+        :param GCoeff: Coefficients of the second derivative term (simplex wise and with the number of elements as the squared dimensionality of the hyperplane that the manifold is embedded in).
+        :param sourceCoeff: An optional deterministic term to the source of the differential equation (same dimensionality as the number of simplices). 
+        :param BCRobin: Sets the Robin boundary conditions. Set to None if no Robin boundary conditions should be enforced.
+            Otherwise, an array where the number of rows equal either one or the number of simplices on the edge and with two columns. 
+            The first column corresponds to the coefficient for the constant term and thesecond column corresponding to the coefficient for the first-derivative term.
+        :param BCDirichlet: Sets the Dirichlet boundary conditions. If None, no Dirichlet boundary conditions are enforced. 
+            Otherwise, BCDirichlet is a vector the same size as the number of nodes in the mesh. 
+            The vale corresponds to the enforced constant value of that specific node unless the value is nan, which means that the given node is not enforced to a Dircihlet condition.
+        :param factorize: If the Choleksy factorization should be performed now.
+        """
         
         # Set variance coefficient
         self.tau = tau
@@ -184,18 +210,34 @@ class FEM(abc.ABC):
         # Store Pr
         self.Pr = Pr[ np.ix_(~self.BCDirichletIndex, ~self.BCDirichletIndex) ]
         
-        # Get implicit mean
         if self.mu is None:
             if mu is None:
                 mu = 0
+        
+        # If should compute implicit mean
         if mu is not None:
             self.mu = self.computeImplicitMean(mu, sourceCoeff, BCRobin[:,0], Pl, Pr)
+        
+        
+        
+            
                 
         return            
     
     
     def assembleK(self, MCoeff, BCoeff, GCoeff, BCRobinFunction):
-        # Assembles the system matrix 'K' of the FEM system
+        """
+        Assembles the system matrix 'K' of the FEM system.
+        
+        :param MCoeff: The inner product over each simplex for each basis function sorted in a T x N array (where T are the number of simplices and N the number of nodes, i.e., basis functions). Here, representing the constant term in the differential operator where the inner product is between two basis functions multiplied with some constant that can be specific for the triangle.
+        :param BCoeff: Similar to MCoeff but here representing the inner product between a basis function and the gradient of another basis function. BCoeff is a list with D number of elements; one element for each dimension in the hyperplane in which the spatial domain is embedded.
+        :param GCoeff: Similar to BCoeff but here representing the inner product between the gradient of one basis function and the gradient of another basis function. Therefore being a list with DxD number of elements.
+        :param BCRobinFunction: A Robin boundary condition means that, on some part of the boundary, we know that n * grad X = a X + b. Hence, the boundary condition can be enforced by the inner product of a X with some basis function and b with some basis function. When constructing K, only the first part where X is multiplied with the basis function is used. This is the input of BCRobinFunction. BCRobinFunction has one value for each edge. The Robin boundary condition can be overridden on a part of (or all of) the boundary by setting Dirichlet condition on this part instead; since Dirichlet conditions have precedence over Neumann and Robin in Fieldosophy.
+        
+        :return The sparse K matrix.
+        """
+        
+        
         
         K = MatMaps.mapTriVals2Mat( self.matMaps.M, MCoeff, self.mesh.N )
         if BCoeff is not None:
@@ -212,8 +254,22 @@ class FEM(abc.ABC):
         
         return K
     
+    
     def computeImplicitMean(self, mu, sourceCoeff, BCRobinConstant, Pl, Pr):
-        # Assembles the right hand side of the FEM system and solve to get the mean
+        """
+        Assembles the right hand side of the FEM system and solve to get the mean.
+        
+        The actual mean of the GRF depends not only on the explicitly given mean, but also on the source term and the source part of a Robin boundary condition. 
+        This function computes this implicit mean.
+        
+        :param mu: The explicit mean defined by the user.
+        :param sourceCoeff: The source term given by the user.
+        :param BCRobinConstant: The source term part of the Robin boundary condition. 
+        :param Pl: The Pl matrix acquired from the rational approximation to fractional derivatives of the K matrix. 
+        :param Pr: The Pr matrix acquired from the rational approximation to fractional derivatives of the K matrix. 
+        
+        :return The implicit mean.
+        """
         
         # If mean is just a scalar
         if np.isscalar(mu):
@@ -265,7 +321,16 @@ class FEM(abc.ABC):
     
 
     def loglik(self, y, A, sigmaEps, QCond = None):
-        # Log-likelihood of model given observations
+        """
+        Log-likelihood of model given observations
+        
+        :param y: Observed data, a KxL array where L are the number of replicates and K are the number of joint observations.
+        :param A: An observation matrix relating the observations to the mesh.
+        :param sigmaEps: The independent centered observation noise given as a standard deviation. Can be different for different observation points.
+        :param QCond: It is possible to provide a conditional precision matrix (if already computed) such that the computation does not have to be performed again. If left as None the precision matrix will instead be computed as part of the operation.
+        
+        :return The log-likelihood.
+        """
         
         # Check that system is defined
         if self.QChol is None:
@@ -342,7 +407,16 @@ class FEM(abc.ABC):
     
     
     def cond(self, y, A, sigmaEps, QChol = None):
-        # Acquire conditional distribution given model and observations
+        """
+        Acquire conditional distribution given model and observations.
+        
+        :param y: Observed data, a KxL array where L are the number of replicates and K are the number of joint observations.
+        :param A: An observation matrix relating the observations to the mesh.
+        :param sigmaEps: The independent centered observation noise given as a standard deviation. Can be different for different observation points.
+        :param QCond: It is possible to provide a conditional precision matrix (if already computed) such that the computation does not have to be performed again. If left as None the precision matrix will instead be computed as part of the operation.
+        
+        :return A new FEM object representing the conditioned random field.
+        """
         
         # Get number of observations in current realization
         k = A.shape[0]
@@ -387,7 +461,16 @@ class FEM(abc.ABC):
     
     
     def condMean(self, y, A, sigmaEps, QChol = None):
-        # If already have conditional distribution, use this function to get a new (or several) conditional mean
+        """
+        If already have conditional distribution, use this function to get a new (or several) conditional means
+        
+        :param y: Observed data, a KxL array where L are the number of replicates and K are the number of joint observations.
+        :param A: An observation matrix relating the observations to the mesh.
+        :param sigmaEps: The independent centered observation noise given as a standard deviation. Can be different for different observation points.
+        :param QCond: It is possible to provide a conditional precision matrix (if already computed) such that the computation does not have to be performed again. If left as None the precision matrix will instead be computed as part of the operation.
+        
+        :return A new FEM object representing the conditioned random field.
+        """
         
         if QChol is None:
             QChol = self.QChol
@@ -416,7 +499,14 @@ class FEM(abc.ABC):
 
     
     def condQChol(self, A, sigmaEps):
-        # Compute conditional Q Cholesky factorized
+        """
+        Compute conditional Q Cholesky factor.
+        
+        :param A: An observation matrix relating the observations to the mesh.
+        :param sigmaEps: The independent centered observation noise given as a standard deviation. Can be different for different observation points.
+        
+        :return The Cholesky factorized matrix
+        """
         
         # Get number of observations in current realization
         k = A.shape[0]
@@ -439,7 +529,13 @@ class FEM(abc.ABC):
 
 
     def generateRandom( self, n ):
-        # Generate realizations from model
+        """
+        Generate realizations from model.
+        
+        :param n: Number of realizations.
+        
+        :return A N x n array, where N are the number of nodes in the mesh and n is the number of realizations.
+        """
         
         # Check that system is defined
         if self.QChol is None:
@@ -461,7 +557,13 @@ class FEM(abc.ABC):
         return Z
         
     def multiplyWithCovariance( self, matrix ):
-        # Multiply vector or matrix with the covariance function
+        """
+        Multiply vector or matrix with the covariance function.
+        
+        :param matrix: An N x n array for which N is the number of nodes in the mesh and n are the number of vectors to multiply.
+        
+        :return An N x n array.
+        """
         
         # Check that system is defined
         if self.QChol is None:
@@ -480,7 +582,7 @@ class FEM(abc.ABC):
         matrix = self.Pr.transpose().tocsc() * matrix
         
         # Preallocate output                
-        out = np.zeros( matrix.shape )        
+        out = np.zeros( (self.mesh.N, matrix.shape[1]) )
         # Solve for output
         solution = self.QChol.solve( matrix )        
         # If sparse        
@@ -499,7 +601,20 @@ class FEM(abc.ABC):
     
     
     def rationalApproximation( K, CInvSqrt, eigenNorm, nu, d, N = 20, m = 2, n = 1 ):
-        # compute rational approximation as suggested in Bolin et al. 2019
+        """
+        Compute rational approximation as suggested in Bolin et al. 2019.
+        
+        :param K: The system matrix of the FEM system.
+        :param CInvSqrt: A diagonal matrix representing the square root of the inverse of C (assuming "mass lumping" to acquire a diagonal matrix). 
+        :param eigenNorm: The maximal value of the eigen values of the differential operator.
+        :param nu: The smoothness of the field, i.e., beta = nu/2 + d/4, where nu is the Hölder constant of realizations almost everywhere.
+        :param d: The dimensionality of the manifold (not generally the dimensionality of the hyperplane in which it is embedded in).
+        :param N: The degree of the Chebyshev polynomial used in the rational approximation in the Cleenshaw-Lord approximation.
+        :param m: The degree of the polynomial corresponding to Pl.
+        :param n: The degree of the polynomial corresponding to Pr.
+        
+        :return The Pl and Pr matrices for the rational FEM approximation of the solution.
+        """
         
         # Check feasible nu
         if nu <= 0:
@@ -588,8 +703,11 @@ class FEM(abc.ABC):
 
         
         
-# Class representing the mapping from values at simplices to values for and between nodes
+
 class MatMaps:
+    """
+    Class representing the mapping from values at simplices to values for and between nodes
+    """
     
     # Dimensionality of space
     D = None 
@@ -661,6 +779,9 @@ class MatMaps:
 
 
     def copy(self):
+        """
+        :return Deep copy of self.
+        """
         
         out = MatMaps( np.array([[]]), np.array([[]]), calculate = [], libPath = self._libPath )
         out.D = self.D
@@ -676,6 +797,14 @@ class MatMaps:
 
 
     def computeM(self, simplices, nodes):
+        """
+        Computes inner products between pairs of basis functions for each simplex in mesh.
+        
+        :param simplices: The simplices of the mesh.
+        :param nodes: The nodes of the mesh.
+        
+        :return The matrix mapping vector of size the number of simplices to each combination of basis function pairs. The matrix will be very sparse and is stored in a special format defined in 'acquireSmallerMatrix'.
+        """
         
         # Preallocate
         self.M = { \
@@ -692,6 +821,14 @@ class MatMaps:
     
     
     def computeB(self, simplices, nodes):
+        """
+        Computes inner products between any basis function and the gradient of any basis function for each simplex in mesh.
+        
+        :param simplices: The simplices of the mesh.
+        :param nodes: The nodes of the mesh.
+        
+        :return The matrix mapping vector of size the number of simplices to each combination of basis function pairs. The matrix will be very sparse and is stored in a special format defined in 'acquireSmallerMatrix'. The output is a list with one element for each dimension in the hyperplane for which the manifold is embedded in.
+        """
         
         self.B = [None] * self.D                
         for iter in range(self.D):
@@ -710,6 +847,14 @@ class MatMaps:
     
     
     def computeG(self, simplices, nodes):
+        """
+        Computes inner products between the gradient of any basis function and the gradient of any other basis function for each simplex in mesh.
+        
+        :param simplices: The simplices of the mesh.
+        :param nodes: The nodes of the mesh.
+        
+        :return The matrix mapping vector of size the number of simplices to each combination of basis function pairs. The matrix will be very sparse and is stored in a special format defined in 'acquireSmallerMatrix'. The output is a list with one element for each combination of dimension pairs in the hyperplane for which the manifold is embedded in.
+        """
         
         self.G = [None] * (self.D**2)                
         for iter in range(self.D**2):
@@ -728,6 +873,15 @@ class MatMaps:
               
     
     def computeU(self, simplices, nodes):
+        """
+        Computes inner products between any basis function and 1 for each simplex in mesh.
+        
+        :param simplices: The simplices of the mesh.
+        :param nodes: The nodes of the mesh.
+        
+        :return The matrix mapping vector of size the number of simplices to each number of nodes in the mesh. The matrix will be very sparse and is stored in a special format defined in 'acquireSmallerMatrix'.
+        """
+        
         
         # Preallocate
         self.U = { \
@@ -744,6 +898,16 @@ class MatMaps:
     
     
     def computeGeneric(self, simplices, nodes, matId, tempMat):
+        """
+        Function for computing either M, B, G, or U matrices using the low-level library.
+        
+        :param simplices: The simplices of the mesh.
+        :param nodes: The nodes of the mesh.
+        :param matId: Code informing on which matrix to compute. 0 being the M matrix, 1 to D+1 being the different dimensions of B matrix, D+2 to 1 + D + D^2 being the different dimensions of the G matrix, and 2 + D + D^2 being the U matrix.
+        :param tempMat: A sparse matrix, typically preallocated to an appropriate size.
+        
+        :return the corresponding sparse N^2 x T matrix, where N is the number of nodes and T the number of simplices.
+        """
         
         data_p = tempMat["data"].ctypes.data_as(self.c_double_p)
         row_p = tempMat["row"].ctypes.data_as(self.c_uint_p)
@@ -774,7 +938,13 @@ class MatMaps:
     
     
     def acquireSmallerMatrix( COOMat ):
-        # Make matrix smaller by removing zero rows
+        """
+        Make matrix smaller by removing zero rows
+        
+        :param COOMat: The large sparse matrix.
+        
+        :return The compressed large sparse matrix. Stored as a smaller sparse matrix with all uneccessary rows removed, and an indexing of which rows these are.
+        """
             
         # Get all unique rows
         uniqueRows = np.unique( COOMat.row, return_index=True, return_inverse = True )
@@ -788,7 +958,15 @@ class MatMaps:
     
     
     def mapTriVals2Mat( matrix, vector, N ):
-        # Map values at triangles to a system matrix on the nodes
+        """
+        Map values at triangles to a system matrix on the nodes.
+        
+        :param matrix: A matrix acquired using computeGeneric or any of the wrapper of it, viz. computeM, computeB, computeG, and computeU.
+        :param vector: A vector of constants for each simplex.
+        :param N: The shape of the output matrix.
+        
+        :return A N[0] x N[1] matrix to use for the system of linear equations in the finite element method.
+        """
         
         if np.isscalar(N):
             N = N * np.array([1,1])
@@ -821,7 +999,11 @@ class MatMaps:
 
 
 class abstractDeformed(FEM):
-    # Generic FEM child class for the deformed Matern models
+    """
+    Generic FEM child class for the deformed Matern models.
+    
+    The childParams parameter completely decides the model.
+    """
     
     # parameers of inherited model
     childParams = None
@@ -913,13 +1095,19 @@ class abstractDeformed(FEM):
 
 
 class MaternFEM(abstractDeformed):
-    # Class representing the classical matern model
+    """
+    Class representing the classical matern model.
+    """
     
     matMapsCalculate = ['M', 'G']
     matMapsCalculateEdges = None
     
     def paramsFunction( self ):
-        # Function to map child parameters to FEM parameters    
+        """
+        Defines the standard Matérn SPDE model parameterized by a correlation range ('r').
+        
+        :return The coefficients for the M, B, and G matrices.
+        """
     
         if self.childParams is None:
             raise Exception("No r-parameter given")
@@ -946,13 +1134,22 @@ class MaternFEM(abstractDeformed):
     
     
 class anisotropicMaternFEM(abstractDeformed):
-    # Class representing the anisotropic matern model
+    """
+    Class representing the anisotropic matern model in two dimensions.
+    """
     
     matMapsCalculate = ['M', 'G']
     matMapsCalculateEdges = None
     
     def paramsFunction( self ):
-        # Function to map child parameters to FEM parameters    
+        """
+        Generate FEM model for anisotropic Matérn model in two dimensions given an angle of the main direction ('angle') and two correlation ranges ('r').
+        
+        :return The coefficients for the M, B, and G matrices.
+        """
+    
+        if not self.embD == 2:
+            raise Exception("Current class only defined for manifolds embedded in R^2!")
     
         if self.childParams is None:
             raise Exception("No parameters given")
@@ -980,13 +1177,18 @@ class anisotropicMaternFEM(abstractDeformed):
 
 
 class nonStatFEM(abstractDeformed):
-    # Class representing the general deformed Matern models
+    """
+    Class representing the general deformed Matern model.
+    """
     
     matMapsCalculate = ['M', 'G']
     matMapsCalculateEdges = None
     
     def paramsFunction( self ):
-        # Function to map child parameters to FEM parameters    
+        """
+        Function to map child parameters to FEM parameters.
+        Either a function is provided under the name 'f' or it is assumed that the parameters 'logGSqrt' and 'GInv' are provided.
+        """
     
         if self.childParams is None:
             raise Exception("No parameters given")
@@ -1023,7 +1225,11 @@ class nonStatFEM(abstractDeformed):
 
 
 def angleToVecs2D( angle ):
-    # Returns a 2D-array which columns are two orthogonal unit vectors, the first pointing in the direction of angle
+    """
+    :param angle: An angle [radians] for the main direction.
+    
+    :return A 2D-array which columns are two orthogonal unit vectors, the first pointing in the direction of angle
+    """
     
     rotMat = np.array( [ [ np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)] ] )
     vectors = np.matmul( rotMat, np.eye(2) )
@@ -1032,7 +1238,14 @@ def angleToVecs2D( angle ):
 
 
 def orthVectorsToG( vectors, scalers ):
-    # Acquire kappa and H given orthogonal vectors and scalers, scalers corresponds to deformation in each direction
+    """
+    Acquire parameters to the SPDE given the deformation
+    
+    :param vectors: An array where each column is a vector. The set of vectors assumed to be orthogonal. 
+    :param scalers: The correlation range in each of the vector directions.
+    
+    :return the logarithm of teh squared determinant of G, and the inverse of G. Here, G being the metric tensor.
+    """
     
     # Compute their length
     normalizers = linalg.norm( vectors, axis = 0)

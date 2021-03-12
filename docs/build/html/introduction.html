@@ -1,0 +1,443 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="English">
+  <head>
+    <meta charset="utf-8" />
+    <title>Introduction &#8212; Fieldosophy 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Structure of Fieldosophy" href="structure.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="structure.html" title="Structure of Fieldosophy"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Fieldosophy 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="introduction">
+<span id="id1"></span><h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<p>The Fieldosophy package provides tools for working with random fields.
+Most of its functionality is based around describing a certain class of Gaussian random fields (GRF) as a solution to a specific stochastic partial differential equation (SPDE).
+The main advantage of such models is that they can be defined on complicated domains and manifolds, more complex than just <span class="math notranslate nohighlight">\(\mathbb{R}^d\)</span>, while at the same time allow for easy and intuitive parameterization.
+Most compuations regarding these GRFs can also be computed efficiently using a finite element method (FEM) approximation of the SPDE.</p>
+<div class="section" id="gaussian-random-fields">
+<h2>Gaussian random fields<a class="headerlink" href="#gaussian-random-fields" title="Permalink to this headline">¶</a></h2>
+<p>A Gaussian random field can be seen as a collection of Gaussian random variables, each random variable exclusively associated with a point in &quot;space&quot;.
+In this context &quot;space&quot; being a topological space, often a subset of a manifold embedded into <span class="math notranslate nohighlight">\(\mathbb{R}^d\)</span>.
+For example, let us denote a GRF as <span class="math notranslate nohighlight">\(X \equiv \{X(\boldsymbol{s})\}_{\boldsymbol{s} \in \mathcal{D}}\)</span>. Here, <span class="math notranslate nohighlight">\(X\)</span> is the random field, <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> is the topological space and <span class="math notranslate nohighlight">\(\boldsymbol{s}\)</span> is a point in <span class="math notranslate nohighlight">\(\mathcal{D}\)</span>.</p>
+<p>Since a GRF is a collection of Gaussian random variables and a multivariate Gaussian random variable is defined solely by its first and second moments, the GRF can be completely characterized by its first-order mean function, <span class="math notranslate nohighlight">\(\mu(\boldsymbol{s})\)</span>, and its second-order covariance function, <span class="math notranslate nohighlight">\(\mathcal{C}(\boldsymbol{s}_1, \boldsymbol{s}_2)\)</span>.
+That is, given any finite set of points <span class="math notranslate nohighlight">\(\mathcal{I} \subset \mathcal{D}\)</span>, the probability distribution of the associated random variables is a multivariate Gaussian distribution characterized by a mean vector, <span class="math notranslate nohighlight">\(\boldsymbol{\mu} := \{\mu(\boldsymbol{s}_i)\}_{i \in I}\)</span>, and a covariance matrix, <span class="math notranslate nohighlight">\(\Sigma := \{\mathcal{C}(\boldsymbol{s}_i, \boldsymbol{s}_j)\}_{i,j \in I}\)</span>.
+It should be noted that <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> does not have to be a finite set itself. In fact, in Fieldosophy we consider continuously indexed Gaussian random fields, i.e., <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> is a continuous space with an uncountable number of points.
+As such, we can view the GRF as a random function in <span class="math notranslate nohighlight">\(\mathcal{D}\)</span>, i.e., each realization of <span class="math notranslate nohighlight">\(X\)</span> is a function in <span class="math notranslate nohighlight">\(\mathcal{D}\)</span>.</p>
+<a class="reference internal image-reference" href="https://drive.google.com/uc?export=view&amp;id=1r5mqn0BoO7co6WG2puE3FEEzRQr9LMbV"><img alt="https://drive.google.com/uc?export=view&amp;id=1r5mqn0BoO7co6WG2puE3FEEzRQr9LMbV" src="https://drive.google.com/uc?export=view&amp;id=1r5mqn0BoO7co6WG2puE3FEEzRQr9LMbV" style="width: 49%;" /></a>
+<a class="reference internal image-reference" href="https://drive.google.com/uc?export=view&amp;id=1x5E_y9xJYu51FGOAN3mm0RbPQgzqthuD"><img alt="https://drive.google.com/uc?export=view&amp;id=1x5E_y9xJYu51FGOAN3mm0RbPQgzqthuD" src="https://drive.google.com/uc?export=view&amp;id=1x5E_y9xJYu51FGOAN3mm0RbPQgzqthuD" style="width: 49%;" /></a>
+<p>As an example, above are two different realizations from the same GRF.
+This particular GRF being defined on the interval <span class="math notranslate nohighlight">\([0,1]\)</span> of the real line.</p>
+<a class="reference internal image-reference" href="https://drive.google.com/uc?export=view&amp;id=12Y-KKa27H5_EBxFveiKwHSwipNxL5peg"><img alt="https://drive.google.com/uc?export=view&amp;id=12Y-KKa27H5_EBxFveiKwHSwipNxL5peg" src="https://drive.google.com/uc?export=view&amp;id=12Y-KKa27H5_EBxFveiKwHSwipNxL5peg" style="width: 49%;" /></a>
+<a class="reference internal image-reference" href="https://drive.google.com/uc?export=view&amp;id=1_TUd2U409F8SHWaQBrs1YSmLqaZzSE3q"><img alt="https://drive.google.com/uc?export=view&amp;id=1_TUd2U409F8SHWaQBrs1YSmLqaZzSE3q" src="https://drive.google.com/uc?export=view&amp;id=1_TUd2U409F8SHWaQBrs1YSmLqaZzSE3q" style="width: 49%;" /></a>
+<p>Just as a one-dimensional random field on the unit interval will have realizations being real-valued functions on the unit interval. A two-dimensional random field on the unit rectangle will have realizations being two-dimensional functions on the unit rectangle, see figures above.</p>
+<p>So as can be seen in both the one-dimensional and two-dimensional examples above, different realizations do not look exactly the same but tend to have similar &quot;qualities&quot;.
+These qualities depend on the random field model and the difference among the realizations depend on the probabilistic nature of the random fields.</p>
+</div>
+<div class="section" id="purpose">
+<h2>Purpose<a class="headerlink" href="#purpose" title="Permalink to this headline">¶</a></h2>
+<p>So what is the point of Gaussian random fields? Gaussian random fields is a class of models for the probability distribution of spatial data (remember that longitudal data such as time-series is a special case of spatial data).
+In applications, where they have spatial data, GRFs are typically used for one or several of the following tasks:</p>
+<ul>
+<li><dl class="simple">
+<dt>Analyze the probability of joint events occuring.</dt><dd><p>Often, an important event is characterized by the values at several points in space being in certain ranges at the same time, ie., joint events.
+In these cases, it is not enough to analyze the probability distribution on each site alone since there is dependency among them.
+The GRF is a joint probability distribution of all points in <span class="math notranslate nohighlight">\(\mathcal{D}\)</span>, hence, it can be used to assess the probability of such joint events.</p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>Predict the value at points in space given knowledge of the value at other points in space.</dt><dd><p>This task goes under many names depending on the application, e.g., forecasting, Kriging, interpolation, estimation, conditional prediction.
+Using GRFs for this purpose is a key element in disciplines such as, meterology, finance, geoscience.</p>
+<a class="reference internal image-reference" href="https://drive.google.com/uc?export=view&amp;id=1ystcfaoF-k8KsYZTTKS1mjveZW9s9KWZ"><img alt="https://drive.google.com/uc?export=view&amp;id=1ystcfaoF-k8KsYZTTKS1mjveZW9s9KWZ" src="https://drive.google.com/uc?export=view&amp;id=1ystcfaoF-k8KsYZTTKS1mjveZW9s9KWZ" style="width: 49%;" /></a>
+<a class="reference internal image-reference" href="https://drive.google.com/uc?export=view&amp;id=1umED1GBUhGAX8PvDCjUXo2NF6wRwsCwc"><img alt="https://drive.google.com/uc?export=view&amp;id=1umED1GBUhGAX8PvDCjUXo2NF6wRwsCwc" src="https://drive.google.com/uc?export=view&amp;id=1umED1GBUhGAX8PvDCjUXo2NF6wRwsCwc" style="width: 49%;" /></a>
+<p>The above figures show the same example of two realizations from a Gaussian random field on the unit interval as before.
+However, now the true value of the time series has been observed at three distinct points (red dots).
+By knowing the random field model and the value at these three points it is possible to acquire the conditional probability distribution for the value at all other points in the unit interval.
+The blue curve corresponds to the conditional mean (being a possible choice of a point prediction given the observed data) and the green regions being the conditional, pointwise, 90% prediction interval (it is a 90% probability that the true value at a point is inside the green region).
+As can be seen, close to the observations there is almost no uncertainty. Further away the uncertainty increases.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Simulate from the GRF.</dt><dd><p>A very strong tool when the interest lies not in assessing the value at the points of the random field directly, but rather that these values are input to another process.
+By performing such simulations (Monte-Carlo) it is possible to &quot;push&quot; the probability distribution of the underlying random field to generate a probabilistic analysis of the end process, which might have a complicated and highly non-linear dependency on <span class="math notranslate nohighlight">\(X\)</span>.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Estimate the values of parameters of the GRF model from data.</dt><dd><p>The value of the parameters can be interesting in their own since they might explain important behaviors in the studied process. However, what is even more common is that the parameters need to be estimated as a first step before performing tasks such as conditional prediction or simulation.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Compare several GRF models to data to analyze which model that does the best job of explaining the process studied.</dt><dd><p>Sometimes, the interest lies in comparing several models. Either to see how much complexity that needs to be added to explain a phenomena, or to choose which theory that seems to comply best with observations. Comparisons can be performed in many ways and Fieldosophy allow for evaluation of the likelihood function as well as conditional simulations in order to asses model fit.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>For the classes of GRFs that Fieldosophy can handle, it is possible to perform all the above tasks using a computationally efficient methodology.</p>
+</div>
+<div class="section" id="why-gaussian-random-fields">
+<h2>Why Gaussian random fields?<a class="headerlink" href="#why-gaussian-random-fields" title="Permalink to this headline">¶</a></h2>
+<p>So far we know what a Gaussian random field is and some examples of what it can be used for.
+One strong assumption that is made when using GRFs is the assumption of Gaussianity.
+If we remove this assumption we have a general random field, i.e., a collection of random variables indexed by their associated points in space.
+The joint distribution of this collection of random varibles is not neccessarily Gaussian for a general random field.
+There are several reason why we focus solely on Gaussian random fields in this package, and not other probability distributions.</p>
+<ol class="arabic simple">
+<li><dl class="simple">
+<dt>Less complex</dt><dd><p>Multivariate Gaussian distributions are solely defined by their first and second moments.
+That means that we only need to care about the mean function and covariance function.
+Although that can be complicated enough, it is a dramatic restriction compared to allowing flexibility in higher order moments.
+Another important, and often forgotten, reason is due to data scarcity.
+More complex models require more observed data in order to be estimated properly.
+This relationship can often scale super-linearly since the number of required parameters for adding further moments often depend on the dimensionality of <span class="math notranslate nohighlight">\(\mathcal{D}\)</span>.
+In many applications data scarcity is a strong restriction. Data is expensive to generate and since there is dependencies in space and/or time, a lot of data points might be needed to acquire an adequate effective sample size.
+Furthermore, the computational complexity of working with more complex random field models are often increased considerably.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Central limit theorem</dt><dd><p>Due to the central limit theorem, the probability distribution of a sum of independent and identically distributed random variables converges towards a Gaussian distribution. This is also true for random fields, i.e. a sum of random fields are converging towards a Gaussian random field if they are independent and identically distributed.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Flexible</dt><dd><p>Even when the studied process is not a sum of many independent and identically distributed random fields, it can often be approximated as a GRF.
+The GRF can model the mean and correlation between the values at the different points.
+This is often enough for conditional predictions and probability assessment in the &quot;bulk&quot; of the distribution, i.e., when very rare events are not of concern.
+However, one should remember that there are certainly cases when a GRF is not an appropriate approximation. Typical such cases are multimodal distributions, highly skewed distributions, and distributions with compact support on intervals such that the Gaussian approximation would yield rather high probabilities outside of their support.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Marginal transformation</dt><dd><p>In the case when a GRF is not a good approximation of the actual random field, it is often possible to marginally transform it into Gaussianity.
+The idea is simple, consider the marginal distribution for the points in space separately.
+Look to find a good mapping such that the marginal distributions become Gaussian.
+Map all data to Gaussianity and model them with a GRF.
+If separate mappings should be considered for each point in space, or if all points in space can use the same mapping, depend on the data and its scarcity.
+One of the most important special cases of marginal transformations is the log-transformation. This transformation is important since it is used vastly in, for instance, finance. It is particularly useful since multiplications become additions after log-transformation. In other words, multiplicative noise becomes additive noise and additive noise converges to Gaussianity. Hence, it can be used to model processes with multiplicative noise using GRFs.</p>
+</dd>
+</dl>
+</li>
+</ol>
+</div>
+<div class="section" id="the-stochastic-partial-differential-equation">
+<h2>The stochastic partial differential equation<a class="headerlink" href="#the-stochastic-partial-differential-equation" title="Permalink to this headline">¶</a></h2>
+<p>The class of continuously-indexed Gaussian random fields that are of concern to Fieldosophy can be described by the stochastic partial differential equation,</p>
+<div class="math notranslate nohighlight" id="equation-generalspde">
+<span class="eqno">(1)<a class="headerlink" href="#equation-generalspde" title="Permalink to this equation">¶</a></span>\[\mathcal{L}^{\beta} \left(\tau X\right) = \mathcal{W}.\]</div>
+<p>Here, <span class="math notranslate nohighlight">\(\mathcal{L}\)</span> is a differential operator on <span class="math notranslate nohighlight">\(\mathcal{D}\)</span>, <span class="math notranslate nohighlight">\(\beta &gt; \frac{d}{4}\)</span> is a real valued constant denoting the order of the (fractional) derivative of the differential operator, <span class="math notranslate nohighlight">\(\tau\)</span> is a positive scalar-valued function controlling the marginal variance of <span class="math notranslate nohighlight">\(X\)</span>, and <span class="math notranslate nohighlight">\(\mathcal{W}\)</span> is the (generalized) field of Gaussian white noise on <span class="math notranslate nohighlight">\(\mathcal{D}\)</span>.
+Since <span class="math notranslate nohighlight">\(\mathcal{W}\)</span> is a GRF, the solution to the SPDE, i.e. <span class="math notranslate nohighlight">\(X\)</span>, will be a GRF. In this sense, we can consider <span class="math notranslate nohighlight">\(X\)</span> as being a mapping of <span class="math notranslate nohighlight">\(\mathcal{W}\)</span>, i.e.,</p>
+<div class="math notranslate nohighlight">
+\[X = \frac{1}{\tau} \mathcal{L}^{-\beta} \mathcal{W}.\]</div>
+<p>Note that the solution is not well-defined until appropriate boundary and/or initial conditions are given, as well as in what sense we have defined a solution.
+These are technicalities and for an in-depth understanding of the details please read <span id="id2">[<a class="reference internal" href="bibliography.html#id14"><span>LRLindstrom11</span></a>,<a class="reference internal" href="bibliography.html#id11"><span>HBR20</span></a>,<a class="reference internal" href="bibliography.html#id4"><span>BK19</span></a>]</span> and the references there within.</p>
+</div>
+<div class="section" id="matern-covariance">
+<h2>Matérn covariance<a class="headerlink" href="#matern-covariance" title="Permalink to this headline">¶</a></h2>
+<p>The original differential operator of <span id="id3">[<a class="reference internal" href="bibliography.html#id14"><span>LRLindstrom11</span></a>]</span> is</p>
+<div class="math notranslate nohighlight" id="equation-lindgrenspde">
+<span class="eqno">(2)<a class="headerlink" href="#equation-lindgrenspde" title="Permalink to this equation">¶</a></span>\[\mathcal{L} := \left( \kappa^2 - \Delta \right),\]</div>
+<p>where <span class="math notranslate nohighlight">\(\kappa\)</span> is a real-valued scalar and <span class="math notranslate nohighlight">\(\Delta\)</span> is the Laplacian operator. When this differential operator is used in equation <a class="reference internal" href="#equation-generalspde">(1)</a> and <span class="math notranslate nohighlight">\(\mathcal{D} = \mathbb{R}^d\)</span> with the Euclidean metric, <span class="math notranslate nohighlight">\(X\)</span> will be a GRF with zero mean function and a Matérn covariance function.
+The Matérn covariance function has the form,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\mathcal{C}(\boldsymbol{s}_1, \boldsymbol{s}_2) = \sigma^2 \mathcal{C}_{\nu}\left( \kappa \|\boldsymbol{s}_1 - \boldsymbol{s}_2\| \right) \\\end{split}\]</div>
+<p>where, <span class="math notranslate nohighlight">\(\sigma^2\)</span> is the marginal variance, and</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{C}_{\nu}(h) = \frac{h^{\nu}K_{\nu}(h)}{2^{2\nu -1} \Gamma(\nu)}.\]</div>
+<p>Here, <span class="math notranslate nohighlight">\(K_{\nu}\)</span> denotes the modified Bessel function of the second kind and <span class="math notranslate nohighlight">\(\beta = \frac{\nu}{2} + \frac{d}{4}\)</span>.
+For this equation, the relationship between the marginal variance and the <span class="math notranslate nohighlight">\(\tau\)</span>-parameter is,</p>
+<div class="math notranslate nohighlight">
+\[\sigma = \sqrt{\frac{\Gamma(\nu)}{\Gamma\left( \nu + d/2 \right) (4\pi)^{d/2} }} \frac{1}{\kappa^{\nu}\tau},\]</div>
+<p>and <span class="math notranslate nohighlight">\(d\)</span> is the dimensionality of <span class="math notranslate nohighlight">\(\mathcal{D}\)</span>.</p>
+<p>The Matérn covariance is very popular in spatial analysis.
+Mostly since it is quite flexible while yielding a positive definite covariance matrix when applied to any arbitrary number of distinct points in <span class="math notranslate nohighlight">\(\mathbb{R}^d\)</span>; a necessary condition for any covariance function on <span class="math notranslate nohighlight">\(\mathbb{R}^2\)</span>.
+It also adheres to Tobler's first law of philosophy, viz., &quot;Everything is related to everything else, but near things are more related than distant things&quot;.
+All this while having only three easily interpreted scalar-valued parameters.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>The <span class="math notranslate nohighlight">\(\kappa\)</span>-parameter controls the correlation range.</dt><dd><p>The correlation range is the distance between two points at which their correlation becomes lower than 10%.
+However, <span class="math notranslate nohighlight">\(\kappa\)</span> is not equal to the correlation range, but is has a one-to-one relationship with it.
+A good approximation is that the correlation at distance <span class="math notranslate nohighlight">\(\frac{\sqrt{8\nu}}{\kappa}\)</span> is 13% <span id="id4">[<a class="reference internal" href="bibliography.html#id14"><span>LRLindstrom11</span></a>]</span>.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>The <span class="math notranslate nohighlight">\(\nu\)</span>-parameter controls the smoothness of realizations from the random field.</dt><dd><p>In fact, <span class="math notranslate nohighlight">\(\nu\)</span> is equivalent to the Hölder constant, almost everywhere, of realizations for the GRF.
+This is an important parameter since a higher smoothness means that, for a fixed correlations range, the correlation becomes higher for short distances but drops off faster.
+In that sense it can be seen as a shape parameter of the covariance function.
+<a class="reference internal" href="#fig-maternexample"><span class="std std-ref">Figure 1</span></a> highlight how the shape is changing when changing the <span class="math notranslate nohighlight">\(\nu\)</span>-parameter.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>The <span class="math notranslate nohighlight">\(\sigma\)</span> parameter controls the marginal standard deviation.</dt><dd><p>The standard deviation for any fixed point in <span class="math notranslate nohighlight">\(\mathcal{D}\)</span>.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<div class="figure align-default" id="id14">
+<span id="fig-maternexample"></span><img alt="https://drive.google.com/uc?export=view&amp;id=1AEyEXBQe95d3AwMfhtJqp8Bg0o1DaJ1b" src="https://drive.google.com/uc?export=view&amp;id=1AEyEXBQe95d3AwMfhtJqp8Bg0o1DaJ1b" />
+<p class="caption"><span class="caption-text">Figure 1</span><a class="headerlink" href="#id14" title="Permalink to this image">¶</a></p>
+</div>
+<p>It might be hard to get an intuition of the covariance function by the equations above.
+In <a class="reference internal" href="#fig-maternexample"><span class="std std-ref">Figure 1</span></a> two different Matérn functions are shown.
+These two differ by the value of <span class="math notranslate nohighlight">\(\nu\)</span>, while having unit correlation range and marginal variance (<span class="math notranslate nohighlight">\(r=1\)</span>).
+Changing the <span class="math notranslate nohighlight">\(\kappa\)</span>-parameter would scale the x-axis, while changing the <span class="math notranslate nohighlight">\(\sigma\)</span>-parameter would scale the y-axis.
+The black dashed line just show the correlation range.
+As can be seen, the blue curve, with a smaller <span class="math notranslate nohighlight">\(\nu\)</span>-parameter than the red curve, has comparably smaller correlation for distances shorter than the correlation range but higher correlation for longer distances.</p>
+<p>It is important to realize that the Matérn covariance function is diminishing with distance between the two points.
+This implies that points close to each other will be more similar than points far away.
+A property that often holds in real life phenomena.</p>
+<p>Two important special cases of the Matérn covariance is the Gaussian covariance function and the exponential covariance function.
+It should be noted that the Matérn covariance function has some further theoretically attractive properties, see <span id="id5">[<a class="reference internal" href="bibliography.html#id18"><span>Ste99</span></a>]</span>.</p>
+</div>
+<div class="section" id="extending-the-matern-covariance">
+<h2>Extending the Matérn covariance<a class="headerlink" href="#extending-the-matern-covariance" title="Permalink to this headline">¶</a></h2>
+<p>The Matérn covariance function is restricted to a limited set of use cases.</p>
+<ol class="arabic simple">
+<li><dl class="simple">
+<dt>It is stationary</dt><dd><p>The covariance only depend on the relative position between the two points.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>It is isotropic</dt><dd><p>The covariance does not depend on the angle between the two points.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>It is only defined on <span class="math notranslate nohighlight">\(\mathcal{D} \subseteq \mathbb{R}^d\)</span>.</dt><dd><p>Many real-world processes are observed on manifolds such as the surface of the earth or on a curve in space.</p>
+</dd>
+</dl>
+</li>
+</ol>
+<p>However, the SPDE of <a class="reference internal" href="#equation-generalspde">(1)</a> using the operator <a class="reference internal" href="#equation-lindgrenspde">(2)</a> can still be defined on general Riemannian manifolds.
+Although its solution will no longer have a Matérn covariance function, the resulting covariance function will keep many of the attractive properties of the Matérn covariance (control over smoothness, correlation range, and marginal variance as well as enforcing that points nearby should be more correlated than points far away).
+Through this SPDE-trick we therefore extend the Matérn covariance function to a richer class of covariance functions.</p>
+<p>In fact, it can be hard to explicitly define a covariance function at all on arbitrary Riemannian manifolds.
+Using stochastic partial differential equations give us a general approach to implicitly construct attractive covariance functions on complicated Riemannian manifolds.</p>
+<p>Moreover, considering that a Riemannian manifold is made up of a diffeomorphism together with a metric, one can also change metric while staying on a subset of <span class="math notranslate nohighlight">\(\mathbb{R}^d\)</span>.
+By considering different metrics, it is possible to acquire non-stationary and anisotropic covariance functions by studying how the differential operator of <a class="reference internal" href="#equation-lindgrenspde">(2)</a> changes under a change of metric.
+This was done in <span id="id6">[<a class="reference internal" href="bibliography.html#id11"><span>HBR20</span></a>]</span>, the result being the differential operator,</p>
+<div class="math notranslate nohighlight" id="equation-hildemanspde">
+<span class="eqno">(3)<a class="headerlink" href="#equation-hildemanspde" title="Permalink to this equation">¶</a></span>\[\mathcal{L} := |G|^{\frac{1}{4\beta}} \left( I - \frac{1}{\sqrt{|G|}} \nabla \cdot \left( \sqrt{|G|}G^{-1} \right) \nabla \right).\]</div>
+<p>Here, <span class="math notranslate nohighlight">\(I\)</span> is the identity operator, <span class="math notranslate nohighlight">\(\nabla \cdot\)</span> the divergence operator, and <span class="math notranslate nohighlight">\(\nabla\)</span> the gradient operator.
+The matrix-valued function, <span class="math notranslate nohighlight">\(G\)</span>, defines a metric in the following way:
+A metric is defined by an inner product in each point of <span class="math notranslate nohighlight">\(\mathcal{D}\)</span>, i.e., <span class="math notranslate nohighlight">\(g[\boldsymbol{v}_1, \boldsymbol{v}_2](\boldsymbol{s})\)</span> where <span class="math notranslate nohighlight">\(\boldsymbol{v}_1, \boldsymbol{v}_2\)</span> are tangent vectors of the manifold in point <span class="math notranslate nohighlight">\(\boldsymbol{s}\)</span>.
+Considering manifolds embedded in <span class="math notranslate nohighlight">\(\mathbb{R}^D\)</span>, for some <span class="math notranslate nohighlight">\(D\)</span>, such an inner product can be represented by a positive definite matrix-valued function, <span class="math notranslate nohighlight">\(G\)</span>, operating on the natural basis vectors, i.e., <span class="math notranslate nohighlight">\(g[\boldsymbol{v}_1, \boldsymbol{v}_2](\boldsymbol{s}) := \sqrt{\boldsymbol{v}_1^T G(\boldsymbol{s}) \boldsymbol{v}_2}\)</span>.
+In other words, <span class="math notranslate nohighlight">\(G\)</span> is a matrix-valued function describing the deviation between the metric defined by <span class="math notranslate nohighlight">\(g\)</span> and the &quot;natural&quot; metric induced on <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> by considering a euclidean metric on <span class="math notranslate nohighlight">\(\mathbb{R}^D\)</span>, in which <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> is embedded.</p>
+<p>It should be mentioned that the equation corresponding to eq. <a class="reference internal" href="#equation-hildemanspde">(3)</a> in <span id="id7">[<a class="reference internal" href="bibliography.html#id11"><span>HBR20</span></a>]</span> looks slightly different.
+This is because in <span id="id8">[<a class="reference internal" href="bibliography.html#id11"><span>HBR20</span></a>]</span> the equation was defined with respect to the Jacobian matrix of the mapping from using the &quot;natural&quot; metric of the manifold together with the differential operator of <a class="reference internal" href="#equation-lindgrenspde">(2)</a> with <span class="math notranslate nohighlight">\(\kappa = 1\)</span>.
+In short, this means that using the differential operator of eq. <a class="reference internal" href="#equation-hildemanspde">(3)</a> in <a class="reference internal" href="#equation-generalspde">(1)</a> is equivalent to considering the covariance function induced by the differential operator <a class="reference internal" href="#equation-lindgrenspde">(2)</a> but changing the metric from the &quot;natural&quot; metric of <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> to <span class="math notranslate nohighlight">\(g\)</span>.</p>
+<p>In the way the Riemannian manifold and its corresponding differential operator, <a class="reference internal" href="#equation-hildemanspde">(3)</a>, is defined, the parameter <span class="math notranslate nohighlight">\(\nu = \frac{4\beta - d}{2}\)</span> is still equivalent to the Hölder constant of realizations from the GRF.
+Also, the parameter <span class="math notranslate nohighlight">\(\tau\)</span> alone controls the marginal variance by the relationship,</p>
+<div class="math notranslate nohighlight">
+\[\sigma = \sqrt{\frac{\Gamma(\nu)}{\Gamma\left( \nu + d/2 \right) (4\pi)^{d/2} }} \frac{1}{\tau}.\]</div>
+<p>Comparing the original differential operator of the Matérn covariance, <a class="reference internal" href="#equation-lindgrenspde">(2)</a>, with the more versatile <a class="reference internal" href="#equation-hildemanspde">(3)</a>, the <span class="math notranslate nohighlight">\(\kappa\)</span> parameter of <a class="reference internal" href="#equation-lindgrenspde">(2)</a> has been replaced by a matrix valued <span class="math notranslate nohighlight">\(G\)</span>-function.
+This function now allow for anisotropy (when eigenvalues are not all equal) and non-stationarity (when <span class="math notranslate nohighlight">\(G\)</span> is not constant in space).</p>
+<p>As an example, in the special case when <span class="math notranslate nohighlight">\(\mathcal{D} = \mathbb{R}^d\)</span> and <span class="math notranslate nohighlight">\(G = c I\)</span> (that is, a constant scaling of the identity matrix), this model induces a Matérn covariance with parameters:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\sigma &amp;= \sqrt{\frac{\Gamma(\nu)}{\Gamma\left( \nu + d/2 \right) (4\pi)^{d/2} }} \frac{1}{\tau}, \\
+\nu &amp;= \frac{4\beta - d}{2}, \\
+\kappa &amp;= \sqrt{c}.\end{split}\]</div>
+</div>
+<div class="section" id="finite-element-approximations">
+<h2>Finite element approximations<a class="headerlink" href="#finite-element-approximations" title="Permalink to this headline">¶</a></h2>
+<p>We now know that we can use the stochastic partial differential equation of <a class="reference internal" href="#equation-generalspde">(1)</a> together with the differential operator of <a class="reference internal" href="#equation-hildemanspde">(3)</a> to model a wide range of spatial correlation structures on arbitrary Riemannian manifolds.
+The last piece of the puzzle is approximating the solution of these SPDEs using the finite element method (FEM).</p>
+<p>The benefit of the finite element method is twofold:</p>
+<ol class="arabic simple">
+<li><dl class="simple">
+<dt>For arbitrary regions of general Riemannian manifolds, the solution is not known explicitly. Instead, we need to approximate the solution numerically.</dt><dd><p>The finite element method is one such approximation. Moreover, with FEM it is possible to have control over the approximation error and acquire a solution that is continous in space.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>With FEM, using basis functions that are mostly orthogonal to each other yields a precision matrix (inverse of the covariance matrix) that is sparse.</dt><dd><p>The sparsity of the precision matrix is key to reducing the computational complexity of most operations that might lie in our interest, see <span id="id9">[<a class="reference internal" href="bibliography.html#id14"><span>LRLindstrom11</span></a>,<a class="reference internal" href="bibliography.html#id17"><span>RH05</span></a>]</span>.</p>
+</dd>
+</dl>
+</li>
+</ol>
+<p>The first step of utilizing the finite element method is to rewrite the differential equation into weak form, i.e., the SPDE of <a class="reference internal" href="#equation-generalspde">(1)</a> (when <span class="math notranslate nohighlight">\(\beta = 1\)</span>) becomes,</p>
+<div class="math notranslate nohighlight">
+\[\left&lt; \mathcal{L}\left( \tau X \right), \phi \right&gt; = \left&lt; \mathcal{W}, \phi \right&gt;, \forall \phi \in \mathcal{V}.\]</div>
+<p>The weak form solution considers the inner product between the left hand side of <a class="reference internal" href="#equation-generalspde">(1)</a> and an arbitrary member, <span class="math notranslate nohighlight">\(\phi\)</span>, of function space <span class="math notranslate nohighlight">\(\mathcal{V}\)</span>, to be equal to the inner product between the right hand side of <a class="reference internal" href="#equation-generalspde">(1)</a> and the very same function, <span class="math notranslate nohighlight">\(\phi\)</span>.
+The weak form is a actually the &quot;correct way&quot; of interpretating <a class="reference internal" href="#equation-generalspde">(1)</a> since the Wiener noise, <span class="math notranslate nohighlight">\(\mathcal{W}\)</span>, does not have pointwise meaning and is only defined in weak form.
+For the differential equations of <a class="reference internal" href="#equation-lindgrenspde">(2)</a> and <a class="reference internal" href="#equation-hildemanspde">(3)</a> with <span class="math notranslate nohighlight">\(\beta=1\)</span>, <span class="math notranslate nohighlight">\(\mathcal{V}\)</span> is usually considered to be the Sobolev space <span class="math notranslate nohighlight">\(W^{1,2}\)</span>.
+Here, <span class="math notranslate nohighlight">\(W^{1,2}\)</span> denoting the space of functions for which both the function and its derivative (in any direction) is bounded in <span class="math notranslate nohighlight">\(L^2\)</span>-sense.
+When this function space is used, also the solution, <span class="math notranslate nohighlight">\(X\)</span>, is considered to be part of <span class="math notranslate nohighlight">\(\mathcal{V}\)</span>.</p>
+<p>The finite element method relaxes the requirements on the solution by just saying that <span class="math notranslate nohighlight">\(X, \phi \in \hat{\mathcal{V}}\)</span>, where <span class="math notranslate nohighlight">\(\hat{\mathcal{V}} \subset \mathcal{V}\)</span>.
+In fact, since the numerical approximation of the solution has to be possible to compute with a computer in finite time, <span class="math notranslate nohighlight">\(\hat{\mathcal{V}}\)</span> is chosen as a finite dimensional function space that is practically manageable.
+Although many choices exists for <span class="math notranslate nohighlight">\(\hat{\mathcal{V}}\)</span>, in Fieldosophy only piecewise linear functions on simplices are considered.
+This is the same as saying that we are looking for the solution which approximates the true solution best while being a piecewise linear function.</p>
+<p>Part of FEM is to choose a mesh over <span class="math notranslate nohighlight">\(\mathcal{D}\)</span>. That is, divide the spatial domain into many simplices such that each simplex is small enough such that the linear approximation in the given simplex is a good approximation. At the same time, the finer the simplicial mesh, the higher the computational burden.
+Therefore, the trick is to make the simplices small enough, but not smaller than so.</p>
+<p>Given such a simplicial mesh with <span class="math notranslate nohighlight">\(N\)</span> nodes (points connecting lines in the simplicial mesh), the FEM function space, <span class="math notranslate nohighlight">\(\hat{\mathcal{V}}\)</span>, is <span class="math notranslate nohighlight">\(N\)</span>-dimensional.
+This function space is <span class="math notranslate nohighlight">\(\hat{\mathcal{V}} = \{ \phi_i\}_{i=1}^N\)</span>, where each <span class="math notranslate nohighlight">\(\phi_i\)</span> is linear in all simplices for which the <span class="math notranslate nohighlight">\(i\)</span>:th node is a member of, and zero in all other simplices.
+The relaxed weak solution can then be described as a system of linear equations, ie.,</p>
+<div class="math notranslate nohighlight">
+\[\sum_{i = 1}^N x_i \left&lt; \mathcal{L}\left( \tau \phi_i \right), \phi \right&gt; = \left&lt; \mathcal{W}, \phi \right&gt;, \forall \phi \in \{\phi_j\}_{j=1}^N \Leftrightarrow K \boldsymbol{x} = W.\]</div>
+<p>Here, <span class="math notranslate nohighlight">\(\hat{X}(\boldsymbol{s}) := \sum_{i=1}^N x_i \phi_i(\boldsymbol{s})\)</span>, is the FEM approximation of the real solution <span class="math notranslate nohighlight">\(X\)</span>.
+Since the inner product between two basis functions, <span class="math notranslate nohighlight">\(\phi_i, \phi_j\)</span>, are only nonzero when the nodes are part of the same simplex, <span class="math notranslate nohighlight">\(K\)</span> is a sparse matrix.
+This can be leveraged to accomplish a Cholesky decomposition of the precision matrix with a reduced computational complexity <span id="id10">[<a class="reference internal" href="bibliography.html#id14"><span>LRLindstrom11</span></a>]</span>.
+The computational complexity is <span class="math notranslate nohighlight">\(\mathcal{O}(N)\)</span> in one dimension, <span class="math notranslate nohighlight">\(\mathcal{O}(N^{3/2})\)</span> in two dimensions, and <span class="math notranslate nohighlight">\(\mathcal{O}(N^{5/2})\)</span> in three dimensions.
+This should be compared to the general computational complexity of <span class="math notranslate nohighlight">\(\mathcal{O}(N^3)\)</span> for a Cholesky decomposition.</p>
+<img alt="https://drive.google.com/uc?export=view&amp;id=1Scvs8DUKzeUJEENd7YA1w_fbrZXgg__g" class="align-center" src="https://drive.google.com/uc?export=view&amp;id=1Scvs8DUKzeUJEENd7YA1w_fbrZXgg__g" />
+<p>The mesh above was used in the two-dimensional examples on the unit rectangle shown earlier in this chapter.
+In two dimensions, a simplex is a triangle and the mesh is a collection of triangles that completely covers the spatial domain.</p>
+<p>Remember that the solution to <a class="reference internal" href="#equation-generalspde">(1)</a> is not fully defined without boundary conditions.
+That means that different boundary conditions will correspond to different covariance functions for the random field model, even though the differential operator is the same.
+The original theory of <a class="reference internal" href="#equation-lindgrenspde">(2)</a> as being the differential operator corresponding to a Matérn covariance function only holds when <span class="math notranslate nohighlight">\(\mathcal{D} = \mathbb{R}^d\)</span>.
+However, meshing over all of <span class="math notranslate nohighlight">\(\mathbb{R}^d\)</span> is infeasible and in real-life applications we are only interested in a compact domain thereof.
+Hence, the mesh is often <em>extended</em> such that points inside our <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> have a neglible correlation with points at the boundary of the mesh.
+This effectively removes the ambivalence due to boundary effects since they do not affect the region of interest anyway.</p>
+<p>Such a <em>mesh extension</em> can be seen in the above figure, where the mesh extends out 0.6 in all directions from the unit rectangle.
+This is a <em>mesh extension</em> that was added such that the FEM approximation of <a class="reference internal" href="#equation-generalspde">(1)</a> with differential operator <a class="reference internal" href="#equation-lindgrenspde">(2)</a> will behave as a Matérn covariance function inside domain <span class="math notranslate nohighlight">\(\mathcal{D}\)</span>.</p>
+<p>It should be noted that there are ocassions when we do not want to extend the mesh.
+As been noted earlier, one of the advantages with expressing the covariance function implicitly through a differential equation is that it can be modified to more complex models/spaces while still maintaining many of the good properties of the Matérn covariance.
+One such extension is to define appropriate boundary conditions for the specific problem. Sometimes one knows that the value at the boundary should be zero, then a homogeneous Dirichlet boundary condition is the correct choice, while mesh extension would lead to an unwanted solution.
+Similarly, when modeling a random field on a periodic manifold, such as a sphere, a periodic boundary condition should be used.
+Fieldosophy support Dirichlet, Neumann, Robin, and periodic boundary conditions. The different boundary conditions can be mixed as well, i.e., having one boundary condition on one part of the boundary domain and another boundary condition on another part.</p>
+</div>
+<div class="section" id="rational-finite-element-approximations">
+<h2>Rational finite element approximations<a class="headerlink" href="#rational-finite-element-approximations" title="Permalink to this headline">¶</a></h2>
+<p>The section above explained how to approximate the solution to <a class="reference internal" href="#equation-generalspde">(1)</a> when <span class="math notranslate nohighlight">\(\beta = 1\)</span>. What about the cases when <span class="math notranslate nohighlight">\(\beta \neq 1\)</span>?</p>
+<p>Above we referred to <span class="math notranslate nohighlight">\(\beta\)</span> as the fractional derivative of the differential operator.
+This is most easily understood as the power of the eigenvalues for the eigendecomposition of <span class="math notranslate nohighlight">\(\mathcal{L}\)</span>.
+Given appropriate boundary/initial-conditions, a differential operator can be characterized by a sum of eigenvalue/eigenfunction pairs. That is, if</p>
+<div class="math notranslate nohighlight">
+\[\left( \mathcal{L} X \right)(\boldsymbol{s}) = \sum_{i=1}^{\infty} \lambda_i \langle X, \psi_i \rangle \psi_i(\boldsymbol{s}),\]</div>
+<p>then the fractional derivative, <span class="math notranslate nohighlight">\(\beta\)</span>, is defined as</p>
+<div class="math notranslate nohighlight">
+\[\left( \mathcal{L}^{\beta} X \right)(\boldsymbol{s}) := \sum_{i=1}^{\infty} \lambda_i^{\beta} \langle X, \psi_i \rangle \psi_i(\boldsymbol{s}).\]</div>
+<p>However, the eigendecomposition of the differential operators are generally unknown on arbitrary Riemannian manifolds, and even when known they might not give the computational benefits of the finite element method.
+In the case of integer valued <span class="math notranslate nohighlight">\(\beta\)</span> it is possible to interpret it as an iterative differentiation. In this way one can construct iterative finite element solutions such as in <span id="id11">[<a class="reference internal" href="bibliography.html#id14"><span>LRLindstrom11</span></a>]</span>.
+This idea was further extended to fractional derivatives in <span id="id12">[<a class="reference internal" href="bibliography.html#id4"><span>BK19</span></a>]</span> by using a rational approximation.
+The idea here is to find two polynomials, <span class="math notranslate nohighlight">\(P\)</span> and <span class="math notranslate nohighlight">\(Q\)</span>, such that <span class="math notranslate nohighlight">\(x^{\beta} \approx P(x)/Q(x)\)</span>. This is important since then,</p>
+<div class="math notranslate nohighlight">
+\[\left( \mathcal{Q}^{-1} \mathcal{P} X \right)(\boldsymbol{s}) = \sum_{i=1}^{\infty} \frac{P(\lambda_i)}{Q(\lambda_i)} \langle X, \psi_i \rangle \psi_i(\boldsymbol{s}) \approx \sum_{i=1}^{\infty} \lambda_i^{\beta} \langle X, \psi_i \rangle \psi_i(\boldsymbol{s}).\]</div>
+<p>Here, <span class="math notranslate nohighlight">\(\mathcal{P} := \sum_{j=1}^{k} a_j \mathcal{L}^{j}\)</span> and <span class="math notranslate nohighlight">\(\mathcal{Q} := \sum_{j=1}^{l} b_j \mathcal{L}^{j}\)</span>, where <span class="math notranslate nohighlight">\(\{a_j\}_j^k\)</span> and <span class="math notranslate nohighlight">\(\{b_j\}_j^l\)</span> are the coefficients for the two polynomials <span class="math notranslate nohighlight">\(P\)</span> and Q respectively.</p>
+<p>What is actually happening is that the non-integer values of <span class="math notranslate nohighlight">\(\beta\)</span> are handled by using a summation of integer valued powers; which can be handled using the iterative finite element solution as in <span id="id13">[<a class="reference internal" href="bibliography.html#id14"><span>LRLindstrom11</span></a>]</span>.</p>
+<p>When using higher order iterative finite element solutions, the computational complexity increases while the numerical stability decreases.
+Therefore, Fieldosophy uses polynomials with, at most, 2 degrees for one polynomial and 1 degree for the other. That is, either</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}P(x) &amp;= a_0 + a_1 x + a_2 x^2 \\
+Q(x) &amp;= b_0 + b_1 x,\end{split}\]</div>
+<p>or</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}P(x) &amp;= a_0 + a_1 x \\
+Q(x) &amp;= b_0 + b_1 x + b_2 x^2.\end{split}\]</div>
+<p>In Fieldosophy you only have to specify the <span class="math notranslate nohighlight">\(\nu\)</span>-parameter (<span class="math notranslate nohighlight">\(\nu := 2\beta - \frac{d}{2}\)</span>) and the rational approximation is computed automatically for optimal performance.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Introduction</a><ul>
+<li><a class="reference internal" href="#gaussian-random-fields">Gaussian random fields</a></li>
+<li><a class="reference internal" href="#purpose">Purpose</a></li>
+<li><a class="reference internal" href="#why-gaussian-random-fields">Why Gaussian random fields?</a></li>
+<li><a class="reference internal" href="#the-stochastic-partial-differential-equation">The stochastic partial differential equation</a></li>
+<li><a class="reference internal" href="#matern-covariance">Matérn covariance</a></li>
+<li><a class="reference internal" href="#extending-the-matern-covariance">Extending the Matérn covariance</a></li>
+<li><a class="reference internal" href="#finite-element-approximations">Finite element approximations</a></li>
+<li><a class="reference internal" href="#rational-finite-element-approximations">Rational finite element approximations</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="installation.html"
+                        title="previous chapter">Installation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="structure.html"
+                        title="next chapter">Structure of Fieldosophy</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/introduction.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="structure.html" title="Structure of Fieldosophy"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Fieldosophy 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Anders Gunnar Felix Hildeman.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.0.
+    </div>
+  </body>
+</html>

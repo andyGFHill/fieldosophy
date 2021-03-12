@@ -38,9 +38,9 @@ mesh = mesher.regularMesh.meshInPlaneRegular( coordinateLims[:2, :], np.array([0
 # mesh = mesher.Mesh( mesh.triangles, mesh.nodes )
 
 # Refine some points to create irregular mesh
-refineArray = np.ones(mesh.nodes.shape[0])
-refineArray[[0, 11, 27]] = 0.05
-mesh = mesh.refine( maxDiam = refineArray, maxNumNodes = mesh.N + 65 )
+refineArray = 1 * np.ones(mesh.nodes.shape[0])
+refineArray[[0,11,27]] = 0.1
+mesh, neighs = mesh.refine( maxDiam = refineArray, maxNumNodes = mesh.N + int(1e2) )
 
 
 ax = plt.subplot(221)
@@ -49,12 +49,20 @@ meshPlotter = mesher.MeshPlotter( mesh )
 edges = meshPlotter.getLines()
 plt.plot(edges[0], edges[1], color="blue")
 edges = meshPlotter.getBoundaryLines()
-plt.plot(edges[0], edges[1], color="blue")
+plt.plot(edges[0], edges[1], color="red")
+
+# simplexId = 28
+# plt.plot(mesh.nodes[mesh.triangles[simplexId,[0,1,2,0]], 0], mesh.nodes[mesh.triangles[simplexId,[0,1,2,0]], 1], color="green", linewidth=5)
+# for simplexId in neighs[28, :]:
+#     if (simplexId < mesh.NT):
+#         plt.plot(mesh.nodes[mesh.triangles[simplexId,[0,1,2,0]], 0], mesh.nodes[mesh.triangles[simplexId,[0,1,2,0]], 1], color="magenta", linewidth=5)
 
 # for iter in range(mesh.triangles.shape[0]):   
 #     triangles = np.concatenate( (mesh.triangles, mesh.triangles[:,0:1]), axis = 1)
 #     plt.plot( mesh.nodes[triangles[iter, :], 0], mesh.nodes[triangles[iter, :], 1], color="blue" )
 
+
+# %%
 
 
 # Extend to 3D mesh

@@ -22,7 +22,9 @@ from scipy import ndimage
 
 
 class TemplateMatching:
-    # class for template matching
+    """
+    class for template matching
+    """
     
     # Declare pointer types
     c_double_p = ctypes.POINTER(ctypes.c_double)   
@@ -56,7 +58,9 @@ class TemplateMatching:
 
     def griddedTemplateMatching( self, img1, img2, templateRadius, searchRadius, \
         estimateInds = None, templateSkip = 0, searchSkip = 0, templateStart = 0, searchStart = 0 ):
-        # Function for performing template matching between two sets of bitmapped images
+        """
+        Function for performing template matching between two sets of bitmapped images
+        """
         
         # Convert input
         img1 = np.ascontiguousarray(img1, dtype=np.double)
@@ -98,7 +102,9 @@ class TemplateMatching:
 
 
     def resampleOnGrid( points, values, resolution, boundingBox = None ):
-        # Function for resampling unstructured (or structured) spatial observations
+        """
+        Function for resampling unstructured (or structured) spatial observations
+        """
         
         # Get resolution
         h = resolution[0]
@@ -121,7 +127,9 @@ class TemplateMatching:
 
 
     def acquireVectorField( templateMatch, maxCrossCorr, X, Y, crossCorrThresh = 1, medianSize = None, meanSize = None ):
-        # Function for computing vector field representation of template matching
+        """
+        Function for computing vector field representation of template matching
+        """
         
         # Preallocate vector field
         vectorField = np.nan * np.ones( (templateMatch.size, 2) )

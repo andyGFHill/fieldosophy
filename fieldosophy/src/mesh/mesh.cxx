@@ -507,7 +507,8 @@ ConstMesh::~ConstMesh()
 
 // Populate arrays with corresponding mesh
 int ConstMesh::populateArrays( double * const pNodes, const unsigned int pD, const unsigned int pNumNodes, 
-        unsigned int * const pSimplices, const unsigned int pNumSimplices, const unsigned int pTopD ) const
+        unsigned int * const pSimplices, const unsigned int pNumSimplices, const unsigned int pTopD, 
+        unsigned int * const pNeighs ) const
 {
     if (pD != getD())
         return 1;
@@ -522,6 +523,9 @@ int ConstMesh::populateArrays( double * const pNodes, const unsigned int pD, con
     memcpy( pNodes, getNodes(), getNN()*getD()*sizeof(double) );
     // Copy simplices
     memcpy( pSimplices, getSimplices(), getNT()*(getTopD()+1)*sizeof(unsigned int) );
+    // If neighs are defined
+    if ( (pNeighs != NULL) && (getNeighs() != NULL) )
+        memcpy( pNeighs, getNeighs(), getNT()*(getTopD()+1)*sizeof(unsigned int) );
 
     return 0;
 }
@@ -535,7 +539,47 @@ int ConstMesh::computeMeshGraph( const unsigned int pMaxNumNodes, const double p
     return 0;
 }
 
+bool ConstMesh::areSimplicesNeighbors( const unsigned int pSimpInd1, const unsigned int pSimpInd2 ) const
+{
+    // If out of bounds
+    if (pSimpInd1 >= getNT())
+        return false;
+    if (pSimpInd2 >= getNT())
+        return false;
+        
+    unsigned int lNumMatches = 0;
+        
+    // Loop through all node indices in simplex 1
+    for (unsigned int lIter1 = 0; lIter1 < getTopD()+1; lIter1++)
+    {
+        // Get current node index
+        const unsigned int lCurNodeIndex1 = getSimplices()[ pSimpInd1 * (getTopD()+1) + lIter1 ];
+        // If current node index is dummy
+        if (lCurNodeIndex1 >= getNN())
+            continue;
+        
+        // Loop through all node indices in simplex 1    
+        for (unsigned int lIter2 = 0; lIter2 < getTopD()+1; lIter2++)
+        {
+            // Get current node index
+            const unsigned int lCurNodeIndex2 = getSimplices()[ pSimpInd2 * (getTopD()+1) + lIter2 ];
+            // If current node index is dummy
+            if (lCurNodeIndex2 >= getNN())
+                continue;
+            // See if match
+            if ( lCurNodeIndex1 == lCurNodeIndex2 )
+            {
+                lNumMatches++;
+                break;
+            }
+        }
+    }
 
+    if (lNumMatches == getTopD() )
+        return true;
+        
+    return false;
+}
 
 
 
@@ -545,56 +589,534 @@ int ConstMesh::computeMeshGraph( const unsigned int pMaxNumNodes, const double p
 
 
 FullMesh::FullMesh( const double * const pNodes, const unsigned int pD, const unsigned int pNumNodes, 
-    const unsigned int * const pSimplices, const unsigned int pNumSimplices, const unsigned int pTopD ) :
+    const unsigned int * const pSimplices, const unsigned int pNumSimplices, const unsigned int pTopD,
+    const unsigned int * const pNeighs ) :
     // Call base class constructor to set const values
-    ConstMesh( NULL, pD, pNumNodes, NULL, pNumSimplices, pTopD )
+    ConstMesh( NULL, pD, pNumNodes, NULL, pNumSimplices, pTopD, NULL )
 {
     // Copy nodes
     mFullNodes.assign( pNodes, pNodes + pNumNodes*pD );
     // Copy simplices
     mFullSimplices.assign( pSimplices, pSimplices + pNumSimplices*(pTopD+1) );
+    // If neighbors were given
+    if (pNeighs != NULL)
+        mFullNeighs.assign( pNeighs, pNeighs + pNumSimplices*(pTopD+1) );
+    
     // Update pointers
     updateConstMeshPointers();
 }
     
+    
+    
 // Method refining all nodes accordingly
-int FullMesh::refine( const unsigned int pMaxNumNodes, const double pMaxDiam, const bool * const pChosenSimplices )
+int FullMesh::refine( const unsigned int pMaxNumNodes, std::vector<double> & pMaxDiam, int (* transformationPtr)(double *, unsigned int) )
 {
-    // Continue until fully refined or reached max number of nodes
-    const unsigned int lNumNodes = getNN();    
-    
-    if (lNumNodes > pMaxNumNodes)
+    // See if allready reached maximum number of nodes
+    if (getNN() >= pMaxNumNodes)
         return 0;
+    // See if allready reached maximum number of nodes
+    if ( (pMaxDiam.size() != 1) && (pMaxDiam.size() != getNN() ) )
+        return 1;
+    // If no neigbors given
+    if (!hasNeighs())
+        // Return error since those are necessary
+        return 1;
+        
+    // Get index of maximum number of simplices
+    const unsigned int lMaxNumSimplices = -1;
+    // Preallocate status return variable
+    int lStatus = 0;
     
-    // Loop through all simplices
-    for ( unsigned int lIterSimplex = 0; lIterSimplex < lNumNodes; lIterSimplex++ )
+    // Preallocate vector for storing all edges indices
+    std::vector<std::set<unsigned int>> lEdgeIndices;
+    // Compute edges indices
     {
-        // If number of nodes has reached maximum
-        if ( getNN() >= pMaxNumNodes )
-            // Get out of loop
-            break;
-    
-        // Assume simplex can be refined
-        bool lRefine = true;
-        // If each simplex is spceified specifically
-        if (pChosenSimplices != NULL)
-            // If current simplex is specified to not be refined
-            if ( !pChosenSimplices[lIterSimplex] )
-                lRefine = false;
-        // If curretn simplex should be refined
-        if (lRefine)
+        if (getTopD() == 1)
+        {    
+            lEdgeIndices.push_back(std::set<unsigned int>() );
+            lEdgeIndices.at(0).insert(0);
+            lEdgeIndices.at(0).insert(1);
+        }
+        else
         {
-            // Refine simplex
-            const int lStatus = refineSimplex( lIterSimplex, pMaxDiam, pMaxNumNodes - getNN() );
+            // Compute number of combinations of chosing 2 elements among (pTopologicalD+1) elements with order
+            unsigned int lNumCombinations = 1;        
+            for (unsigned int lIter = getTopD()+1; lIter > 2; lIter--)
+            {
+                lNumCombinations *= lIter;
+            }
+            // Compute number of edges for a simplex ( (pTopologicalD + 1) choose 2 )
+            unsigned int lNChooseK = 1;
+            for (unsigned int lIter = 2; lIter <= (getTopD() + 1 - 2); lIter++)
+            {
+                lNChooseK *= lIter;
+            }
+            lNChooseK = lNumCombinations / lNChooseK;
             
-            if (lStatus)
+            // Get vector of indices
+            std::vector<unsigned int> lIndicesOfSimplex;
+            for (unsigned int lIterNumNodesInSimplex = 0; lIterNumNodesInSimplex < getTopD()+1; lIterNumNodesInSimplex++)
+                lIndicesOfSimplex.push_back(lIterNumNodesInSimplex);
+            // Compute edges
+            lEdgeIndices.reserve(lNChooseK);
+            const int lStatus = mesh_getEdgesOfSimplex( lEdgeIndices, lNumCombinations,
+                2, getTopD(), lIndicesOfSimplex.data() );
+            if (lStatus != 0)
                 // Flag error
-                return lStatus;
+                return 2;
         }
     }
+    
+    // Preallocate
+    std::set<unsigned int> lNeighboringSimplices1;
+    std::set<unsigned int> lNeighboringSimplices2;
+    std::set<unsigned int> lSharingSimplices;
+    std::set<unsigned int> lTempSet;
+    std::vector<unsigned int> lSimplexAccounting;
+    lSimplexAccounting.reserve(getNT());
+    std::vector<double> lSimplexMaxEdge;
+    lSimplexMaxEdge.reserve(getNT());
+    
+    // Loop through all simplices to rename dummy variables
+    #pragma omp parallell for
+    for ( unsigned int lIterSimplex = 0; lIterSimplex < getNT(); lIterSimplex++ )
+        // Set dummy variables of current simplex and neighborhood to be maximal
+        for (unsigned int lIterNodeInds = 0; lIterNodeInds < getTopD()+1; lIterNodeInds++)
+        {
+            unsigned int * const lCurNodeIndsPtr = &mFullSimplices.data()[ lIterSimplex * (getTopD()+1) + lIterNodeInds ];
+            if ( *lCurNodeIndsPtr >= getNN() )
+                *lCurNodeIndsPtr = pMaxNumNodes;                
+            unsigned int * const lCurSimplexIndsPtr = &mFullNeighs.data()[ lIterSimplex * (getTopD()+1) + lIterNodeInds ];
+            if ( *lCurSimplexIndsPtr >= getNT() )
+                *lCurSimplexIndsPtr = lMaxNumSimplices;
+        }
+    
+    // While the number of nodes are not too great and there are edges to split
+    bool lContinueToLoop = true;
+    while ( lContinueToLoop )
+    {
+        // Get number of nodes before updating this round
+        const unsigned int lLastEpochNN = getNN();
+        // Assume no edges to split anymore
+        unsigned int lNumSimplicesToUpdate = 0;
 
+        // Initialize simplex accounting to no updated simplices
+        lSimplexAccounting.assign( getNT(), 0 );
+        // Initialize simplex max edge to no distance
+        lSimplexMaxEdge.assign( getNT(), 0.0d );
+        
+        // Loop through all simplices
+        #pragma omp parallell for reduction( +:lNumSimplicesToUpdate )
+        for ( unsigned int lIterSimplex = 0; lIterSimplex < getNT(); lIterSimplex++ )
+        {            
+            // Loop through all edges to find the largest edge
+            for ( unsigned int lIterEdges = 0; lIterEdges < lEdgeIndices.size(); lIterEdges++)
+            {
+                // Get the indices of the two points in edge
+                const unsigned int lNode1EdgeIndex = *lEdgeIndices[lIterEdges].begin();
+                const unsigned int lNode2EdgeIndex = *std::next(lEdgeIndices[lIterEdges].begin());
+                // Get node indices of the two points in edge
+                const unsigned int lNode1Index = getSimplices()[ lIterSimplex * (getTopD()+1) + lNode1EdgeIndex ];
+                const unsigned int lNode2Index = getSimplices()[ lIterSimplex * (getTopD()+1) + lNode2EdgeIndex ];
+                // Get maximum distance of current edge
+                double lMaxDiam = pMaxDiam[0];
+                // If more than one value
+                if ( pMaxDiam.size() > 1 )
+                    // Use the smallest of them
+                    lMaxDiam = ( pMaxDiam[ lNode1Index ] < pMaxDiam[ lNode2Index ] ) ? pMaxDiam[ lNode1Index ] : pMaxDiam[ lNode2Index ];
+                
+                // Map the two nodes of current edge
+                Eigen::Map<const Eigen::VectorXd> lNode1( &getNodes()[getD() * lNode1Index], getD() );
+                Eigen::Map<const Eigen::VectorXd> lNode2( &getNodes()[getD() * lNode2Index], getD() );
+                // Compute length in between points
+                const double lDistance = (lNode1-lNode2).norm();
+                
+                // If current distance is larger than maximum allowed distance
+                if ( lDistance > lMaxDiam )
+                    // If current distance if larger than maximum
+                    if (lDistance > lSimplexMaxEdge[ lIterSimplex ])
+                    {
+                        lSimplexMaxEdge[ lIterSimplex ] = lDistance;
+                        lSimplexAccounting[ lIterSimplex ] = lIterEdges;
+                    }                
+            }
+            
+            // If should update simplex
+            if (lSimplexMaxEdge[ lIterSimplex ] > 0)
+                // Increment number of edges to split
+                lNumSimplicesToUpdate++;            
+        }
+        
+        if (lNumSimplicesToUpdate == 0)
+            lContinueToLoop = false;
+        else
+            // Loop through all simplices
+            for ( unsigned int lIterSimplex = 0; lIterSimplex < lSimplexMaxEdge.size(); lIterSimplex++ )
+                // If the current edge should be split
+                if ( lSimplexMaxEdge.at( lIterSimplex ) > 0 )
+                {
+                    // If maximum number of nodes already
+                    if (pMaxNumNodes <= getNN())
+                        // Break out 
+                        break;
+                
+                    // Check that number of simplices to update is not zero
+                    if (lNumSimplicesToUpdate == 0)
+                        return 3;
+                    // Check that number of edges are correct
+                    if (lEdgeIndices.at( lSimplexAccounting[ lIterSimplex ] ).size() != 2)
+                        return 4;
+                        
+                    // Get the indices of the edges of the two points in edge
+                    const unsigned int lNode1EdgeIndex = *lEdgeIndices[ lSimplexAccounting[ lIterSimplex ] ].begin();
+                    const unsigned int lNode2EdgeIndex = *std::next(lEdgeIndices[ lSimplexAccounting[ lIterSimplex ] ].begin());
+                    // Get the indices of the two points in edge
+                    const unsigned int lNode1Index = mFullSimplices[ lIterSimplex * (getTopD()+1) + lNode1EdgeIndex ];
+                    const unsigned int lNode2Index = mFullSimplices[  lIterSimplex * (getTopD()+1) + lNode2EdgeIndex ];
+                    
+                    // Get all simplices sharing node1
+                    lStatus = getAllSimplicesForNode( lNode1Index, lIterSimplex, lNeighboringSimplices1, lTempSet );
+                    if (lStatus)
+                        return 5;
+                    // Get all simplices sharing node2
+                    lStatus = getAllSimplicesForNode( lNode2Index, lIterSimplex, lNeighboringSimplices2, lTempSet );
+                    if (lStatus)
+                        return 5;
+                    // Get all simplices sharing both
+                    misc_setIntersection( lNeighboringSimplices1, lNeighboringSimplices2, lSharingSimplices);
+                    if ( lSharingSimplices.size() == 0 )
+                        return 5;
+                    // Assume no other simplices sharing edge has a different value
+                    bool lSharingSimplicesAgree = true;
+                    // Loop through all these simplices
+                    for ( std::set<unsigned int>::const_iterator lIterIntersection = lSharingSimplices.begin(); lIterIntersection != lSharingSimplices.end(); lIterIntersection++ )
+                    {
+                        // If other simplex has already been updated
+                        if ( *lIterIntersection >= lSimplexMaxEdge.size() )
+                            lSharingSimplicesAgree = false;
+                        // If new simplex has a max edge with a different value
+                        else if (lSimplexMaxEdge[ *lIterIntersection ] != lSimplexMaxEdge[ lIterSimplex ] )
+                            // Flag that old simplex should not be updated
+                            lSharingSimplicesAgree = false;
+                            
+                        if (!lSharingSimplicesAgree)
+                            break;
+                    }
+                        
+                    // If all sharing simplices do not agree
+                    if (!lSharingSimplicesAgree)
+                    {
+                        // Mark current simplex as not to update
+                        lSimplexMaxEdge[ lIterSimplex ] = 0.0d;
+                        // Remove number of simplices to update since one has been split now
+                        lNumSimplicesToUpdate--;
+                    }
+                    else
+                    {
+                    
+                        // Map the two nodes of current edge
+                        Eigen::Map<const Eigen::VectorXd> lNode1( &mFullNodes.data()[getD() * lNode1Index], getD() );
+                        Eigen::Map<const Eigen::VectorXd> lNode2( &mFullNodes.data()[getD() * lNode2Index], getD() );
+                        // Get node in between
+                        const Eigen::VectorXd lNode3 = 0.5 * (lNode1 + lNode2);
+                        // Push the second point into the back of nodes and replace its values with node 3 instead
+                        for (unsigned int lIterD = 0; lIterD < getD(); lIterD++)
+                        {
+                            mFullNodes.push_back( lNode3[lIterD] );
+                        }
+                        // Increase the number of nodes
+                        mNumNodes++;
+                        // Update pointers
+                        updateConstMeshPointers();
+                        
+                        // If one maximum diameter for each node
+                        if ( pMaxDiam.size() > 1 )
+                            // Add maximum allowed diameter for new node
+                            pMaxDiam.push_back( 0.5 * (pMaxDiam[lNode1Index] + pMaxDiam[lNode2Index]) );
+                        
+                        // Loop through all simplices sharing edge
+                        for ( std::set<unsigned int>::const_iterator lIterIntersection = lSharingSimplices.begin(); lIterIntersection != lSharingSimplices.end(); lIterIntersection++ )
+                        {                        
+                            // Add new shadow simplex and update old simplex
+                            for (unsigned int lIterSimpDim = 0; lIterSimpDim < getTopD()+1; lIterSimpDim++)
+                            {
+                                // Get current simplex index
+                                const unsigned int lCurNodeIndex = mFullSimplices[  *lIterIntersection * (getTopD()+1) + lIterSimpDim ];
+                                // If equal to node 1 index
+                                if (lCurNodeIndex == lNode1Index)
+                                {
+                                    // Let original simplex keep node 1 while new simplex use node 3 instead
+                                    mFullSimplices.push_back( getNN() - 1 );
+                                }
+                                else
+                                {
+                                    // If equal to node 2 index
+                                    if (lCurNodeIndex == lNode2Index)
+                                        // Let new simplex keep node 2 while original simplex use node 3 instead
+                                        mFullSimplices[ *lIterIntersection * (getTopD()+1) + lIterSimpDim ] = getNN()-1;
+                                    
+                                    // Insert the same index
+                                    mFullSimplices.push_back( lCurNodeIndex );
+                                }
+                                    
+                                // Add a copy of old neighborhood
+                                mFullNeighs.push_back( mFullNeighs[ *lIterIntersection * (getTopD()+1) + lIterSimpDim ] );
+                            }
+                            // Increase the number of simplices
+                            mNumSimplices++;   
+                            // Update pointers
+                            updateConstMeshPointers();
+                            
+                            // Mark current simplex as updated
+                            lSimplexMaxEdge[ *lIterIntersection ] = 0.0d;
+                            // Remove number of simplices to update since one has been split now
+                            lNumSimplicesToUpdate--;
+                            
+                        } // End of loop through sharing simplices        
+                        
+                        // Handle neighborhoods
+                        {                                
+                            // Loop through all simplices sharing edge to update their neighborhood
+                            std::set<unsigned int>::const_iterator lIterIntersection = lSharingSimplices.begin();
+                            for ( unsigned int lIterChangedSimplices = 0; lIterChangedSimplices < lSharingSimplices.size(); lIterChangedSimplices++ )
+                            {
+                                // Get complementary shadow
+                                const unsigned int lComplementaryShadow = (lIterChangedSimplices + getNT()) - lSharingSimplices.size();
+                                
+                                // Go through neighborhood
+                                for ( unsigned int lIterNeighIndices = 0; lIterNeighIndices < getTopD() + 1; lIterNeighIndices++)
+                                {
+                                    // Get index of supposed neighbor
+                                    const unsigned int lCurNeighIndex = getNeighs()[*lIterIntersection * (getTopD()+1) + lIterNeighIndices];
+                                    
+                                    // If index is not dummy
+                                    if (lCurNeighIndex < getNT() )
+                                    {
+                                        // Make sure that neighbor is considered neighbor with this
+                                        unsigned int lNeighborsThisIndex = getTopD()+1;
+                                        for ( unsigned int lIterNeighIndices2 = 0; lIterNeighIndices2 < getTopD() + 1; lIterNeighIndices2++)
+                                            // If the same as the original simplex
+                                            if ( mFullNeighs.at( lCurNeighIndex * (getTopD()+1) + lIterNeighIndices2 ) == *lIterIntersection )
+                                            {
+                                                lNeighborsThisIndex = lIterNeighIndices2;
+                                                // Break out
+                                                break;
+                                            }
+
+                                        // If not present in neighbors neighbors
+                                        if (lNeighborsThisIndex == getTopD()+1 )
+                                            // Signal error
+                                            return 10;
+                                    
+                                        // If not actual neighbors
+                                        if ( !areSimplicesNeighbors( *lIterIntersection, lCurNeighIndex ) )
+                                        {
+                                            // Is the former neigbor part of updated simplices?
+                                            if ( lSharingSimplices.count( lCurNeighIndex ) )
+                                            {
+                                                // This case should not be possible
+                                                // Signal error
+                                                return 11;
+                                            }
+                                            else
+                                            {
+                                                // The shadow should be switched to complementary shadow
+                                                mFullNeighs[ lComplementaryShadow * (getTopD()+1) + lIterNeighIndices ] = lCurNeighIndex;
+                                                // In the other neighbor, the neighbor should be complementary shadow
+                                                mFullNeighs[ lCurNeighIndex * (getTopD()+1) + lNeighborsThisIndex ] = lComplementaryShadow;
+                                                // Set old link to dummy
+                                                mFullNeighs[ *lIterIntersection * (getTopD()+1) + lIterNeighIndices ] = lMaxNumSimplices;
+                                            }
+                                        }
+                                    }
+                                }   // End of going through neighborhhods
+                                
+                                // Go through neighborhood
+                                for ( unsigned int lIterNeighIndices = 0; lIterNeighIndices < getTopD() + 1; lIterNeighIndices++)
+                                {
+                                    // Get index of supposed neighbor
+                                    const unsigned int lCurNeighIndex = getNeighs()[lComplementaryShadow * (getTopD()+1) + lIterNeighIndices];
+                                    
+                                    // If index is not a dummy
+                                    if (lCurNeighIndex < lMaxNumSimplices)
+                                    {
+                                        // Make sure that neighbor is considered neighbor with this
+                                        unsigned int lNeighborsThisIndex = getTopD()+1;
+                                        for ( unsigned int lIterNeighIndices2 = 0; lIterNeighIndices2 < getTopD() + 1; lIterNeighIndices2++)
+                                            // If the same as the original simplex
+                                            if ( 
+                                                (getNeighs()[lCurNeighIndex * (getTopD()+1) + lIterNeighIndices2] == *lIterIntersection) || 
+                                                (getNeighs()[lCurNeighIndex * (getTopD()+1) + lIterNeighIndices2] == lComplementaryShadow) 
+                                                )
+                                            {
+                                                lNeighborsThisIndex = lIterNeighIndices2;
+                                                // Break out
+                                                break;
+                                            }
+
+                                        // If not present in neighbors neighbors
+                                        if (lNeighborsThisIndex == getTopD()+1 )
+                                            // Signal error
+                                            return 13;
+                                    
+                                        // If not actual neighbors
+                                        if ( !areSimplicesNeighbors( lComplementaryShadow, lCurNeighIndex ) )
+                                        {
+                                            // Is the former neigbor part of updated simplices?
+                                            if ( lSharingSimplices.count( lCurNeighIndex ) )
+                                            {
+                                                // find its order
+                                                unsigned int lIterChangedSimplices2 = 0;
+                                                for ( ; lIterChangedSimplices2 <= lSharingSimplices.size(); lIterChangedSimplices2++)
+                                                {
+                                                    if ( *std::next(lSharingSimplices.begin(), lIterChangedSimplices2 ) == lCurNeighIndex )
+                                                        break;
+                                                }
+                                                if (lIterChangedSimplices2 == lSharingSimplices.size())
+                                                    return 14;
+                                            
+                                                // Get its complementary
+                                                const unsigned int lComplementaryShadow2 = (lIterChangedSimplices2 + getNT()) - lSharingSimplices.size();                                            
+                                                // The old neighbor should be switched to complementary shadow
+                                                mFullNeighs[ lComplementaryShadow * (getTopD()+1) + lIterNeighIndices ] = lComplementaryShadow2;
+                                                // In the other neighbor, the neighbor should be complementary shadow
+                                                mFullNeighs[ lComplementaryShadow2 * (getTopD()+1) + lNeighborsThisIndex ] = lComplementaryShadow;
+
+                                            }
+                                            else
+                                            {
+                                                // The old neighbor should be switched to original index
+                                                mFullNeighs[ *lIterIntersection * (getTopD()+1) + lIterNeighIndices ] = lCurNeighIndex;
+                                                // In the other neighbor, the neighbor should be original or complementary shadow
+                                                mFullNeighs[ lCurNeighIndex * (getTopD()+1) + lNeighborsThisIndex ] = *lIterIntersection;
+                                                // Set old link to dummy
+                                                mFullNeighs[ lComplementaryShadow * (getTopD()+1) + lIterNeighIndices ] = lMaxNumSimplices;
+                                            }
+                                        }    
+                                        // If they are neigbors and it is written that the original is
+                                        else if (lNeighborsThisIndex == *lIterIntersection)
+                                        {
+                                            // The old neighbor should be switched to original index
+                                            mFullNeighs[ lComplementaryShadow * (getTopD()+1) + lIterNeighIndices ] = lCurNeighIndex;
+                                            // In the other neighbor, the neighbor should be original or complementary shadow
+                                            mFullNeighs[ lCurNeighIndex * (getTopD()+1) + lNeighborsThisIndex ] = lComplementaryShadow;
+                                        }
+                                    }
+                                }   // End of going through neighborhhods
+                                
+                                // If original and complementary are not already paired
+                                {
+                                    bool lIsPart = false;
+                                    unsigned int lFirstDummy = getTopD()+1;
+                                    for ( unsigned int lIterNeighIndices = 0; lIterNeighIndices < getTopD() + 1; lIterNeighIndices++)
+                                    {
+                                        const unsigned int lCurVal = getNeighs()[ *lIterIntersection * ( getTopD() + 1 ) + lIterNeighIndices ];
+                                        // If current new simplex is already part of neighborhood
+                                        if ( lCurVal == lComplementaryShadow )
+                                            lIsPart = true;
+                                        // If dummy
+                                        else if ( (lCurVal >= getNT() ) && (lFirstDummy > getTopD()) )
+                                            lFirstDummy = lIterNeighIndices;
+                                    }
+                                    // If current new simplex is not part and a dummy exists
+                                    if ( (!lIsPart) && lFirstDummy <= getTopD() )
+                                    {
+                                        mFullNeighs[ *lIterIntersection * ( getTopD() + 1 ) + lFirstDummy ] = lComplementaryShadow;
+                                    }
+                                    
+                                    lIsPart = false;
+                                    lFirstDummy = getTopD()+1;
+                                    for ( unsigned int lIterNeighIndices = 0; lIterNeighIndices < getTopD() + 1; lIterNeighIndices++)
+                                    {
+                                        const unsigned int lCurVal = getNeighs()[ lComplementaryShadow * ( getTopD() + 1 ) + lIterNeighIndices ];
+                                        // If current new simplex is already part of neighborhood
+                                        if ( lCurVal == *lIterIntersection )
+                                            lIsPart = true;
+                                        // If dummy
+                                        else if ( ( lCurVal >= getNT() ) && (lFirstDummy > getTopD()) )
+                                            lFirstDummy = lIterNeighIndices;
+                                    }
+                                    // If current new simplex is not part and a dummy exists
+                                    if ( (!lIsPart) && lFirstDummy <= getTopD() )
+                                    {
+                                        mFullNeighs[ lComplementaryShadow * ( getTopD() + 1 ) + lFirstDummy ] = *lIterIntersection;
+                                    }
+                                }
+                                
+                                // Go through all neighbors and make sure that they are truly neighbors
+                                for ( unsigned int lIterNeighIndices = 0; lIterNeighIndices < getTopD() + 1; lIterNeighIndices++)
+                                {
+                                    unsigned int lCurVal = getNeighs()[ *lIterIntersection * ( getTopD() + 1 ) + lIterNeighIndices ];
+                                    if (lCurVal < getNT())
+                                      // Make sure that neighbors are neighbors
+                                      if (!areSimplicesNeighbors( *lIterIntersection, lCurVal ))
+                                          return 16;
+                                          
+                                    lCurVal = getNeighs()[ lComplementaryShadow * ( getTopD() + 1 ) + lIterNeighIndices ];
+                                    if (lCurVal < getNT())
+                                        // Make sure that neighbors are neighbors
+                                        if (!areSimplicesNeighbors( lComplementaryShadow, lCurVal ))
+                                            return 17;
+                                }
+                            
+                                // Increment pointer
+                                lIterIntersection++;
+                            }   // End of loop over updated simplices
+                        
+                        }   // End of handling neighborhood scope 
+                        
+                    }   // End of if other simplices did not have higher                
+                    
+                    
+                }   // End of split of current simplex            
+                
+        // If reached maximum number of nodes
+        if (pMaxNumNodes <= getNN())
+        {
+            // Set that no more should be updated
+            lContinueToLoop = false;
+            break;
+        }
+        
+        // If has been updating and transformation is defined
+        if ( (getNN() > lLastEpochNN) && (transformationPtr != NULL) )
+        {
+            // Transform updated points
+            lStatus = (*transformationPtr)(&mFullNodes.data()[lLastEpochNN * getD()], getNN()-lLastEpochNN );
+            if (lStatus)
+                return 6;
+        }
+
+    }   // End of while loop while edges to split
+    
+    // Loop through all simplices
+    #pragma omp parallell for
+    for ( unsigned int lIterSimplex = 0; lIterSimplex < getNT(); lIterSimplex++ )
+    {
+        // Sort neighbors
+        std::sort( &mFullNeighs.data()[ lIterSimplex * (getTopD()+1) ], &mFullNeighs.data()[ lIterSimplex * (getTopD()+1) ] + (getTopD()+1) );
+
+        // Go through all elements    
+        for (unsigned int lIterNodeInds = 0; lIterNodeInds < getTopD()+1; lIterNodeInds++)
+        {
+            // Set dummy variables to highest node number
+            unsigned int * const lCurNodeIndsPtr = &mFullSimplices.data()[ lIterSimplex * (getTopD()+1) + lIterNodeInds ];
+            if ( *lCurNodeIndsPtr > getNN() )
+                *lCurNodeIndsPtr = getNN();
+            // change value to dummy variables to highest simplex number
+            unsigned int * const lCurSimplexIndsPtr = &mFullNeighs.data()[ lIterSimplex * (getTopD()+1) + lIterNodeInds ];
+            if ( *lCurSimplexIndsPtr >= getNT() )
+                *lCurSimplexIndsPtr = getNT();
+        }
+    }
+    
+    
+        
+    
     return 0;
 }
+
+
 
 // Method refining a simplex
 int FullMesh::refineSimplex( const unsigned int pChosenSimplex, const double pMaxDiam , const unsigned int pMaxNewSimplices )
@@ -720,12 +1242,13 @@ int FullMesh::refineSimplex( const unsigned int pChosenSimplex, const double pMa
 
 // Populate arrays with corresponding mesh
 int FullMesh::populateArrays( double * const pNodes, const unsigned int pD, const unsigned int pNumNodes, 
-        unsigned int * const pSimplices, const unsigned int pNumSimplices, const unsigned int pTopD )
+        unsigned int * const pSimplices, const unsigned int pNumSimplices, const unsigned int pTopD,
+        unsigned int * const pNeighs )
 {
     // Update pointers of ConstMesh
     updateConstMeshPointers();
     // Call ConstMesh function
-    return ConstMesh::populateArrays( pNodes, pD, pNumNodes, pSimplices, pNumSimplices, pTopD );    
+    return ConstMesh::populateArrays( pNodes, pD, pNumNodes, pSimplices, pNumSimplices, pTopD, pNeighs );    
 }
 
 
@@ -1815,7 +2338,7 @@ extern "C"
             std::set<unsigned int> lOuterEdgeSet;
 
             // Loop through each simplex
-            #pragma omp for 
+            #pragma omp parallell for 
             for (unsigned int lIterSimp = 0; lIterSimp < pNumSimplices; lIterSimp++)
             {                    
 
@@ -2054,16 +2577,23 @@ extern "C"
     // Refines chosen simplices
     int mesh_refineMesh( const double * const pNodes, const unsigned int pNumNodes, const unsigned int pD,
         const unsigned int * const pSimplices, const unsigned int pNumSimplices, const unsigned int pTopD,
+        const unsigned int * const pNeighs,
         unsigned int * const pNewNumNodes, unsigned int * const pNewNumSimplices, unsigned int * const pId,
-        const unsigned int pMaxNumNodes, const double pMaxDiam, const bool * const pRefine)
+        const unsigned int pMaxNumNodes, const double * const pMaxDiam, const unsigned int pNumMaxDiam,
+        int (* transformationPtr)(double *, unsigned int) )
     {
-        // Create internal mesh
-        FullMesh lMesh( pNodes, pD, pNumNodes, pSimplices, pNumSimplices, pTopD );
+    
+        if ( (pNumMaxDiam > 1) && (pNumMaxDiam != pNumNodes) )
+            return 1;
+        // Create max diameter vector
+        std::vector<double> lMaxDiam( pMaxDiam, pMaxDiam + pNumMaxDiam );
         
+        // Create internal mesh
+        FullMesh lMesh( pNodes, pD, pNumNodes, pSimplices, pNumSimplices, pTopD, pNeighs );
         // Refine
-        int lStatus = lMesh.refine( pMaxNumNodes, pMaxDiam, pRefine );        
+        int lStatus = lMesh.refine( pMaxNumNodes, lMaxDiam, transformationPtr );
         if (lStatus)
-            return lStatus;
+            return 1 + lStatus;
             
         // Store mesh
         *pId = gMeshes.store(lMesh);        
@@ -2073,11 +2603,13 @@ extern "C"
         
         return 0;
     }
+    
         
     // Acquire new mesh
     int mesh_acquireMesh( const unsigned int pId, 
         double * const pNodes, const unsigned int pNumNodes, const unsigned int pD,
-        unsigned int * const pSimplices, const unsigned int pNumSimplices, const unsigned int pTopD )
+        unsigned int * const pSimplices, const unsigned int pNumSimplices, const unsigned int pTopD,
+        unsigned int * const pNeighs )
     {
         // Load stored mesh
         FullMesh * const lMesh = gMeshes.load( pId );
@@ -2088,7 +2620,7 @@ extern "C"
             return 5;
 
         // Populate arrays
-        lMesh->populateArrays( pNodes, pD, pNumNodes, pSimplices, pNumSimplices, pTopD );
+        lMesh->populateArrays( pNodes, pD, pNumNodes, pSimplices, pNumSimplices, pTopD, pNeighs );
         // Remove mesh
         gMeshes.erase(pId);
         // Return success

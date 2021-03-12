@@ -10,7 +10,6 @@
 # Learn more about Git LFS for large files:
 #     https://www.atlassian.com/git/tutorials/git-lfs
 
-build/
 dist/
 Fieldosophy.egg-info/
 externals/

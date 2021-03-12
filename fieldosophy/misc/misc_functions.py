@@ -18,7 +18,11 @@ import numpy as np
 
 
 def cosinusBasis( points, coefficients, boundingBox ):
-    # Function for evaluating superpositioned sinus function
+    """
+    Function for evaluating superpositioned sinus function
+    
+    """
+    
     # Preallocate output
     out = np.zeros( (points.shape[0]) )
     
@@ -41,6 +45,10 @@ def cosinusBasis( points, coefficients, boundingBox ):
     return out
 
 def cosinBasisMatrix( points, coefSetup, boundingBox ):
+    """
+    Matrix giving evaluated superpositioned sinus functions for chosen points 
+    
+    """
     
     out = np.ones( (points.shape[0], coefSetup.shape[1]) )
     

@@ -27,6 +27,8 @@ class test_marginalModule( unittest.TestCase ):
     def test_splineApproximation(self):
         # Test case to make sure that the spline approximation of the CDF and quantile functions are good enough
 
+        print("Testing spline approximation of normal-inverse Gaussian distribution!")
+        
         # Define NIG distribution
         distr = NIG( {"alpha":3, "beta":-2.6, "mu":0, "delta": 20} )
         # Initiate probability approximations
