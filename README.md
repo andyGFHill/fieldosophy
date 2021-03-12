@@ -1,8 +1,9 @@
 
 # Welcome to Fieldosophy
 
+<p align="center">
 <center><img src="https://drive.google.com/uc?export=view&id=17fSqlCPBd06zf0jM2ghjKJdPrpoQUyqN" ></center>
-
+</p>
 
 Documentation available [here](https://andygfhill.github.io/fieldosophy).
 
