@@ -28,7 +28,7 @@ Installing the Python package
 If Fieldosophy's low-level library has been compiled successfully and resides in the "./fieldosophy/libraries" directory, the Python package can be installed by typing: "pip install .".
 Fieldosophy is now installed and can be imported in python using "import fieldosophy".
 
-If you want to make sure that the installation is working properly you can type "python -m unittest". This will execute the suite of unit tests to confirm the installation. 
+If you want to make sure that the installation is working properly, and you have the python package "unittest" installed, you can type "python -m unittest". This will execute the suite of unit tests to confirm the installation. 
 
 
 

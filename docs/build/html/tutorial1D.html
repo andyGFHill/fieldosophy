@@ -76,7 +76,7 @@ Since the available indices of the nodal points ranges from 0 to N-1, we can con
 <h2>Constructing a Matérn model<a class="headerlink" href="#constructing-a-matern-model" title="Permalink to this headline">¶</a></h2>
 <p>If we want to work with the Matérn model on the defined mesh we first want to choose the values of the parameters.
 The general Matérn model has three parameters, a range parameter (<span class="math notranslate nohighlight">\(\kappa\)</span>), a smoothness parameter (<span class="math notranslate nohighlight">\(\nu\)</span>), and a marginal standard deviation parameter (<span class="math notranslate nohighlight">\(\sigma\)</span>).
-In the <em>MaternFEM</em> class of Fieldosophy.FEM we actually parameterize the range by the, more intuitive, correlation range <span class="math notranslate nohighlight">\(\left( r := \frac{\sqrt{8\nu}}{\kappa} \right) instead of :math:\)</span>kappa`.
+In the <em>MaternFEM</em> class of Fieldosophy.FEM we actually parameterize the range by the, more intuitive, correlation range <span class="math notranslate nohighlight">\(\left( r := \frac{\sqrt{8\nu}}{\kappa} \right)' instead of :math:\)</span>kappa`.
 Let us set the correlation range to 0.4, the smoothness to 1.5, and the marginal standard deviation to 2. We can then create the Matérn FEM object.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define the Matérn random field</span>
 <span class="n">r</span> <span class="o">=</span> <span class="mf">0.4</span> <span class="c1"># Set correlation range (range for which two points have approximately 0.13 correlation)</span>
@@ -709,6 +709,97 @@ Let us therefore compare the two Matérn correlations, the true and the estimate
 <a class="reference internal image-reference" href="https://drive.google.com/uc?export=view&amp;id=1CaZi6iLEHjyisll3bc8e2nwfWH8U27E3"><img alt="https://drive.google.com/uc?export=view&amp;id=1CaZi6iLEHjyisll3bc8e2nwfWH8U27E3" class="align-center" src="https://drive.google.com/uc?export=view&amp;id=1CaZi6iLEHjyisll3bc8e2nwfWH8U27E3" style="width: 80%;" /></a>
 <p>As can be seen, for smoothness values as large as 2.5 it is no visible difference to a value of 3.6. The log-likelihood of the estimated model is <span class="math notranslate nohighlight">\(-23.01\)</span>, which is actually a little bit higher than the true model.</p>
 </div>
+<div class="section" id="constructing-the-non-stationary-model">
+<h2>Constructing the non-stationary model<a class="headerlink" href="#constructing-the-non-stationary-model" title="Permalink to this headline">¶</a></h2>
+<p>Fieldosophy was created mainly to focus on modeling non-stationary random fields using the SPDE-approach.
+So far in this tutorial we have only been looking at the regular Matérn model.
+However, the non-stationary model is an extension of the Matérn model derived from extending the stochastic partial differential equation of the Matérn covariance function.
+Hence, since we now know the basics of modeling the Matérn model in one dimension using Fieldosophy, going non-stationary is a small step.</p>
+<p>The non-stationary models are defined using the SPDE of <a class="reference internal" href="introduction.html#equation-hildemanspde">(3)</a>.
+As such, they are defined by the metric tensor (the <span class="math notranslate nohighlight">\(G\)</span> matrix).
+One intuitive way of looking at the non-stationary models is to remember that <span class="math notranslate nohighlight">\(G\)</span> is a matrix which eigenvalues explains how much space should be compressed or expanded in order to get a Matérn covariance with <span class="math notranslate nohighlight">\(\kappa = 1\)</span> (in the direction of the corresponding eigenvector).
+Hence, if <span class="math notranslate nohighlight">\(G\)</span> was a constant matrix with an eigenvalue of <span class="math notranslate nohighlight">\(\frac{\sqrt{8\nu}}{r}\)</span>, this would mean that the correlation range in the direction of the corresponding eigenvector would be <span class="math notranslate nohighlight">\(r\)</span>.
+This is easy to see if you remember that the correlation range is <span class="math notranslate nohighlight">\(\sqrt{8\nu}\)</span> when <span class="math notranslate nohighlight">\(\kappa = 1\)</span>, and that <span class="math notranslate nohighlight">\(\kappa\)</span> is inversely proportional to the correlation range.
+Hence, an alternative way of creating the Matérn field of 'fem4' is by using the 'FEM.nonStatFEM' function of 'fieldosophy.GRF'.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">mapFEMParamsToG</span><span class="p">(</span> <span class="n">params</span> <span class="p">):</span>
+
+    <span class="n">GInv</span> <span class="o">=</span> <span class="p">[</span> <span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;r&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">8</span><span class="o">*</span><span class="n">nu</span><span class="p">)</span> <span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="p">]</span>
+    <span class="n">logGSqrt</span> <span class="o">=</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span> <span class="n">GInv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">logGSqrt</span><span class="p">,</span> <span class="n">GInv</span><span class="p">)</span>
+
+<span class="c1"># Create FEM object</span>
+<span class="n">nonstatfem</span> <span class="o">=</span> <span class="n">FEM</span><span class="o">.</span><span class="n">nonStatFEM</span><span class="p">(</span> <span class="n">mesh</span> <span class="o">=</span> <span class="n">extendedMesh</span><span class="p">,</span> <span class="n">childParams</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r&quot;</span><span class="p">:</span><span class="n">r</span><span class="p">,</span> <span class="s2">&quot;f&quot;</span><span class="p">:</span><span class="n">mapFEMParamsToG</span><span class="p">},</span> <span class="n">nu</span> <span class="o">=</span> <span class="n">nu</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">BCRobin</span> <span class="o">=</span> <span class="n">BCRobin</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>When defining the random field of class 'FEM.nonStatFEM', the 'childParams' dictionary should hold all parameters needed to construct G.
+One can define a function that assembles these paramers and returns the inverse of G and the logarithm of the square root of the determinant of G.
+Here, 'GInv' should be a list, each list element corresponding to an element in the G-matrix (flattened to one dimension).
+The elements of 'Ginv', as well as 'logGSqrt', operate on an array the size of the number of simplices in the mesh.
+Hence, they either have to be scalars or arrays with size the number of simplices in the mesh.
+In the stationary case they can be scalars since we want to use the same value for all simplices.
+However, when we actually want to define a non-stationary model we want the values to vary with the simplices.</p>
+<p>Let us continue with our extended mesh from before, 'extendedMesh'.
+This mesh was created as to allow for a correlation range of 0.4.
+When we speak about a non-stationary model the concept of correlation range become somewhat confusing.
+We earlier defined correlation range as the distance at which two points have a correlation of 0.1 (or in our parameterization 0.13).
+For a non-stationary model such a definition does not make sense.
+Instead, we will now define a non-stationary model based on what we can call <em>local correlation ranges</em>.
+That is, we manipulate the <span class="math notranslate nohighlight">\(G\)</span>-matrix for each simplex using <span class="math notranslate nohighlight">\(r\)</span>, just as above. However, <span class="math notranslate nohighlight">\(r\)</span> will vary between different simplices.</p>
+<p>Let us in this example assume that we want short local correlation ranges close to 0 and long correlation ranges close to 1.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Compute the middle point in each simplex</span>
+<span class="n">simplexMeanPoints</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span> <span class="n">extendedMesh</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span> <span class="n">extendedMesh</span><span class="o">.</span><span class="n">triangles</span> <span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span> <span class="p">)</span>
+<span class="c1"># Use simplixes middle points to set the local correlation range</span>
+<span class="n">rLocal</span> <span class="o">=</span> <span class="n">simplexMeanPoints</span> <span class="o">-</span> <span class="mf">0.1</span>
+<span class="c1"># Set the extensions to the original value of 0.4</span>
+<span class="n">rLocal</span><span class="p">[</span><span class="n">simplexMeanPoints</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="p">]</span> <span class="o">=</span> <span class="mf">0.4</span>
+<span class="n">rLocal</span><span class="p">[</span><span class="n">simplexMeanPoints</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="p">]</span> <span class="o">=</span> <span class="mf">0.4</span>
+</pre></div>
+</div>
+<p>The last two rows just make sure that the extension region still have the old value of 0.4.
+This to make sure that we do not get boundary artifacts close to the right extension region (which would otherwise have had longer local correlation ranges), and that we do not get infeasible or too small correlation ranges for our mesh on the left extension region.</p>
+<p>Let us now define the non-stationary model using these local correlation ranges instead.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create FEM object</span>
+<span class="n">nonstatfem</span> <span class="o">=</span> <span class="n">FEM</span><span class="o">.</span><span class="n">nonStatFEM</span><span class="p">(</span> <span class="n">mesh</span> <span class="o">=</span> <span class="n">extendedMesh</span><span class="p">,</span> <span class="n">childParams</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r&quot;</span><span class="p">:</span><span class="n">rLocal</span><span class="p">,</span> <span class="s2">&quot;f&quot;</span><span class="p">:</span><span class="n">mapFEMParamsToG</span><span class="p">},</span> <span class="n">nu</span> <span class="o">=</span> <span class="n">nu</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">BCRobin</span> <span class="o">=</span> <span class="n">BCRobin</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>As can be seen, we could reuse our 'mapFEMParamsToG' function since it also works with array input.</p>
+<p>To understand what this model is doing let us plot the local correlation ranges agains the middle value of each simplex and compare this with the covariance between the point at 0.5 and all other points.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get covariance between the point in the middle of the interval and all other points</span>
+<span class="n">referenceNode</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">extendedMesh</span><span class="o">.</span><span class="n">N</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">referenceNode</span><span class="p">[</span><span class="mi">450</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">covSPDE</span> <span class="o">=</span> <span class="n">nonstatfem</span><span class="o">.</span><span class="n">multiplyWithCovariance</span><span class="p">(</span> <span class="n">referenceNode</span> <span class="p">)</span>
+<span class="n">covSPDE</span> <span class="o">=</span> <span class="n">nonstatfem</span><span class="o">.</span><span class="n">multiplyWithCovariance</span><span class="p">(</span> <span class="n">referenceNode</span> <span class="p">)</span>
+<span class="c1"># Compare with actual matern covariance</span>
+<span class="n">covMatern</span> <span class="o">=</span> <span class="n">sigma</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">GRF</span><span class="o">.</span><span class="n">MaternCorr</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">extendedMesh</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="mi">450</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">extendedMesh</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">flatten</span><span class="p">()),</span> <span class="n">nu</span> <span class="o">=</span> <span class="n">nu</span><span class="p">,</span> <span class="n">kappa</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">8</span><span class="o">*</span><span class="n">nu</span><span class="p">)</span><span class="o">/</span><span class="n">r</span> <span class="p">)</span>
+
+
+<span class="c1"># Plot covariances</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span> <span class="n">extendedMesh</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">covSPDE</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;SPDE&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">vlines</span><span class="p">(</span> <span class="n">extendedMesh</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="mi">450</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span> <span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span> <span class="s2">&quot;Covariance between point 0.5 and all other&quot;</span> <span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span> <span class="n">extendedMesh</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">covMatern</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Matern&quot;</span> <span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+<span class="c1"># Plot non-stationarity</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span> <span class="n">simplexMeanPoints</span><span class="p">,</span> <span class="n">rLocal</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span> <span class="s2">&quot;Local correlation ranges&quot;</span> <span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="https://drive.google.com/uc?export=view&amp;id=1lot0WEDwcI5nHml7kvYUpSzOWq_v3jZA"><img alt="https://drive.google.com/uc?export=view&amp;id=1lot0WEDwcI5nHml7kvYUpSzOWq_v3jZA" src="https://drive.google.com/uc?export=view&amp;id=1lot0WEDwcI5nHml7kvYUpSzOWq_v3jZA" style="width: 49%;" /></a>
+<a class="reference internal image-reference" href="https://drive.google.com/uc?export=view&amp;id=1RLqfOr9B6wiO0pYWYzJ4pTHezs0kCwp6"><img alt="https://drive.google.com/uc?export=view&amp;id=1RLqfOr9B6wiO0pYWYzJ4pTHezs0kCwp6" src="https://drive.google.com/uc?export=view&amp;id=1RLqfOr9B6wiO0pYWYzJ4pTHezs0kCwp6" style="width: 49%;" /></a>
+<p>As seen, the covariance on the left side of 0.5 drops off much faster than the original Matérn covariance.
+On the right side we see the opposite.</p>
+<p>Let us also plot two realization to see what type of behavior this actually correspond to among realizations from this non-stationary random field.</p>
+<a class="reference internal image-reference" href="https://drive.google.com/uc?export=view&amp;id=1JZyUpvzZWcQn9iNnZw3t-X-tz1aDEQhG"><img alt="https://drive.google.com/uc?export=view&amp;id=1JZyUpvzZWcQn9iNnZw3t-X-tz1aDEQhG" src="https://drive.google.com/uc?export=view&amp;id=1JZyUpvzZWcQn9iNnZw3t-X-tz1aDEQhG" style="width: 49%;" /></a>
+<a class="reference internal image-reference" href="https://drive.google.com/uc?export=view&amp;id=1RHUE1DBvULml0vuMF87VKPILIqDDQ8CE"><img alt="https://drive.google.com/uc?export=view&amp;id=1RHUE1DBvULml0vuMF87VKPILIqDDQ8CE" src="https://drive.google.com/uc?export=view&amp;id=1RHUE1DBvULml0vuMF87VKPILIqDDQ8CE" style="width: 49%;" /></a>
+<p>On the left side we see more dramatic behavior since the original scales are compressed to a shorter region (0.1 instead of 0.4).
+On the right side we see slowly varying ups and downs, since here, the original scales are instead elongated.</p>
+</div>
 </div>
 
 
@@ -729,6 +820,7 @@ Let us therefore compare the two Matérn correlations, the true and the estimate
 <li><a class="reference internal" href="#conditional-distributions">Conditional distributions</a></li>
 <li><a class="reference internal" href="#likelihood-based-inference">Likelihood based inference</a></li>
 <li><a class="reference internal" href="#estimate-parameters">Estimate parameters</a></li>
+<li><a class="reference internal" href="#constructing-the-non-stationary-model">Constructing the non-stationary model</a></li>
 </ul>
 </li>
 </ul>

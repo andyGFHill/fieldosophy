@@ -46,7 +46,7 @@ Constructing a Matérn model
 
 If we want to work with the Matérn model on the defined mesh we first want to choose the values of the parameters. 
 The general Matérn model has three parameters, a range parameter (:math:`\kappa`), a smoothness parameter (:math:`\nu`), and a marginal standard deviation parameter (:math:`\sigma`).
-In the *MaternFEM* class of Fieldosophy.FEM we actually parameterize the range by the, more intuitive, correlation range :math:`\left( r := \frac{\sqrt{8\nu}}{\kappa} \right) instead of :math:`\kappa`.
+In the *MaternFEM* class of Fieldosophy.FEM we actually parameterize the range by the, more intuitive, correlation range :math:`\left( r := \frac{\sqrt{8\nu}}{\kappa} \right)' instead of :math:`\kappa`.
 Let us set the correlation range to 0.4, the smoothness to 1.5, and the marginal standard deviation to 2. We can then create the Matérn FEM object.
 
 .. code-block:: python
@@ -843,3 +843,129 @@ Let us therefore compare the two Matérn correlations, the true and the estimate
 As can be seen, for smoothness values as large as 2.5 it is no visible difference to a value of 3.6. The log-likelihood of the estimated model is :math:`-23.01`, which is actually a little bit higher than the true model. 
     
     
+    
+    
+    
+    
+    
+Constructing the non-stationary model
+--------------------------------------
+
+Fieldosophy was created mainly to focus on modeling non-stationary random fields using the SPDE-approach.
+So far in this tutorial we have only been looking at the regular Matérn model. 
+However, the non-stationary model is an extension of the Matérn model derived from extending the stochastic partial differential equation of the Matérn covariance function.
+Hence, since we now know the basics of modeling the Matérn model in one dimension using Fieldosophy, going non-stationary is a small step.
+
+The non-stationary models are defined using the SPDE of :eq:`hildemanSPDE`.
+As such, they are defined by the metric tensor (the :math:`G` matrix).
+One intuitive way of looking at the non-stationary models is to remember that :math:`G` is a matrix which eigenvalues explains how much space should be compressed or expanded in order to get a Matérn covariance with :math:`\kappa = 1` (in the direction of the corresponding eigenvector).
+Hence, if :math:`G` was a constant matrix with an eigenvalue of :math:`\frac{\sqrt{8\nu}}{r}`, this would mean that the correlation range in the direction of the corresponding eigenvector would be :math:`r`.
+This is easy to see if you remember that the correlation range is :math:`\sqrt{8\nu}` when :math:`\kappa = 1`, and that :math:`\kappa` is inversely proportional to the correlation range.
+Hence, an alternative way of creating the Matérn field of 'fem4' is by using the 'FEM.nonStatFEM' function of 'fieldosophy.GRF'.
+
+.. code-block:: python
+
+    def mapFEMParamsToG( params ):
+        
+        GInv = [ (params["r"] / np.sqrt(8*nu) )**2 ]
+        logGSqrt = - 0.5 * np.log( GInv[0] )
+        
+        return (logGSqrt, GInv)
+    
+    # Create FEM object
+    nonstatfem = FEM.nonStatFEM( mesh = extendedMesh, childParams = {"r":r, "f":mapFEMParamsToG}, nu = nu, sigma = sigma, BCRobin = BCRobin )
+
+When defining the random field of class 'FEM.nonStatFEM', the 'childParams' dictionary should hold all parameters needed to construct G.
+One can define a function that assembles these paramers and returns the inverse of G and the logarithm of the square root of the determinant of G.
+Here, 'GInv' should be a list, each list element corresponding to an element in the G-matrix (flattened to one dimension).
+The elements of 'Ginv', as well as 'logGSqrt', operate on an array the size of the number of simplices in the mesh. 
+Hence, they either have to be scalars or arrays with size the number of simplices in the mesh.
+In the stationary case they can be scalars since we want to use the same value for all simplices. 
+However, when we actually want to define a non-stationary model we want the values to vary with the simplices.
+
+
+Let us continue with our extended mesh from before, 'extendedMesh'.
+This mesh was created as to allow for a correlation range of 0.4. 
+When we speak about a non-stationary model the concept of correlation range become somewhat confusing. 
+We earlier defined correlation range as the distance at which two points have a correlation of 0.1 (or in our parameterization 0.13).
+For a non-stationary model such a definition does not make sense.
+Instead, we will now define a non-stationary model based on what we can call *local correlation ranges*.
+That is, we manipulate the :math:`G`-matrix for each simplex using :math:`r`, just as above. However, :math:`r` will vary between different simplices.
+
+Let us in this example assume that we want short local correlation ranges close to 0 and long correlation ranges close to 1.
+
+.. code-block:: python
+
+    # Compute the middle point in each simplex 
+    simplexMeanPoints = np.mean( extendedMesh.nodes[ extendedMesh.triangles , 0], axis=1 )
+    # Use simplixes middle points to set the local correlation range
+    rLocal = simplexMeanPoints - 0.1
+    # Set the extensions to the original value of 0.4
+    rLocal[simplexMeanPoints < 0 ] = 0.4
+    rLocal[simplexMeanPoints > 1 ] = 0.4
+    
+
+The last two rows just make sure that the extension region still have the old value of 0.4. 
+This to make sure that we do not get boundary artifacts close to the right extension region (which would otherwise have had longer local correlation ranges), and that we do not get infeasible or too small correlation ranges for our mesh on the left extension region.
+
+Let us now define the non-stationary model using these local correlation ranges instead.
+
+
+.. code-block:: python
+
+    # Create FEM object
+    nonstatfem = FEM.nonStatFEM( mesh = extendedMesh, childParams = {"r":rLocal, "f":mapFEMParamsToG}, nu = nu, sigma = sigma, BCRobin = BCRobin )
+
+As can be seen, we could reuse our 'mapFEMParamsToG' function since it also works with array input.
+
+To understand what this model is doing let us plot the local correlation ranges agains the middle value of each simplex and compare this with the covariance between the point at 0.5 and all other points.
+
+
+.. code-block:: python
+
+    # Get covariance between the point in the middle of the interval and all other points
+    referenceNode = np.zeros((extendedMesh.N,1))
+    referenceNode[450] = 1
+    covSPDE = nonstatfem.multiplyWithCovariance( referenceNode )
+    covSPDE = nonstatfem.multiplyWithCovariance( referenceNode )
+    # Compare with actual matern covariance
+    covMatern = sigma**2 * GRF.MaternCorr( np.abs(extendedMesh.nodes[450,0] - extendedMesh.nodes.flatten()), nu = nu, kappa = np.sqrt(8*nu)/r )
+    
+    
+    # Plot covariances
+    plt.figure(1)
+    plt.clf()
+    plt.plot( extendedMesh.nodes.flatten(), covSPDE, color="black", label="SPDE", linewidth=3)
+    plt.vlines( extendedMesh.nodes[450,0], 0, 4, linestyle='--' )
+    plt.title( "Covariance between point 0.5 and all other" )
+    plt.plot( extendedMesh.nodes.flatten(), covMatern, color="red", label="Matern" )
+    plt.legend()
+    
+    # Plot non-stationarity
+    plt.figure(2)
+    plt.clf()
+    plt.plot( simplexMeanPoints, rLocal, color="black")
+    plt.title( "Local correlation ranges" )
+
+
+.. image:: https://drive.google.com/uc?export=view&id=1lot0WEDwcI5nHml7kvYUpSzOWq_v3jZA
+    :width: 49%
+
+.. image:: https://drive.google.com/uc?export=view&id=1RLqfOr9B6wiO0pYWYzJ4pTHezs0kCwp6
+    :width: 49%
+
+As seen, the covariance on the left side of 0.5 drops off much faster than the original Matérn covariance.
+On the right side we see the opposite.
+
+Let us also plot two realization to see what type of behavior this actually correspond to among realizations from this non-stationary random field.
+
+
+.. image:: https://drive.google.com/uc?export=view&id=1JZyUpvzZWcQn9iNnZw3t-X-tz1aDEQhG
+    :width: 49%
+
+.. image:: https://drive.google.com/uc?export=view&id=1RHUE1DBvULml0vuMF87VKPILIqDDQ8CE
+    :width: 49%
+
+On the left side we see more dramatic behavior since the original scales are compressed to a shorter region (0.1 instead of 0.4).
+On the right side we see slowly varying ups and downs, since here, the original scales are instead elongated.
+
