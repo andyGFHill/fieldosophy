@@ -242,12 +242,14 @@ This was done in :cite:`lit:hildeman1`, the result being the differential operat
 Here, :math:`I` is the identity operator, :math:`\nabla \cdot` the divergence operator, and :math:`\nabla` the gradient operator.
 The matrix-valued function, :math:`G`, defines a metric in the following way:
 A metric is defined by an inner product in each point of :math:`\mathcal{D}`, i.e., :math:`g[\boldsymbol{v}_1, \boldsymbol{v}_2](\boldsymbol{s})` where :math:`\boldsymbol{v}_1, \boldsymbol{v}_2` are tangent vectors of the manifold in point :math:`\boldsymbol{s}`. 
-Considering manifolds embedded in :math:`\mathbb{R}^D`, for some :math:`D`, such an inner product can be represented by a positive definite matrix-valued function, :math:`G`, operating on the natural basis vectors, i.e., :math:`g[\boldsymbol{v}_1, \boldsymbol{v}_2](\boldsymbol{s}) := \sqrt{\boldsymbol{v}_1^T G(\boldsymbol{s}) \boldsymbol{v}_2}`.
+Considering manifolds embedded in :math:`\mathbb{R}^D`, for some :math:`D`, such an inner product can be represented by a positive definite matrix-valued function, :math:`G`, operating on the natural basis vectors, i.e., :math:`g[\boldsymbol{v}_1, \boldsymbol{v}_2](\boldsymbol{s}) := \boldsymbol{v}_1^T G(\boldsymbol{s}) \boldsymbol{v}_2`.
 In other words, :math:`G` is a matrix-valued function describing the deviation between the metric defined by :math:`g` and the "natural" metric induced on :math:`\mathcal{D}` by considering a euclidean metric on :math:`\mathbb{R}^D`, in which :math:`\mathcal{D}` is embedded. 
 
 It should be mentioned that the equation corresponding to eq. :eq:`hildemanSPDE` in :cite:`lit:hildeman1` looks slightly different. 
 This is because in :cite:`lit:hildeman1` the equation was defined with respect to the Jacobian matrix of the mapping from using the "natural" metric of the manifold together with the differential operator of :eq:`lindgrenSPDE` with :math:`\kappa = 1`.
 In short, this means that using the differential operator of eq. :eq:`hildemanSPDE` in :eq:`generalSPDE` is equivalent to considering the covariance function induced by the differential operator :eq:`lindgrenSPDE` but changing the metric from the "natural" metric of :math:`\mathcal{D}` to :math:`g`.
+It should also be mentioned that the factor :math:`|G|^{\frac{1}{4\beta}}` is only correct if :math:`G` is constant almost everywhere, i.e., it is only changing on a subset of the spatial domain with measure 0. 
+Although this assumption is generally not true for the theoretical model it is true in the software implementation since a spatially varying :math:`G` is approximated as piecewise constant on simplices of the mesh.
 
 In the way the Riemannian manifold and its corresponding differential operator, :eq:`hildemanSPDE`, is defined, the parameter :math:`\nu = \frac{4\beta - d}{2}` is still equivalent to the Hölder constant of realizations from the GRF.
 Also, the parameter :math:`\tau` alone controls the marginal variance by the relationship,

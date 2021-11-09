@@ -75,12 +75,34 @@ If a copy of the license was not distributed with this file, you can obtain one 
 <dt id="fieldosophy.misc.misc_functions.cosinBasisMatrix">
 <code class="sig-prename descclassname">fieldosophy.misc.misc_functions.</code><code class="sig-name descname">cosinBasisMatrix</code><span class="sig-paren">(</span><em class="sig-param">points</em>, <em class="sig-param">coefSetup</em>, <em class="sig-param">boundingBox</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.misc.misc_functions.cosinBasisMatrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Matrix giving evaluated superpositioned sinus functions for chosen points</p>
+<dl class="field-list simple">
+<dt class="field-odd">Points</dt>
+<dd class="field-odd"><p>A N x d array where d are the number of dimensions and N are the number of points</p>
+</dd>
+<dt class="field-even">CoefSetup</dt>
+<dd class="field-even"><p>A d x n array where each column correspond to a specific coefficient. The value in the rows correspond to the harmonic in each of the dimensions (which are multiplied with each other)</p>
+</dd>
+<dt class="field-odd">BoundingBox</dt>
+<dd class="field-odd"><p>Gives a bounding box for where the functions continue with their next period.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="fieldosophy.misc.misc_functions.cosinusBasis">
 <code class="sig-prename descclassname">fieldosophy.misc.misc_functions.</code><code class="sig-name descname">cosinusBasis</code><span class="sig-paren">(</span><em class="sig-param">points</em>, <em class="sig-param">coefficients</em>, <em class="sig-param">boundingBox</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.misc.misc_functions.cosinusBasis" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function for evaluating superpositioned sinus function</p>
+<dl class="field-list simple">
+<dt class="field-odd">Points</dt>
+<dd class="field-odd"><p>A N x d array where d are the number of dimensions and N are the number of points</p>
+</dd>
+<dt class="field-even">Coefficients</dt>
+<dd class="field-even"><p>A d x n array where each column correspond to a specific coefficient. The value in the rows correspond to the harmonic in each of the dimensions (which are multiplied with each other)</p>
+</dd>
+<dt class="field-odd">BoundingBox</dt>
+<dd class="field-odd"><p>Gives a bounding box for where the functions continue with their next period.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

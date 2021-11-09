@@ -66,7 +66,7 @@ print("Compute Mesh")
 meshPlane = None
 
 # Create spherical mesh
-meshSphere, neighs = mesher.Mesh.meshOnSphere( None, maxDiam = 2 * np.sin( 2 * extension / 180.0 * np.pi / 2.0 ), maxNumNodes = int(1e4), radius = 1)
+meshSphere = mesher.Mesh.meshOnSphere( maxDiam = 2 * np.sin( 2 * extension / 180.0 * np.pi / 2.0 ), maxNumNodes = int(1e4), radius = 1)
 
 
 # Cut away unwanted regions
@@ -76,10 +76,10 @@ meshSphere = meshSphere.cutOutsideMeshOnSphere( \
 
 
 # Create refined sphere
-meshSphere, neighs = meshSphere.refine( \
+meshSphere = meshSphere.refine( \
     maxDiam = 1 * np.sin( extension / 180.0 * np.pi / 2.0 ), \
     maxNumNodes = meshSphere.N + 10000, \
-    transformation = mesher.geometrical.mapToHypersphere, neighs = neighs )
+    transformation = mesher.geometrical.mapToHypersphere )
     
 # Cut away unwanted regions
 meshSphere = meshSphere.cutOutsideMeshOnSphere( \
@@ -87,10 +87,10 @@ meshSphere = meshSphere.cutOutsideMeshOnSphere( \
     distance = 1.0 * extension / 180.0 * np.pi )    
 
 # Create refined sphere
-meshSphere, neighs = meshSphere.refine( \
+meshSphere = meshSphere.refine( \
     maxDiam = 2/5 * np.sin( corrMin / 180.0 * np.pi / 2.0 ), \
     maxNumNodes = meshSphere.N + 10000, \
-    transformation = mesher.geometrical.mapToHypersphere, neighs = neighs )
+    transformation = mesher.geometrical.mapToHypersphere )
 
 
 
@@ -127,28 +127,19 @@ sigmaEps = 1e-3
 
 # Get mid points of triangles
 triPoints = np.mean( meshSphere.nodes[ meshSphere.triangles, : ], axis=1 )
-r = np.repeat( np.array([2*corrMin, 1*corrMin]).reshape((1,-1)) , repeats = meshSphere.NT, axis=0) / 180.0 * np.pi
-
+# Set ranges in longitudal and latitudal directions
+r = np.array([1*corrMin, 3*corrMin]) / 180.0 * np.pi
+r = np.repeat( r.reshape((1,-1)), repeats = meshSphere.NT, axis=0)
+# Compute local basis of tangent spaces
+vectors = FEM.tangentVectorsOnSphere( triPoints, northPole = np.array([0.0,0.0,1.0]) )
 
 def mapFEMParams( params ):
     # Function to map own parameters to FEM parameters
-    NT = meshSphere.NT
     
-    kappa = np.zeros( (NT) )
-    H = np.zeros( (3**2, NT) )
-    
-    for iter in range(NT):
-        # Compute local basis 
-        vectors = np.stack( mesher.geometrical.getLocalCoordOnSphere(triPoints[iter,:]), axis=-1 )
-        # Handle the occurence of nan (typically when on the poles) 
-        if np.any(np.isnan(vectors)):
-            vectors = np.eye(3)
-        
-        # Compute kappa and H
-        kappa[iter], H[:, iter] = FEM.orthVectorsToG( vectors, params["r"][iter, :]/np.sqrt(8*nu) )
-    
-    return (kappa, H)
+    # Compute kappa and H
+    logGSqrt, GInv = FEM.orthVectorsToG( vectors, params["r"]/np.sqrt(8*nu) )
 
+    return (logGSqrt, GInv)
 
 
 BCDirichlet = np.NaN * np.ones((meshSphere.N))
@@ -193,7 +184,7 @@ obsPoints3D = np.ascontiguousarray( obsPoints3D.transpose() )
 
 # Get observation matrix
 print("Acquire observation matrix")
-obsMat = fem.mesh.getObsMat( obsPoints3D, embTol = 0.05 ) 
+obsMat = fem.mesh.getObsMat( obsPoints3D, embTol = 0.05, centersOfCurvature = np.zeros( (1,3) ) ) 
 # obsMat = fem.mesh.getObsMat( triPoints, embTol = 20 )
 # obsMat = fem.mesh.getObsMat( meshSphere.nodes[meshSphere.triangles[:,0], :], embTol = 2/5 * np.sin( corrMin / 180.0 * np.pi / 2.0 ) / 10 )
 ZObs = obsMat.tocsr() * Z + stats.norm.rvs( loc = 0, scale = sigmaEps, size = M*obsMat.shape[0] ).reshape((obsMat.shape[0], M))
@@ -204,7 +195,7 @@ ZObs = obsMat.tocsr() * Z + stats.norm.rvs( loc = 0, scale = sigmaEps, size = M*
 
 
 
-# %% Plot covariances
+# %% Plot 
 
 
 fig = plt.figure(1)
@@ -254,7 +245,7 @@ ax.set_title( "Covariance" )
 covPoint = np.array( [ [0,0] ] )
 covPoint3D = mesher.geometrical.lonlat2Sphere( covPoint.transpose() ) * 0.95
 covPoint3D = np.ascontiguousarray( covPoint3D.transpose() )
-covObsMat = fem.mesh.getObsMat( covPoint3D, embTol = 0.05 )
+covObsMat = fem.mesh.getObsMat( covPoint3D, embTol = 0.05, centersOfCurvature = np.zeros( (1,3) ) )
 
 
 # Compute SPDE covariance
@@ -290,7 +281,7 @@ ax.set_title( "Conditional" )
 condPoints = np.array( [ [0,0], [12,57] ] )
 condPoints3D = mesher.geometrical.lonlat2Sphere( condPoints.transpose() ) * 0.99
 condPoints3D = np.ascontiguousarray( condPoints3D.transpose() )
-condObsMat = fem.mesh.getObsMat( condPoints3D, embTol = 0.05 )
+condObsMat = fem.mesh.getObsMat( condPoints3D, embTol = 0.05, centersOfCurvature = np.zeros( (1,3) ) )
 condVal = np.array( [1, -1] )
 
 # Compute conditional distribution

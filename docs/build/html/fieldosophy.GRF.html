@@ -946,7 +946,7 @@ The vale corresponds to the enforced constant value of that specific node unless
 <code class="sig-prename descclassname">fieldosophy.GRF.FEM.</code><code class="sig-name descname">angleToVecs2D</code><span class="sig-paren">(</span><em class="sig-param">angle</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.angleToVecs2D" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>angle</strong> -- An angle [radians] for the main direction.</p>
+<dd class="field-odd"><p><strong>angle</strong> -- An angle [radians] for the main direction (from x-axis).</p>
 </dd>
 </dl>
 <p>:return A 2D-array which columns are two orthogonal unit vectors, the first pointing in the direction of angle</p>
@@ -994,8 +994,17 @@ The vale corresponds to the enforced constant value of that specific node unless
 <dl class="method">
 <dt id="fieldosophy.GRF.FEM.nonStatFEM.paramsFunction">
 <code class="sig-name descname">paramsFunction</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.nonStatFEM.paramsFunction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function to map child parameters to FEM parameters.
-Either a function is provided under the name 'f' or it is assumed that the parameters 'logGSqrt' and 'GInv' are provided.</p>
+<dd><p>Function to map child parameters to FEM parameters.</p>
+<p>In the member object 'childParams', either a function is provided under the name 'f' or it is assumed that the parameters 'logGSqrt' and 'GInv' are provided.</p>
+<p>If a function was provided under the name 'f', this function should take the dictionary self.childParams as its argument.
+It should output a tuple corresponding to logGSqrt and GInv.</p>
+<p>logGSqrt is the logarithm of the squared determinant of G
+GInv is the inverse of G</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a tuple corresponding to the coefficients of M, B, and G.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -1007,12 +1016,33 @@ Either a function is provided under the name 'f' or it is assumed that the param
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>vectors</strong> -- An array where each column is a vector. The set of vectors assumed to be orthogonal.</p></li>
-<li><p><strong>scalers</strong> -- The correlation range in each of the vector directions.</p></li>
+<li><p><strong>vectors</strong> -- An N x d x d array where first dimension decides simplex. The second dimension is indexing the vectors.
+The third dimension is the elements of the vectors.
+The set of vectors assumed to be orthogonal and normalized.</p></li>
+<li><p><strong>scalers</strong> -- An N x d array of scalers in each of the vector directions.</p></li>
 </ul>
 </dd>
 </dl>
-<p>:return the logarithm of teh squared determinant of G, and the inverse of G. Here, G being the metric tensor.</p>
+<p>:return the logarithm of the squared determinant of G, and the inverse of G. Here, G being the metric tensor.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fieldosophy.GRF.FEM.tangentVectorsOnSphere">
+<code class="sig-prename descclassname">fieldosophy.GRF.FEM.</code><code class="sig-name descname">tangentVectorsOnSphere</code><span class="sig-paren">(</span><em class="sig-param">points</em>, <em class="sig-param">northPole=array([0.</em>, <em class="sig-param">0.</em>, <em class="sig-param">1.])</em><span class="sig-paren">)</span><a class="headerlink" href="#fieldosophy.GRF.FEM.tangentVectorsOnSphere" title="Permalink to this definition">¶</a></dt>
+<dd><p>Acquire a basis for the tangent space at given points on the surface of the unit sphere.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>points</strong> -- N x 3 array of N points at which to acquire basis of tangent space.</p></li>
+<li><p><strong>northPole</strong> -- 3 array of point corresponding to the north pole.</p></li>
+</ul>
+</dd>
+</dl>
+<p>:return A N x 3 x 3 array. Each point has three orthogonal tangent vectors of unit length.
+They are constructed such as the first vector is pointing towards the 'northPole'.
+The second vector is orthogonal to both the first vector and the vector from the origin to the point of interest.
+The third vector is equal to the vector between the origin and the point of interest.
+The last dimension represent the elements of the vectors. The next to last dimension indices the vectors</p>
 </dd></dl>
 
 </div>

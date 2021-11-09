@@ -428,3 +428,76 @@ plt.plot( np.linspace(0.01, 0.4, 500), GRF.MaternCorr( np.linspace(0.01, 0.4, 50
 plt.plot( np.linspace(0.01, 0.4, 500), GRF.MaternCorr( np.linspace(0.01, 0.4, 500), nu = nuTrue, kappa = np.sqrt(8*nuTrue)/rTrue ), label="True", color="red" )
 plt.legend()
 # plt.savefig(figpath+"comparisonCovarianceTrueEstimated.png")
+
+
+
+# %% non-stationary
+
+def mapFEMParamsToG( params ):
+    
+    GInv = [ (params["r"] / np.sqrt(8*nu) )**2 ]
+    logGSqrt = - 0.5 * np.log( GInv[0] )
+    
+    return (logGSqrt, GInv)
+
+# Create FEM object
+nonstatfem = FEM.nonStatFEM( mesh = extendedMesh, childParams = {"r":r, "f":mapFEMParamsToG}, nu = nu, sigma = sigma, BCRobin = BCRobin )
+
+
+# Compute the middle point in each simplex 
+simplexMeanPoints = np.mean( extendedMesh.nodes[ extendedMesh.triangles , 0], axis=1 )
+# Use simplixes middle points to set the local correlation range
+rLocal = simplexMeanPoints - 0.1
+# Set the extensions to the original value of 0.4
+rLocal[simplexMeanPoints < 0 ] = 0.4
+rLocal[simplexMeanPoints > 1 ] = 0.4
+# Create FEM object
+nonstatfem = FEM.nonStatFEM( mesh = extendedMesh, childParams = {"r":rLocal, "f":mapFEMParamsToG}, nu = nu, sigma = sigma, BCRobin = BCRobin )
+
+
+# Get covariance between the point in the middle of the interval and all other points
+referenceNode = np.zeros((extendedMesh.N,1))
+referenceNode[450] = 1
+covSPDE = nonstatfem.multiplyWithCovariance( referenceNode )
+covSPDE = nonstatfem.multiplyWithCovariance( referenceNode )
+# Compare with actual matern covariance
+covMatern = sigma**2 * GRF.MaternCorr( np.abs(extendedMesh.nodes[450,0] - extendedMesh.nodes.flatten()), nu = nu, kappa = np.sqrt(8*nu)/r )
+
+
+# Plot covariances
+plt.figure(1)
+plt.clf()
+plt.plot( extendedMesh.nodes.flatten(), covSPDE, color="black", label="SPDE", linewidth=3)
+plt.vlines( extendedMesh.nodes[450,0], 0, 4, linestyle='--' )
+plt.title( "Covariance between point 0.5 and all other" )
+plt.plot( extendedMesh.nodes.flatten(), covMatern, color="red", label="Matern" )
+plt.legend()
+# plt.savefig(figpath+"nonStatCovariance.png")
+
+# Plot non-stationarity
+plt.figure(2)
+plt.clf()
+plt.plot( simplexMeanPoints, rLocal, color="black")
+plt.title( "Local correlation ranges" )
+# plt.savefig(figpath+"localCorelationRange.png")
+
+
+
+# Acquire realizations on nodes
+ZNonStat = anObsMat.tocsr() * nonstatfem.generateRandom( 2 )
+# Plot realizations
+plt.figure(1)
+plt.clf()
+plt.plot( anPoints.flatten(), ZNonStat[:,0] )
+plt.title( "Realization 1" )
+# plt.savefig(figpath+"realization1Nonstat.png")
+plt.figure(2)
+plt.clf()
+plt.plot( anPoints.flatten(), ZNonStat[:,1] )
+plt.title( "Realization 2" )
+# plt.savefig(figpath+"realization2Nonstat.png")
+
+
+
+
+

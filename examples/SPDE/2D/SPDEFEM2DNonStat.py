@@ -101,17 +101,13 @@ r[np.any( (triPoints > 1) | (triPoints < 0), axis=1 ), :] = corrMin
 
 
 def mapFEMParams( params ):
-    # Function to map own parameters to FEM parameters
-    NT = params["angle"].size
+    # Function to map own parameters to FEM parameters   
     
-    logGSqrt = np.zeros( (NT) )
-    GInv = np.zeros( (4, NT) )
+    # Get basis of tangent spaces
+    vectors = FEM.angleToVecs2D(params["angle"])
     
-    for iter in range(NT):
-        # Compute vectors
-        vectors = FEM.angleToVecs2D(params["angle"][iter])
-        # Compute kappa and H
-        logGSqrt[iter], GInv[:, iter] = FEM.orthVectorsToG( vectors, params["r"][iter, :] / np.sqrt(8*nu) )
+    # Compute kappa and H
+    logGSqrt, GInv = FEM.orthVectorsToG( vectors.transpose((0,2,1)), params["r"] / np.sqrt(8*nu) )
     
     return (logGSqrt, GInv)
 
@@ -146,8 +142,8 @@ M = int(2e2)
 Z = fem.generateRandom( M )
 
 # Set observation points
-lats = np.linspace(coordinateLims[1,0]-extension/2, coordinateLims[1,-1]+extension/2, num = int( 100 ) )
-lons = np.linspace(coordinateLims[0,0]-extension/2, coordinateLims[0,-1]+extension/2, num = int( 100 ) )
+lats = np.linspace(coordinateLims[1,0], coordinateLims[1,-1], num = int( 100 ) )
+lons = np.linspace(coordinateLims[0,0], coordinateLims[0,-1], num = int( 100 ) )
 obsPoints = np.meshgrid( lons, lats )
 
 # Get observation matrix
@@ -280,32 +276,19 @@ actionZone = (triPoints[:,0] <= 1) & (triPoints[:,0] >= 0) & (triPoints[:,1] <= 
 def mapFEMParams( params ):
     # Function to map parameters to FEM parameters
     
-    NT = triPoints.shape[0]
-    
+    # Get angle
     curAngle = np.asarray( np.matmul( sinMatrix, params["angle"] ) )
+    # Get ranges
     curR1 = corrMin + np.exp( np.asarray( np.matmul( sinMatrix, params["r1"] ) ) )
     curR2 = corrMin + (curR1-corrMin) * stats.logistic.cdf( np.asarray( np.matmul( sinMatrix, params["r2"] ) ) )
+    curR = np.stack( (curR1, curR2), axis=1 )
+    curR[actionZone, :] = corrMin    
+    # Compute vectors
+    vectors = FEM.angleToVecs2D(curAngle)
+    vectors[actionZone, :, :] = np.eye(2).reshape((1,2,2))
     
-    logGSqrt = np.zeros( (NT) )
-    GInv = np.zeros( (2**2, NT) )
-        
-    for iter in range(NT):
-
-        # Enforce barrier method
-        if not actionZone[iter]:
-            # Compute kappa and H
-            logGSqrt[iter], GInv[:, iter] = FEM.orthVectorsToG( np.eye(2), (corrMin * np.ones((2))) / np.sqrt(8*params["nu"]) )
-            continue
-        
-        # Get current values
-        angle = curAngle[iter]
-        r1 = curR1[iter]
-        r2 = curR2[iter]
-        # Compute vectors
-        vectors = FEM.angleToVecs2D(angle)
-        
-        # Compute kappa and H
-        logGSqrt[iter], GInv[:, iter] = FEM.orthVectorsToG( vectors, np.array([r1, r2]) / np.sqrt(8*params["nu"]) )
+    # Compute kappa and H
+    logGSqrt, GInv = FEM.orthVectorsToG( vectors.transpose(), curR / np.sqrt(8*params["nu"]) )
     
     return (logGSqrt, GInv)
 

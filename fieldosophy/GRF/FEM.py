@@ -193,16 +193,19 @@ class FEM(abc.ABC):
             self.QChol = Pl[ np.ix_(~self.BCDirichletIndex, ~self.BCDirichletIndex) ] * self.QChol
             # If try to factorize            
             if factorize:
+                
                 try:
                     self.QChol = Cholesky.SKSparseCholesky( self.QChol.tocsc(), AAt = True )
                 except Cholesky.SparseCholeskyAbstract.PositiveDefiniteException as e:
-                    # If not positive definite
-                    if ( (m == 3) and (n == 2) ):
+                    
+                    if ( (m == 2) and (n == 1) ):
                         m = 1
                         n = 2
-                    # elif ( (m == 1) and (n == 2) ):
-                    #     m = 2
-                    #     m = 1
+                    elif ( (m == 1) and (n == 2) ):
+                        print("Precision matrix is badly conditioned! Applying rational approximation with constant denominator.")
+                        m = 1
+                        n = 0
+                    
                     else:
                         raise e
                     goOn = True
@@ -335,6 +338,8 @@ class FEM(abc.ABC):
         # Check that system is defined
         if self.QChol is None:
             raise Exception( "System is not created" )
+        if not isinstance( self.QChol, Cholesky.SKSparseCholesky):
+            raise Exception("Precision matrix was not factorized!")
                         
         # Get number of observations in current realization
         k = A.shape[0]
@@ -347,16 +352,20 @@ class FEM(abc.ABC):
         Atemp = A[:, ~self.BCDirichletIndex] * Atemp
         QEps = sparse.diags( np.ones(k) / sigmaEps**2 ) 
         
+        
         # Compute log determinant of Q
         logDetQ = self.QChol.getLogDet()
         # Compute log determinant of error Q
         logDetQEps = np.sum(np.log(QEps.diagonal()))
         
         if QCond is None:
+            
+            QCond = self.QChol.getMatrix()
             # Build Q of conditional distribution
-            QCond = self.QChol.getMatrix() + ( Atemp.transpose() * QEps * Atemp )
+            QCond = QCond + (Atemp.transpose() * QEps * Atemp) 
             # Cholesky factorize
             QCond = Cholesky.SKSparseCholesky( QCond, AAt = False )
+
         # Compute log determinant of conditional precision
         logDetQCond = QCond.getLogDet()
         
@@ -421,11 +430,14 @@ class FEM(abc.ABC):
         # Get number of observations in current realization
         k = A.shape[0]
         
-        if len(y.shape) != 1:
-            if y.shape[1] == 1:
-                y = y.reshape((-1))
-            else:
-                raise Exception("Wrong size on observation vector")
+        if isinstance(y, np.ndarray):
+            if len(y.shape) != 1:
+                if y.shape[1] == 1:
+                    y = y.reshape((-1))
+                else:
+                    raise Exception("Wrong size on observation vector")            
+            
+            
         # compensate for marginal variance
         tauInv = sparse.diags( 1/self.tau[~self.BCDirichletIndex] )
         # Multiply with Pr
@@ -439,23 +451,29 @@ class FEM(abc.ABC):
         
         # If QChol should be computed
         if QChol is None:
+            if isinstance( self.QChol, Cholesky.SKSparseCholesky):
+                out.QChol = self.QChol.getMatrix()
+            else:
+                out.QChol = self.QChol * self.QChol.transpose()
             # Build Q of conditional distribution
-            out.QChol = self.QChol.getMatrix() + (Atemp.transpose() * QEps * Atemp) 
+            out.QChol = out.QChol + (Atemp.transpose() * QEps * Atemp) 
             # Cholesky factorize
             out.QChol = Cholesky.SKSparseCholesky( out.QChol, AAt = False )
-        else:
+        else:   
             out.QChol = QChol
-        
+             
+
         # Set sigma to none since new marginal standard deviation is unknown
         self.sigma = None
-            
+                    
         # Build conditional mean
-        mu = y - A * self.mu
-        mu = QEps * mu
-        mu = Atemp.transpose() * mu
-        out.mu[~self.BCDirichletIndex] = self.mu[~self.BCDirichletIndex] + \
-            tauInv * ( self.Pr * out.QChol.solve( mu ) )
-        out.mu[self.BCDirichletIndex] = self.mu[self.BCDirichletIndex]
+        if np.any( y  ) or np.any( self.mu ):
+            mu = y - A * self.mu
+            mu = QEps * mu
+            mu = Atemp.transpose() * mu
+            out.mu[~self.BCDirichletIndex] = self.mu[~self.BCDirichletIndex] + \
+                tauInv * ( self.Pr * out.QChol.solve( mu ) )
+            out.mu[self.BCDirichletIndex] = self.mu[self.BCDirichletIndex]
         
         return out
     
@@ -474,7 +492,7 @@ class FEM(abc.ABC):
         
         if QChol is None:
             QChol = self.QChol
-        
+            
         # Get number of observations in current realization
         k = A.shape[0]
         
@@ -517,13 +535,18 @@ class FEM(abc.ABC):
         Atemp = tauInv * self.Pr
         # Multiply with observation matrix
         Atemp = A[:, ~self.BCDirichletIndex] * Atemp
-        QEps = sparse.diags( np.ones((k)) / sigmaEps**2 ) 
-                
+        QEps = sparse.diags( np.ones((k)) / sigmaEps**2 )
+        
+        # If QChol should be computed
+        if isinstance( self.QChol, Cholesky.SKSparseCholesky):
+            QChol = self.QChol.getMatrix()
+        else:
+            QChol = self.QChol * self.QChol.transpose()
         # Build Q of conditional distribution
-        QChol = self.QChol.getMatrix() + (Atemp.transpose() * QEps * Atemp) 
+        QChol = QChol + (Atemp.transpose() * QEps * Atemp) 
         # Cholesky factorize
         QChol = Cholesky.SKSparseCholesky( QChol, AAt = False )
-        
+            
         return QChol
         
 
@@ -540,6 +563,9 @@ class FEM(abc.ABC):
         # Check that system is defined
         if self.QChol is None:
             raise Exception( "System is not created" )
+            
+        if not isinstance( self.QChol, Cholesky.SKSparseCholesky):
+            self.QChol = Cholesky.SKSparseCholesky( self.QChol, AAt = True )
         
         # Generate random
         Z = np.zeros( (self.mesh.N, n) )    
@@ -568,6 +594,8 @@ class FEM(abc.ABC):
         # Check that system is defined
         if self.QChol is None:
             raise Exception( "System is not created" )
+        if not isinstance( self.QChol, Cholesky.SKSparseCholesky):
+            self.QChol = Cholesky.SKSparseCholesky( self.QChol, AAt = True )
         # Check size    
         if matrix.shape[0] != self.mesh.N:
             raise Exception( "Wrong size!" )            
@@ -1069,7 +1097,7 @@ class abstractDeformed(FEM):
         self.childParams = childParams
         self.nu = nu
         d = self.mesh.topD
-        alpha = nu + d / 2
+        alpha = nu + d / 2.0
         tau = np.sqrt( special.gamma(nu) / ( special.gamma(alpha) * (4 * np.pi)**(d/2) ) ) / ( sigma )
         
         if np.isscalar(tau):
@@ -1148,7 +1176,7 @@ class anisotropicMaternFEM(abstractDeformed):
         :return The coefficients for the M, B, and G matrices.
         """
     
-        if not self.embD == 2:
+        if not self.mesh.embD == 2:
             raise Exception("Current class only defined for manifolds embedded in R^2!")
     
         if self.childParams is None:
@@ -1159,7 +1187,7 @@ class anisotropicMaternFEM(abstractDeformed):
         
         alpha = self.nu + self.mesh.topD / 2
         
-        logGSqrt, GInv = orthVectorsToG( angleToVecs2D(self.childParams["angle"]), self.childParams["r"] / np.sqrt(8*self.nu) )
+        logGSqrt, GInv = orthVectorsToG( angleToVecs2D(self.childParams["angle"]).transpose(), self.childParams["r"] / np.sqrt(8*self.nu) )
 
         # Set FEM parameters        
         MCoeff = np.exp( 1/alpha * logGSqrt )
@@ -1187,7 +1215,16 @@ class nonStatFEM(abstractDeformed):
     def paramsFunction( self ):
         """
         Function to map child parameters to FEM parameters.
-        Either a function is provided under the name 'f' or it is assumed that the parameters 'logGSqrt' and 'GInv' are provided.
+        
+        In the member object 'childParams', either a function is provided under the name 'f' or it is assumed that the parameters 'logGSqrt' and 'GInv' are provided.
+        
+        If a function was provided under the name 'f', this function should take the dictionary self.childParams as its argument.
+        It should output a tuple corresponding to logGSqrt and GInv.
+        
+        logGSqrt is the logarithm of the squared determinant of G
+        GInv is the inverse of G
+        
+        :return: a tuple corresponding to the coefficients of M, B, and G.
         """
     
         if self.childParams is None:
@@ -1226,13 +1263,57 @@ class nonStatFEM(abstractDeformed):
 
 def angleToVecs2D( angle ):
     """
-    :param angle: An angle [radians] for the main direction.
+    :param angle: An angle [radians] for the main direction (from x-axis).
     
     :return A 2D-array which columns are two orthogonal unit vectors, the first pointing in the direction of angle
     """
     
-    rotMat = np.array( [ [ np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)] ] )
+    
+    if isinstance( angle, np.ndarray):
+        rotMat = np.stack( ( np.cos(angle), -np.sin(angle), np.sin(angle), np.cos(angle) ) )
+        if angle.size > 0:
+            rotMat = rotMat.transpose((1,0)).reshape( (angle.size, 2, 2) )
+        else:
+            rotMat = rotMat.reshape( (2, 2) )
+    else:
+        rotMat = np.array( [ [ np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)] ] )
+    
+    
     vectors = np.matmul( rotMat, np.eye(2) )
+    
+    return vectors
+
+
+def tangentVectorsOnSphere( points, northPole = np.array([0.0,0.0,1.0]) ):
+    """
+    Acquire a basis for the tangent space at given points on the surface of the unit sphere. 
+    
+    :param points: N x 3 array of N points at which to acquire basis of tangent space.
+    :param northPole: 3 array of point corresponding to the north pole.
+    
+    :return A N x 3 x 3 array. Each point has three orthogonal tangent vectors of unit length. 
+    They are constructed such as the first vector is pointing towards the 'northPole'. 
+    The second vector is orthogonal to both the first vector and the vector from the origin to the point of interest.
+    The third vector is equal to the vector between the origin and the point of interest.
+    The last dimension represent the elements of the vectors. The next to last dimension indices the vectors
+    
+    """
+    
+    vectors = np.zeros( (points.shape[0], 3,3) )
+    
+    # Get third vector 
+    vectors[:, 2, :] = points / np.linalg.norm(points, axis= 1).reshape((-1,1))
+    # Get second vector 
+    vectors[:, 1, :] = np.cross( northPole.reshape( (1,3) ), vectors[:,2,:] )
+    # Get first vector 
+    vectors[:, 0, :] = np.cross( vectors[:,2,:], vectors[:,1,:] )
+    
+    # Normalize vectors
+    lengths = np.linalg.norm( vectors, axis=2 ).reshape((-1, 3))
+    inds = np.any( lengths == 0.0, axis=1 )
+    vectors[inds, :, : ] = np.nan
+    vectors[~inds, :, :] = vectors[~inds, :, :] / lengths[~inds, :].reshape( (-1,3,1) )
+    
     
     return vectors
 
@@ -1241,34 +1322,40 @@ def orthVectorsToG( vectors, scalers ):
     """
     Acquire parameters to the SPDE given the deformation
     
-    :param vectors: An array where each column is a vector. The set of vectors assumed to be orthogonal. 
-    :param scalers: The correlation range in each of the vector directions.
+    :param vectors: An N x d x d array where first dimension decides simplex. The second dimension is indexing the vectors. 
+        The third dimension is the elements of the vectors.
+        The set of vectors assumed to be orthogonal and normalized. 
+    :param scalers: An N x d array of scalers in each of the vector directions.
     
-    :return the logarithm of teh squared determinant of G, and the inverse of G. Here, G being the metric tensor.
+    :return the logarithm of the squared determinant of G, and the inverse of G. Here, G being the metric tensor.
     """
     
-    # Compute their length
-    normalizers = linalg.norm( vectors, axis = 0)
-    # Normalize vectors
-    vectors = vectors / normalizers.reshape( (1, -1) )    
+    if (vectors.ndim == 2):
+        vectors = vectors.reshape((1,vectors.shape[0], vectors.shape[1]))
+    
+    if (scalers.ndim == 1):
+        scalers = scalers.reshape((1,-1))
+    
+    n = scalers.shape[0]
+    d = scalers.shape[1]
+    
     
     # Compute logarithm of G squared
-    logGSqrt = - np.sum( np.log(scalers) )
+    logGSqrt = - np.sum( np.log(scalers), axis = 1 )
     
-    # Compute inverse of G
-    GInv = np.diag( scalers**2 )
-    GInv = np.asarray(np.matmul( GInv, vectors[:,:scalers.size].transpose() ))
-    GInv = np.asarray(np.matmul( vectors[:,:scalers.size], GInv ))
+    temp = scalers.reshape( (n,d,1) ) * vectors[:, :d, :]
     
-    # If number of vectors are more than number of scalers
-    if vectors.shape[1] > scalers.size:
-        # Let the remaining dimension have a scaling as the mean of the log scaling
-        temp = np.matmul( np.eye( vectors.shape[1]-scalers.size ), vectors[:, scalers.size:].transpose() )
-        temp = np.matmul( vectors[:, scalers.size:], temp )
-        temp = np.exp( 2 * logGSqrt / scalers.size) * np.asarray( temp )
-        GInv = GInv + temp 
+    GInv = np.ones( (n,vectors.shape[1],vectors.shape[1]) )
+    for iter in range(vectors.shape[1]):
+        temp2 = temp * temp[:, :, iter].reshape((n,d,1))
+        GInv[:, iter, :] = np.sum( temp2, axis=1 ).reshape(n, vectors.shape[1])
+
     
-    GInv = GInv.flatten()
+    GInv = GInv.reshape( (n, vectors.shape[1]**2) ).transpose()
+    
+    if n == 1:
+        GInv = GInv.flatten()
+        logGSqrt = logGSqrt[0]
     
     return (logGSqrt, GInv)
 
