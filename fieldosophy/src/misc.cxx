@@ -388,7 +388,7 @@ extern "C"
                 if (lStatus)
                     break;
                 
-                // If current squared distance is current minimum
+                // If current distance is current minimum
                 if (lDist < lMinDistance)
                 {
                     // Set minimum to current squared distance
@@ -407,8 +407,9 @@ extern "C"
             if (pDistance != NULL)
                 pDistance[lIter1] = lMinDistance;
         }
+        
     
-        return 0;
+        return lStatus;
     }
         
 }
