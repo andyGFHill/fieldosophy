@@ -17,8 +17,17 @@ import ctypes
 
 
 
-# Function for mapping from long-lat to 3d coordinates on a unit sphere
+
 def lonlat2Sphere( lonlat ):  
+    """
+        Function for mapping from long-lat to 3d coordinates on a unit sphere.
+        
+        :param lonlat: A 2 x N array where N are the number of points
+        
+        :return: A 3 x N array.
+        
+    """
+    
     # If more than one point was given    
     if np.ndim(lonlat) > 1:
         coord = np.empty( [3, lonlat.shape[1]] )
@@ -159,11 +168,24 @@ def distanceBetweenPointsOnSphere( points1, points2 = None ):
 
 
 def smallestDistanceBetweenPointsOnSphere( points1, points2, lib ):
-    """ Find smallest geodesic distance between points on unit sphere. """
+    """ 
+        Find smallest geodesic distance between points on unit sphere. 
+        
+        :param points1: A N x d array where N are the number of points and d the dimensionality. 
+            For each of these points, the points in 'points2' that are closest to them as well as the distance are returned.
+        :param points2: A N x d array where N are the number of points and d the dimensionality
+        
+        :return: A 2-tuple of indices and distances
+    """
     
     dims = points1.shape[1]
     if points2.shape[1] != dims:
         raise Exception( "No matching dimensions!" )
+        
+    if points1.dtype is not np.float64:        
+        points1 = points1.astype(np.float64)
+    if points2.dtype is not np.float64:        
+        points2 = points2.astype(np.float64)
     # Get number of points
     numPoints1 = points1.shape[0]
     numPoints2 = points2.shape[0]
@@ -172,7 +194,7 @@ def smallestDistanceBetweenPointsOnSphere( points1, points2, lib ):
     c_double_p = ctypes.POINTER(ctypes.c_double)   
     c_uint_p = ctypes.POINTER(ctypes.c_uint)  
     
-    indices = np.zeros( numPoints1, dtype=np.uintc )
+    indices = points1.shape[0] * np.ones( numPoints1, dtype=np.uintc )
     dists = np.zeros( numPoints1, dtype=np.float64 )
     
     points1_p = points1.ctypes.data_as(c_double_p)
@@ -200,6 +222,9 @@ def smallestDistanceBetweenPointsOnSphere( points1, points2, lib ):
 
 def smallestDistanceBetweenPoints( points1, points2, lib ):
     """ Find smallest Euclidean distance between points in hyperplane. """
+    
+    points1 = points1.astype(np.float64)
+    points2 = points2.astype(np.float64)
     
     dims = points1.shape[1]
     if points2.shape[1] != dims:
@@ -252,3 +277,13 @@ def mapToHypersphere(x):
         y = x.reshape((1, -1))
         
     return y / np.linalg.norm(y, axis=1).reshape((-1,1))
+
+
+
+
+
+
+
+
+
+

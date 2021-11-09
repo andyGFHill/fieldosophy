@@ -101,7 +101,7 @@ class test_meshModule( unittest.TestCase ):
                 
                 
     def test_meshRefinement(self):
-        # Test case to make sure that the neighboring simplices are actually neighboring (in 1D).
+        # Test case refining meshes
 
         print("Testing refining meshes!")
         
@@ -116,7 +116,7 @@ class test_meshModule( unittest.TestCase ):
         maxDiamArray = 0.2 * np.ones( (meshm0.N) )
         maxDiamArray[2] = 0.05
         # Create refined sphere
-        meshm1, neighsm1 = meshm0.refine( maxDiam = maxDiamArray, maxNumNodes = meshm0.N + 50 )
+        meshm1 = meshm0.refine( maxDiam = maxDiamArray, maxNumNodes = meshm0.N + 50 )
         
         # Make sure that the right number of nodes and simplices
         self.assertTrue( meshm1.nodes.shape[0] == 13 )
@@ -133,18 +133,18 @@ class test_meshModule( unittest.TestCase ):
         maxDiamArray[0] = 0.1
 
         # Create refined sphere
-        mesh1, neighs1 = mesh0.refine( maxDiam = maxDiamArray, maxNumNodes = mesh0.N + 50 )
+        mesh1 = mesh0.refine( maxDiam = maxDiamArray, maxNumNodes = mesh0.N + 50 )
 
         # Make sure that the right number of nodes and simplices
-        self.assertTrue( mesh1.nodes.shape[0] == 22 )
-        self.assertTrue( mesh1.triangles.shape[0] == 26 )
+        self.assertTrue( mesh1.nodes.shape[0] == 21 )
+        self.assertTrue( mesh1.triangles.shape[0] == 24 )
 
 
 
         # % Create spherical mesh
 
         # Create unrefined sphere
-        meshSphere0, neighSphere0 = mesher.Mesh.meshOnSphere( None, maxDiam = np.inf, maxNumNodes = + int(1e3), radius = 1)
+        meshSphere0 = mesher.Mesh.meshOnSphere( maxDiam = np.inf, maxNumNodes = + int(1e3), radius = 1)
 
         # Set maximum diameter for each node
         maxDiamArray = 2 * np.sin( 45 / 180.0 * np.pi / 2.0 ) * np.ones( (meshSphere0.N) )
@@ -152,11 +152,35 @@ class test_meshModule( unittest.TestCase ):
 
 
         # Create refined sphere
-        meshSphere1, neighsSphere1 = meshSphere0.refine( maxDiam = maxDiamArray, maxNumNodes = meshSphere0.N + 1000, transformation = mesher.geometrical.mapToHypersphere)
+        meshSphere1 = meshSphere0.refine( maxDiam = maxDiamArray, maxNumNodes = meshSphere0.N + 1000, transformation = mesher.geometrical.mapToHypersphere)
 
         # Make sure that the right number of nodes and simplices
-        self.assertTrue( meshSphere1.nodes.shape[0] == 200 )
-        self.assertTrue( meshSphere1.triangles.shape[0] == 396 )
+        self.assertTrue( meshSphere1.nodes.shape[0] == 147 )
+        self.assertTrue( meshSphere1.triangles.shape[0] == 290 )
+        
+        
+        
+    def test_curvaturePointIdentification(self):
+        # Test that points can be idetified to correct simplices even with a curved submanifold
+        
+        print("Testing point simplex identification under curved submanifolds!")
+        
+        # Get mesh approximation of circle
+        meshCircle = mesher.Mesh.meshOnCircle( maxDiam = 0.3, maxNumNodes = int(6), radius = 1 )[0]
+        # Get three points (where the last point has bee problematic)
+        points = np.array([ [np.cos(angle), np.sin(angle)] for angle in np.linspace( 90, 120, num=3 ) * np.pi/180.0 ])
+        points[0,:] = np.sin( 2*np.pi/6 ) * points[0,:]
+        points[2,:] = 1.1 * points[2,:]
+        
+        # Generate observation matrix without including curvature
+        obsMat = meshCircle.getObsMat( points, embTol = 0.1 )
+        # Make sure that the first two work but not the last
+        self.assertTrue( np.all(np.isnan(np.sum(obsMat, axis=1)).flatten() == np.array([False, False, True])) )
+        
+        # Generate observation matrix with including curvature
+        obsMat2 = meshCircle.getObsMat( points, embTol = 0.1, centersOfCurvature = np.zeros( (1,2) ) )
+        # Make sure that the all points were properly handled
+        self.assertTrue( np.all(np.isnan(np.sum(obsMat2, axis=1)).flatten() == np.array([False, False, False])) )
                 
 
 

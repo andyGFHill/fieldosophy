@@ -21,6 +21,10 @@ def cosinusBasis( points, coefficients, boundingBox ):
     """
     Function for evaluating superpositioned sinus function
     
+    :points: A N x d array where d are the number of dimensions and N are the number of points
+    :coefficients: A d x n array where each column correspond to a specific coefficient. The value in the rows correspond to the harmonic in each of the dimensions (which are multiplied with each other)
+    :boundingBox: Gives a bounding box for where the functions continue with their next period.    
+    
     """
     
     # Preallocate output
@@ -48,11 +52,17 @@ def cosinBasisMatrix( points, coefSetup, boundingBox ):
     """
     Matrix giving evaluated superpositioned sinus functions for chosen points 
     
+    :points: A N x d array where d are the number of dimensions and N are the number of points
+    :coefSetup: A d x n array where each column correspond to a specific coefficient. The value in the rows correspond to the harmonic in each of the dimensions (which are multiplied with each other)
+    :boundingBox: Gives a bounding box for where the functions continue with their next period.
+    
     """
     
     out = np.ones( (points.shape[0], coefSetup.shape[1]) )
     
+    # Loop through all combinations of cosines for each dimension
     for iterSetup in range( coefSetup.shape[1] ):
+        # Loop through all factors
         for iterEnum in range(coefSetup.shape[0]):
             if coefSetup[iterEnum, iterSetup] >= 1:
                 out[:, iterSetup] = out[:, iterSetup] * np.cos( \

@@ -102,13 +102,14 @@ int HyperRectExtension::getNeighborsFromSimplex( const unsigned int pSimplexInd,
 
 // Get a simplex index for a simplex where points are part
 int HyperRectExtension::getASimplexForPoint( double * const pPoints, const unsigned int pNumPoints,
-    unsigned int * const pSimplexIds, double * const pBarycentricCoords ) const
+    unsigned int * const pSimplexIds, double * const pBarycentricCoords,
+    const double pEmbTol, const double * const pCenterOfCurvature, const unsigned int pNumCentersOfCurvature ) const
 {
     // --- TODO ---
     // Handle when extended
     
     // So far only works for no extension of an implicit mesh
-    int lStatus = getMesh().getASimplexForPoint( pPoints, pNumPoints, pSimplexIds, pBarycentricCoords );
+    int lStatus = getMesh().getASimplexForPoint( pPoints, pNumPoints, pSimplexIds, pBarycentricCoords, pEmbTol, pCenterOfCurvature, pNumCentersOfCurvature );
     if (lStatus)
         return lStatus;
         
@@ -117,11 +118,12 @@ int HyperRectExtension::getASimplexForPoint( double * const pPoints, const unsig
 
 // Get a set of all simplices for which the given point is a member.
 int HyperRectExtension::getAllSimplicesForPoint( double * const pPoint, std::set<unsigned int> & pSimplexId,
-    std::set<unsigned int> & pOutput, std::set<unsigned int> & pExplicitSimp, std::set<unsigned int> & pTemp ) const
+    std::set<unsigned int> & pOutput,
+    const double pEmbTol, const double * const pCenterOfCurvature ) const
 {
     // --- TODO ---
     // So far only works for no extension of an implicit mesh
-    int lStatus = getMesh().getAllSimplicesForPoint( pPoint, pSimplexId, pOutput, pExplicitSimp, pTemp );
+    int lStatus = getMesh().getAllSimplicesForPoint( pPoint, pSimplexId, pOutput, pEmbTol, pCenterOfCurvature );
     if (lStatus)
         return lStatus;
         
@@ -141,13 +143,26 @@ int HyperRectExtension::getASimplexForNode( const unsigned int * const pNodes, c
     return 0;    
 }
 
-// Get a set of all simplices for which the given node is a member.
-int HyperRectExtension::getAllSimplicesForNode( const unsigned int pNode, std::set<unsigned int> & pSimplexId,
-    std::set<unsigned int> & pOutput, std::set<unsigned int> & pExplicitSimp, std::set<unsigned int> & pTemp ) const
+
+// Get a simplex index for a simplex where set is a part
+int HyperRectExtension::getASimplexForSet( const std::set<unsigned int> & pSet, unsigned int & pSimplexId) const
 {
     // --- TODO ---
     // So far only works for no extension of an implicit mesh
-    int lStatus = getMesh().getAllSimplicesForNode( pNode, pSimplexId, pOutput, pExplicitSimp, pTemp );
+    int lStatus = getMesh().getASimplexForSet( pSet, pSimplexId);
+    if (lStatus)
+        return lStatus;
+        
+    return 0;    
+}
+
+
+int HyperRectExtension::getAllSimplicesForSet( const std::set<unsigned int> & pSet, std::set<unsigned int> & pSimplexId, std::set<unsigned int> & pOutput ) const
+{
+    // --- TODO ---
+    // So far only works for no extension of an implicit mesh
+    
+    int lStatus = getMesh().getAllSimplicesForSet( pSet, pSimplexId, pOutput );
     if (lStatus)
         return lStatus;
         
@@ -168,10 +183,19 @@ int HyperRectExtension::getNode( const unsigned int pNodeInd, std::vector<double
 // Get a set of chosen simplex
 int HyperRectExtension::getSimplex( const unsigned int pSimplexInd, std::set<unsigned int> & pOutput, std::set<unsigned int> & pTemp ) const
 {
-    // Clear output
-    pOutput.clear();
+    // --- TODO ---
+    // So far not included actual hyper rect. Only implicitMesh functionality.
 
     return getMesh().getSimplex(pSimplexInd, pOutput, pTemp);
+}
+
+// Get diameter of simplex
+double HyperRectExtension::getDiameter( const unsigned int pSimplexInd ) const
+{
+    // --- TODO ---
+    // So far not included actual hyper rect. Only implicitMesh functionality.
+    
+    return getMesh().getDiameter( pSimplexInd );
 }
 
 // Is node part of simplex
@@ -185,9 +209,10 @@ bool HyperRectExtension::isNodePartOfSimplex(const unsigned int pNodeInd, const 
 }
 
 // Is point part of simplex
-int HyperRectExtension::isPointPartOfSimplex( double * const pPoint, const unsigned int pSimplexInd, double * const pStandardCoords, double * const pBarycentricCoords, double * const pDivergence, int * const pStatus) const
+int HyperRectExtension::isPointPartOfSimplex( double * const pPoint, const unsigned int pSimplexInd, double * const pStandardCoords, double * const pBarycentricCoords, 
+    const double pEmbTol, const double * const pCenterOfCurvature, int * const pStatus ) const
 {
-    return mMesh.isPointPartOfSimplex( pPoint, pSimplexInd, pStandardCoords, pBarycentricCoords, pDivergence, pStatus );
+    return mMesh.isPointPartOfSimplex( pPoint, pSimplexInd, pStandardCoords, pBarycentricCoords, pEmbTol, pCenterOfCurvature, pStatus );
 }
 
 

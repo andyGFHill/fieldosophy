@@ -44,13 +44,12 @@ mesh1 = mesher.Mesh( triangles = triangles, nodes = nodes )
 mesh1.getBoundary()
 # Get edges and neighbors
 edges1 = mesher.Mesh.getEdges( mesh1.triangles, mesh1.topD, mesh1.topD, libInstance = mesh1._libInstance )
-neighs1 = mesher.Mesh.getSimplexNeighbors( edges1["simplicesForEdges"], edges1["edgesForSimplices"], libInstance = mesh1._libInstance )
 
 
 # Get implicit mesh of mesh0
 offset = np.array([-5], dtype=np.float64)
 numPerDimension = np.array([3], dtype=np.uintc)
-implicitMesh = mesher.ImplicitMesh( mesh1, offset, numPerDimension, neighs1 )
+implicitMesh = mesher.ImplicitMesh( mesh1, offset, numPerDimension, mesh1.getNeighs() )
 mesh2 = implicitMesh.toFullMesh()
 neighs2 = implicitMesh.getFullNeighs()
 
@@ -76,7 +75,7 @@ plt.plot( mesh2.nodes[:,0], 0 * mesh2.nodes[:,0], marker="x" )
 chosenPoint = mesh2.getBoundingBox()
 chosenPoint = np.random.uniform( size = mesh2.embD ) * (chosenPoint[:,1]-chosenPoint[:,0]) + chosenPoint[:,0]
 chosenPoint = mesh2.nodes[10, :]
-# chosenPoint = np.array([-1])
+chosenPoint = np.array([-1])
 meshPlotter = mesher.MeshPlotter( mesh2 )
 partOfSimplices = np.array([implicitMesh.pointInSimplex( chosenPoint, iter ) for iter in range(mesh2.NT)])
 edges = meshPlotter.getSimplicesLines( partOfSimplices )
@@ -93,7 +92,7 @@ mesh3 = mesher.Mesh( np.array([ [0,1,2], [1,2,3]], dtype=int), np.array( [ [0,0]
 # Set maximum diameter for each node
 maxDiamArray = 1
 # Refine mesh
-mesh3, neighs3 = mesh3.refine( maxDiam = maxDiamArray, maxNumNodes = mesh3.N + 100 )
+mesh3 = mesh3.refine( maxDiam = maxDiamArray, maxNumNodes = mesh3.N + 100 )
 
 
 
@@ -102,7 +101,7 @@ offset = np.array( [-8,17], dtype=np.float64 )
 # Set numper of multiplications in each dimension
 numPerDimension = np.array( [3,2] )
 # Get implicit mesh of mesh0
-implicitMesh2D = mesher.ImplicitMesh( mesh3, offset, numPerDimension, neighs3 )
+implicitMesh2D = mesher.ImplicitMesh( mesh3, offset, numPerDimension, neighs = mesh3.getNeighs()  )
 [implicitMesh2D.fromSectorAndExplicit2Node(3,iter) for iter in range(4)]
 implicitMesh2D.fromNodeInd2SectorAndExplicit(10)
 mesh4 = implicitMesh2D.toFullMesh()
@@ -155,7 +154,6 @@ mesh5 = mesher.Mesh( np.array([ [0,1,2], [1,2,3]], dtype=int), np.array( [ [0,0]
 mesh5 = mesher.regularMesh.extendMeshRegularly( mesh5, spacing = 1, num = 1 )
 # Get edges and neighbors
 edges5 = mesher.Mesh.getEdges( mesh5.triangles, mesh5.topD, mesh5.topD, libInstance = mesh5._libInstance )
-neighs5 = mesher.Mesh.getSimplexNeighbors( edges5["simplicesForEdges"], edges5["edgesForSimplices"], libInstance = mesh5._libInstance )
 
 
 # Set offset
@@ -163,7 +161,7 @@ offset = np.array( [-5,-8,17], dtype=np.float64 )
 # Set numper of multiplications in each dimension
 numPerDimension = np.array( [3,3,3] )
 # Get implicit mesh of mesh0
-implicitMesh3D = mesher.ImplicitMesh( mesh5, offset, numPerDimension, neighs5 )
+implicitMesh3D = mesher.ImplicitMesh( mesh5, offset, numPerDimension, mesh5.getNeighs() )
 mesh6 = implicitMesh3D.toFullMesh()
 neighs6 = implicitMesh3D.getFullNeighs()
 
@@ -190,13 +188,21 @@ edges = meshPlotter.getLines()
 edges = meshPlotter.getBoundaryLines()
 ax.plot3D(edges[0], edges[1], edges[2], color="red")
 
-# Plot a randomly chosen simplex and its neighbors
-chosenSimplex = np.random.randint( 0, mesh6.NT )
-meshPlotter = mesher.MeshPlotter( mesh6 )
-edges = meshPlotter.getSimplicesLines( neighs6[chosenSimplex,:] )
-ax.plot3D(edges[0], edges[1], edges[2], color="green", linewidth=3)
-edges = meshPlotter.getSimplicesLines( np.array([chosenSimplex]) )
-ax.plot3D(edges[0], edges[1], edges[2], color="black", linewidth=3)
+# # Plot a randomly chosen simplex and its neighbors
+# chosenSimplex = np.random.randint( 0, mesh6.NT )
+# meshPlotter = mesher.MeshPlotter( mesh6 )
+# edges = meshPlotter.getSimplicesLines( neighs6[chosenSimplex,:] )
+# ax.plot3D(edges[0], edges[1], edges[2], color="green", linewidth=3)
+# edges = meshPlotter.getSimplicesLines( np.array([chosenSimplex]) )
+# ax.plot3D(edges[0], edges[1], edges[2], color="black", linewidth=3)
+
+# Plot a randomly chosen point and its neighboring simplices
+chosenPoint = mesh6.getBoundingBox()
+chosenPoint = np.random.uniform( size = mesh6.embD ) * (chosenPoint[:,1]-chosenPoint[:,0]) + chosenPoint[:,0]
+partOfSimplices = np.array([implicitMesh3D.pointInSimplex( chosenPoint, iter ) for iter in range(mesh6.NT)])
+edges = meshPlotter.getSimplicesLines( partOfSimplices )
+ax.plot(edges[0], edges[1], edges[2], color="green", linewidth=3)
+ax.scatter(chosenPoint[0], chosenPoint[1], chosenPoint[2], color="black")
 
 
 plt.show()

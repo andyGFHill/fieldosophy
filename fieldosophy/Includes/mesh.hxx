@@ -65,22 +65,36 @@ class ConstMesh
         inline const bool hasNeighs() const {return (mNeighs != NULL);}
         
         
+        // Get diameter of simplex
+        double getDiameter( const unsigned int pSimplexInd ) const;
         // Get a simplex index for a simplex where points are part
         int getASimplexForPoint( const double * const pPoints, const unsigned int pNumPoints, 
-            unsigned int * const pSimplexIds, double * const pBarycentricCoords = NULL, const double pEmbTol = 0.0 ) const;
+            unsigned int * const pSimplexIds, double * const pBarycentricCoords, 
+            const double pEmbTol, const double * const pCenterOfCurvature, const unsigned int pNumCentersOfCurvature) const;
         // Get a set of all simplices for which the given point is a member.
         int getAllSimplicesForPoint( const double * const pPoint, unsigned int pSimplexId, 
-            std::set<unsigned int> & pOutput, std::set<unsigned int> & pTemp ) const;
+            std::set<unsigned int> & pOutput,
+            const double pEmbTol, const double * const pCenterOfCurvature ) const;
         // Get a simplex index for a simplex where node is a part
         int getASimplexForNode( const unsigned int * const pNodes, const unsigned int pNumNodes, unsigned int * const pSimplexIds) const;
+        // Get a simplex index for a simplex where set is a part
+        int getASimplexForSet( const std::set<unsigned int> & pSet, unsigned int & pSimplexId) const;
         // Get a set of all simplices for which the given node is a member.
         int getAllSimplicesForNode( const unsigned int pNode, unsigned int pSimplexId,
-            std::set<unsigned int> & pOutput, std::set<unsigned int> & pTemp ) const;
-        
+            std::set<unsigned int> & pOutput ) const
+        {
+            std::set<unsigned int> lSet;
+            lSet.insert(pNode);
+            return getAllSimplicesForSet( lSet, pSimplexId, pOutput );
+        }
+        // Get a set of all simplices for which the given set is a member.
+        int getAllSimplicesForSet( const std::set<unsigned int> & pSet, unsigned int pSimplexId,
+            std::set<unsigned int> & pOutput ) const;
         
         // Get standard- and/or barycentric coordinates for points given simplex
         int getCoordinatesGivenSimplex( const double * const pPoints, const unsigned int pNumPoints, const unsigned int pSimplexId,
-            double * const pStandardCoords, double * const pBarycentricCoords, double * const pDivergence, int * const pStatus) const;
+            double * const pStandardCoords, double * const pBarycentricCoords, 
+            const double pEmbTol, const double * const pCenterOfCurvature, const unsigned int pNumCentersOfCurvature, double * const pBaryOutsidedness) const;
         // Get a set of all node indices part of a collection of simplices
         std::set<unsigned int> getUniqueNodesOfSimplexCollection( const unsigned int * const pSimplices, const unsigned int pNumSimplices ) const;
         // Populate arrays with corresponding mesh
@@ -104,6 +118,25 @@ class ConstMesh
             return false;
         }
         
+        // See if node is part of simplex
+        inline bool isSetPartOfSimplex( const std::set<unsigned int> & pSet, const unsigned int pSimplex ) const
+        {
+            if (pSimplex > getNT())
+                return false;                
+            unsigned int lNumMatches = 0;
+            // Loop through simplex
+            for (unsigned int lIter = 0; lIter < (getTopD()+1); lIter++ )
+            {
+                const unsigned int lCurNode = getSimplices()[pSimplex * (getTopD()+1) + lIter];
+                if ( pSet.count(lCurNode) > 0 )
+                    ++lNumMatches;
+            }
+            if (lNumMatches == pSet.size() )
+                return true;
+            
+            return false;
+        }
+        
         
     
         
@@ -123,7 +156,8 @@ class ConstMesh
         // Pointer to storage of mesh graph for node
         MeshGraph * mMeshGraph = NULL;
         // Compute the standard simplex coordinates of chosen point
-        Eigen::VectorXd getSimplexStandardCoords( const double * const pPoint, const unsigned int pSimplexId, double * const pDivergence = NULL ) const;
+        Eigen::VectorXd getSimplexStandardCoords( const double * const pPoint, const unsigned int pSimplexId, std::vector< double > & pCurNodeCoords,
+            double * const pDivergence = NULL, const double * const pCenterOfCurvature = NULL ) const;
 
 };
 
@@ -304,8 +338,10 @@ class MapToSimp
         Eigen::VectorXd solve( const Eigen::VectorXd & pVector ) const;
         // Solve transposed
         Eigen::VectorXd solveTransposed( const Eigen::VectorXd & pVector ) const;
-        // Get divergence from subspace
-        double getDivergence( const Eigen::VectorXd & pVector ) const;
+        // Get length between hyperplane of simplex and vector
+        double getOrthogonalLength( const Eigen::VectorXd & pVector ) const;
+        // Get parameter value 't' of line parameterized as 'pLinePoint' + t*'pLineVector', for the point where line cuts hyperplane of simplex.
+        double getLineIntersection( const Eigen::VectorXd & pLinePoint, const Eigen::VectorXd & pLineVector ) const;
         // Get standard coordinates of vector
         Eigen::VectorXd getStandardCoord( const Eigen::VectorXd & pVector ) const {return solve(pVector - mPoint0);}
         // right multiplication of F with vector
@@ -415,10 +451,6 @@ class ExtendMesh
 };
 
 
-
-
-// Get barycentric coordinates from standard simplex coordinates
-inline Eigen::VectorXd mesh_getBarycentricFromStandard( const Eigen::VectorXd & lStand );
 // Get edges of simplex
 int mesh_getEdgesOfSimplex( std::vector< std::set<unsigned int> > & pOut, const unsigned int pNumCombinations,
     const unsigned int pEdgeDim, const unsigned int pTopologicalD, const unsigned int * const pSimplex );
@@ -435,7 +467,8 @@ extern "C"
         const double * const pPoints, const unsigned int pNumPoints,
         const double * const pNodes, const unsigned int pNumNodes,
         const unsigned int * const pMesh, const unsigned int pNumSimplices,
-        const unsigned int pD, const unsigned int pTopD, const double pEmbTol = 0.0d );
+        const unsigned int pD, const unsigned int pTopD, const double pEmbTol = 0.0d,
+        const double * const pCenterOfCurvature = NULL, const unsigned int pNumCentersOfCurvature = 0);
     
     // Recurrent investigation of all edges (or sub-edges) [thread safe]
     int mesh_recurrentEdgeFinder( unsigned int * const pEdgeList, const unsigned int pAllocateSpace,
@@ -466,7 +499,6 @@ extern "C"
     // Refines chosen simplices
     int mesh_refineMesh( const double * const pNodes, const unsigned int pNumNodes, const unsigned int pD,
         const unsigned int * const pSimplices, const unsigned int pNumSimplices, const unsigned int pTopD,
-        const unsigned int * const pNeighs,
         unsigned int * const pNewNumNodes, unsigned int * const pNewNumSimplices, unsigned int * const pId,
         const unsigned int pMaxNumNodes, const double * const pMaxDiam, const unsigned int pNumMaxDiam,
         int (* transformationPtr)(double *, unsigned int) );

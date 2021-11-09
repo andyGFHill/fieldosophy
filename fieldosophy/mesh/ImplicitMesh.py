@@ -54,6 +54,13 @@ class ImplicitMesh:
         self._neighs = neighs
         self._libInstance = mesh._libInstance
         
+        if (numPerDimension is None):
+            self.N = self._mesh.N
+            self.NT = self._mesh.NT
+        else:
+            self.N = np.prod(numPerDimension) * self._mesh.N
+            self.NT = np.prod(numPerDimension) * self._mesh.NT
+        
         # Enforce format
         if self._offset is not None and self._offset is not np.dtype(np.float64):
             self._offset = self._offset.astype(np.float64)
@@ -89,7 +96,8 @@ class ImplicitMesh:
         self._libInstance.implicitMesh_nodeSectorAndExplicit2Ind.argtypes = [ ctypes.c_uint, ctypes.c_uint, ctypes.c_uint, self.c_uint_p ]
         
         self._libInstance.implicitMesh_pointInSimplex.restype = ctypes.c_int
-        self._libInstance.implicitMesh_pointInSimplex.argtypes = [ ctypes.c_uint, self.c_double_p, ctypes.c_uint, ctypes.c_uint, self.c_bool_p ]
+        self._libInstance.implicitMesh_pointInSimplex.argtypes = [ ctypes.c_uint, self.c_double_p, ctypes.c_uint, ctypes.c_uint, self.c_bool_p, \
+              ctypes.c_double, self.c_double_p ]
         
         self._libInstance.implicitMesh_nodeInSimplex.restype = ctypes.c_int
         self._libInstance.implicitMesh_nodeInSimplex.argtypes = [ ctypes.c_uint, ctypes.c_uint, ctypes.c_uint, self.c_bool_p ]
@@ -207,6 +215,17 @@ class ImplicitMesh:
         return newNeighs
         
     
+    def hasNeighs(self):
+        """
+        :return: True if neighborhood structure was given.
+        """
+        
+        if self._neighs is None:
+            return False
+        else:
+            return True
+        
+    
     def fromNodeInd2SectorAndExplicit(self, nodeInd):
         # Function for returning sector and explicit node index from implicit node index
 
@@ -284,7 +303,7 @@ class ImplicitMesh:
             
         return out.value
     
-    def pointInSimplex(self, point, simplexInd):
+    def pointInSimplex(self, point, simplexInd, embTol = 0, centerOfCurvature = None):
         # Function for checking if node is in simplex
         
         if (point.size != self._mesh.embD):
@@ -300,10 +319,17 @@ class ImplicitMesh:
             point = point.astype(np.float64)
         point_p = point.ctypes.data_as(self.c_double_p) 
         simplexInd = np.uintc(simplexInd)
+        embTol = np.float64(embTol)
+        centerOfCurvature_p = None
+        if centerOfCurvature is not None:
+            if isinstance( centerOfCurvature, np.ndarray ):
+                if centerOfCurvature.dtype is not np.dtype("float64"):
+                    centerOfCurvature = centerOfCurvature.astype(np.float64)
+                centerOfCurvature_p = centerOfCurvature.ctypes.data_as( self.c_double_p )
         
         out = ctypes.c_bool(False)
         status = self._libInstance.implicitMesh_pointInSimplex( self._internalID, \
-                 point_p, np.uintc(point.size), simplexInd, ctypes.byref(out) )   
+                 point_p, np.uintc(point.size), simplexInd, ctypes.byref(out), ctypes.c_double(embTol), centerOfCurvature_p )   
         
         if status != 0:
             # Try to save internally again
@@ -315,5 +341,35 @@ class ImplicitMesh:
             raise Exception( "Uknown error occured! Error code " + str(status) + " from implicitMesh_pointInSimplex()" )         
             
         return out.value
+    
+    
+    
+    def getEdges(self):
+        """
+        Get edges of hyper rect mesh
+
+        Returns
+        -------
+        None.
+
+        """
+        
+        return self._mesh.getEdges()
+        
+        
+        
+    def getTriangles(self, inds):
+        
+        return self._mesh.getTriangles(inds)
+
+        
+    def getNodes(self, inds):
+        
+        return self._mesh.getNodes(inds)
+        
+        
+    def getLibInstance(self):
+        
+        return self._mesh._mesh.libInstance
 
     

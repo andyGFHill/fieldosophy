@@ -54,7 +54,7 @@ plt.plot( meshm0.nodes[:,0], 0 * meshm0.nodes[:,0], marker="x" )
 maxDiamArray = 0.2 * np.ones( (meshm0.N) )
 maxDiamArray[2] = 0.05
 # Create refined sphere
-meshm1, neighsm1 = meshm0.refine( maxDiam = maxDiamArray, maxNumNodes = meshm0.N + 50 )
+meshm1 = meshm0.refine( maxDiam = maxDiamArray, maxNumNodes = meshm0.N + 50 )
 
 ax = fig.add_subplot(322, )
 ax.set_title( "Mesh refine 1" )    
@@ -81,8 +81,8 @@ plt.plot(edges[0], edges[1], color="red")
 maxDiamArray = 0.8 * np.ones( (mesh0.N) )
 maxDiamArray[0] = 0.1
 
-# Create refined sphere
-mesh1, neighs1 = mesh0.refine( maxDiam = maxDiamArray, maxNumNodes = mesh0.N + 50 )
+# Create refined mesh
+mesh1 = mesh0.refine( maxDiam = maxDiamArray, maxNumNodes = mesh0.N + 50 )
 
 ax = fig.add_subplot(324)
 ax.set_title( "Mesh refine 1" )   
@@ -102,7 +102,7 @@ plt.plot(edges[0], edges[1], color="red")
 
 
 # Create unrefined sphere
-meshSphere0, neighSphere0 = mesher.Mesh.meshOnSphere( None, maxDiam = np.inf, maxNumNodes = int(1e3), radius = 1)
+meshSphere0 = mesher.Mesh.meshOnSphere( maxDiam = np.inf, maxNumNodes = int(1e3), radius = 1)
 
 
 fig = plt.figure(1)
@@ -121,7 +121,7 @@ maxDiamArray[0] = 2 * np.sin( 1 / 180.0 * np.pi / 2.0 )
 
 
 # Create refined sphere
-meshSphere1, neighsSphere1 = meshSphere0.refine( maxDiam = maxDiamArray, maxNumNodes = meshSphere0.N + 200, transformation = mesher.geometrical.mapToHypersphere )
+meshSphere1 = meshSphere0.refine( maxDiam = maxDiamArray, maxNumNodes = meshSphere0.N + 200, transformation = mesher.geometrical.mapToHypersphere )
 
 ax = fig.add_subplot(326, projection='3d')
 ax.set_title( "Mesh refine 1" )    

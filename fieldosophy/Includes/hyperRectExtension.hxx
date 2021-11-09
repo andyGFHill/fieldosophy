@@ -68,20 +68,31 @@ class HyperRectExtension
         }
         
         
-        
+        // Get diameter of simplex
+        double getDiameter( const unsigned int pSimplexInd ) const;
         // Get neighbors for simplex
         int getNeighborsFromSimplex(const unsigned int pSimplexInd, std::set<unsigned int> & pNeighs, std::set<unsigned int> & pTemp) const;
         // Get a simplex index for a simplex where points are part
         int getASimplexForPoint( double * const pPoints, const unsigned int pNumPoints,
-            unsigned int * const pSimplexIds, double * const pBarycentricCoords = NULL ) const;
+            unsigned int * const pSimplexIds, double * const pBarycentricCoords,
+            const double pEmbTol, const double * const pCenterOfCurvature, const unsigned int pNumCentersOfCurvature) const;
         // Get a set of all simplices for which the given point is a member.
-        int getAllSimplicesForPoint( double * const pPoint, std::set<unsigned int> & pSimplexId,
-            std::set<unsigned int> & pOutput, std::set<unsigned int> & pExplicitSimp, std::set<unsigned int> & pTemp ) const;
+        int getAllSimplicesForPoint( double * const pPoint, std::set<unsigned int> & pSimplexId, std::set<unsigned int> & pOutput,
+            const double pEmbTol, const double * const pCenterOfCurvature ) const;
         // Get a simplex index for a simplex where node is a part
         int getASimplexForNode( const unsigned int * const pNodes, const unsigned int pNumNodes, unsigned int * const pSimplexIds) const;
+        // Get a simplex index for a simplex where set is a part
+        int getASimplexForSet( const std::set<unsigned int> & pSet, unsigned int & pSimplexId) const;
         // Get a set of all simplices for which the given node is a member.
         int getAllSimplicesForNode( const unsigned int pNode, std::set<unsigned int> & pSimplexId,
-            std::set<unsigned int> & pOutput, std::set<unsigned int> & pExplicitSimp, std::set<unsigned int> & pTemp ) const;
+            std::set<unsigned int> & pOutput ) const
+        {
+            std::set<unsigned int> lSet;
+            lSet.insert(pNode);
+            return getAllSimplicesForSet( lSet, pSimplexId, pOutput );
+        }
+        // Get a set of all simplices for which the given set is a member.
+        int getAllSimplicesForSet( const std::set<unsigned int> & pSet, std::set<unsigned int> & pSimplexId, std::set<unsigned int> & pOutput ) const;
         
         // Get a vector of chosen node    
         int getNode( const unsigned int pNodeInd, std::vector<double> & pOutput ) const;
@@ -90,7 +101,8 @@ class HyperRectExtension
         // Is node part of simplex
         bool isNodePartOfSimplex(const unsigned int pNodeInd, const unsigned int pSimplexInd, std::set<unsigned int> & pSimplexVec, std::set<unsigned int> & pTemp2) const;
         // Is point part of simplex
-        int isPointPartOfSimplex( double * const pPoint, const unsigned int pSimplexInd, double * const pStandardCoords, double * const pBarycentricCoords, double * const pDivergence, int * const pStatus) const;
+        int isPointPartOfSimplex( double * const pPoint, const unsigned int pSimplexInd, double * const pStandardCoords, double * const pBarycentricCoords, 
+            const double pEmbTol, const double * const pCenterOfCurvature, int * const pStatus) const;
 
         
     

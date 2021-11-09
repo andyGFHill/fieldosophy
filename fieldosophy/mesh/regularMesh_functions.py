@@ -116,4 +116,13 @@ def meshInPlaneRegular( boundaryPolygon, maxDiam ):
     return mesh
        
 
+def meshInBox( scale = np.ones((3)) ):
+    """ Creates simplicial mesh in box. """    
+    
+    mesh = Mesh.meshInSquare( scale[:2] )
+    mesh = extendMeshRegularly( mesh, spacing = scale[2], num = 1 )
+    
+    
+    return mesh
+
     

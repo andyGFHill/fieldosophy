@@ -73,7 +73,7 @@ template <typename T> class GlobalVariablesList
 
 
 // Get set intersection
-inline void misc_setIntersection( const std::set<unsigned int> & p1, const std::set<unsigned int> & p2, std::set<unsigned int> & pOutput)
+template< typename T>  void misc_setIntersection( const std::set<T> & p1, const std::set<T> & p2, std::set<T> & pOutput)
 {
     pOutput.clear();
     // Get intersection of sets
@@ -82,11 +82,12 @@ inline void misc_setIntersection( const std::set<unsigned int> & p1, const std::
     
     return;
 }
-// Return true if sets are sharing element
-inline unsigned int misc_numSharedElements( const std::set<unsigned int> & p1, const std::set<unsigned int> & p2, std::set<unsigned int> & pTemp) 
+// Return number of elements shared between sets
+template< typename T> unsigned int misc_numSharedElements( const std::set<T> & p1, const std::set<T> & p2) 
 {
-    misc_setIntersection(p1, p2, pTemp); 
-    return pTemp.size();
+    std::set<T> lTemp;
+    misc_setIntersection<T>(p1, p2, lTemp); 
+    return lTemp.size();
 }
 
 

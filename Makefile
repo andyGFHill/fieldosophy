@@ -9,12 +9,12 @@ INCLUDES = -I ./fieldosophy/Includes -I ${EIGENPATH}	# Path to local includes in
 SRCPATH = ./fieldosophy/src
 MACROSDEFINED = -DEIGEN_MPL2_ONLY  # Macros to be defined
 LINKERFLAGS = -lgsl -lgslcblas -lm -lgomp -O3 	# Flags for the linker
-COMPILERFLAGS = -shared -fPIC -fopenmp  	# Flags for the compiler
+COMPILERFLAGS = -shared -fPIC -fopenmp   	# Flags for the compiler
 LIBRARYOUTPUTPATH = ./fieldosophy/libraries
 
 
 # Define sources for all components
-MESHSRC = ${SRCPATH}/mesh/mesh.cxx ${SRCPATH}/mesh/meshGraph.cxx ${SRCPATH}/mesh/implicitMesh.cxx ${SRCPATH}/mesh/HyperRectExtension.cxx ${SRCPATH}/mesh/MeshAndMetric.cxx
+MESHSRC = ${SRCPATH}/mesh/mesh.cxx ${SRCPATH}/mesh/meshGraph.cxx ${SRCPATH}/mesh/implicitMesh.cxx ${SRCPATH}/mesh/HyperRectExtension.cxx 
 MARGINALSRC = ${SRCPATH}/marginal/NIG.c
 FEMSRC = ${SRCPATH}/FEM.c
 

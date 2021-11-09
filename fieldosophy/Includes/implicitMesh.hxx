@@ -64,12 +64,15 @@ class ImplicitMesh
         inline unsigned int getNN() const {return mNN;}
         inline unsigned int getNT() const {return mNT;}
         inline unsigned int getNumSectors() const {return getNT() / mMesh.getNT();}
+        inline bool isExtended() const { return (mCopiesPerDimension.size() > 0); }
         
         const std::vector< std::pair<double, double> > & getBoundingBox() const {return mBoundingBox;}
         const std::vector< std::pair< std::set<unsigned int>, std::set<unsigned int> > > & getBoundingNodes() const {return mBoundingNodes;}
         const std::vector< std::pair< std::set<unsigned int>, std::set<unsigned int> > > & getBoundingSimplices() const {return mBoundingSimplices;}
         int getNode(const unsigned int pNodeIndex, std::vector<double> & pOutput) const;
         int getSimplex(const unsigned int pSimplexIndex, std::set<unsigned int> & pOutput, std::set<unsigned int> & pTemp) const;
+        // Get diameter of simplex
+        double getDiameter( const unsigned int pSimplexInd ) const;
         
         // Get sector index and explicit index given actual node index
         int nodeInd2SectorAndExplicitInd( const unsigned int pNodeInd, unsigned int & pSector, unsigned int & pExplicitInd ) const;
@@ -78,12 +81,7 @@ class ImplicitMesh
         // Get sector of point
         unsigned int point2Sector( const double * const pPoint ) const;
         // Get actual simplex index given sector index and explicit index
-        inline unsigned int sectorAndExplicit2SimplexInd( const unsigned int pSector, const unsigned int pExplicitInd ) const
-        {
-            unsigned int lIndex = pExplicitInd;
-            lIndex += pSector * mMesh.getNT();            
-            return lIndex;
-        }
+        inline unsigned int sectorAndExplicit2SimplexInd( const unsigned int pSector, const unsigned int pExplicitInd ) const { return pSector * mMesh.getNT() + pExplicitInd;}
         // Get sector index given simplex
         inline unsigned int simplexInd2Sector(const unsigned int pSimplexInd) const { return pSimplexInd / mMesh.getNT(); }
         // Get explicit simplex index given actual simplex index
@@ -92,17 +90,29 @@ class ImplicitMesh
         int getNeighborsFromSimplex(const unsigned int pSimplexInd, std::set<unsigned int> & pNeighs) const;
         // Get a simplex index for a simplex where points are part
         int getASimplexForPoint( double * const pPoints, const unsigned int pNumPoints,
-            unsigned int * const pSimplexIds, double * const pBarycentricCoords = NULL ) const;
+            unsigned int * const pSimplexIds, double * const pBarycentricCoords,
+            const double pEmbTol, const double * const pCenterOfCurvature, const unsigned int pNumCentersOfCurvature) const;
         // Get a set of all simplices for which the given point is a member.
         int getAllSimplicesForPoint( double * const pPoint, std::set<unsigned int> & pSimplexId,
-            std::set<unsigned int> & pOutput, std::set<unsigned int> & pExplicitSimp, std::set<unsigned int> & pTemp ) const;
+            std::set<unsigned int> & pOutput,
+            const double pEmbTol, const double * const pCenterOfCurvature ) const;
         // Get a simplex index for a simplex where node is a part
         int getASimplexForNode( const unsigned int * const pNodes, const unsigned int pNumNodes, unsigned int * const pSimplexIds) const;
+        // Get a simplex index for a simplex where set is a part
+        int getASimplexForSet( const std::set<unsigned int> & pSet, unsigned int & pSimplexId) const;
         // Get a set of all simplices for which the given node is a member.
-        int getAllSimplicesForNode( const unsigned int pNode, std::set<unsigned int> & pSimplexId,
-            std::set<unsigned int> & pOutput, std::set<unsigned int> & pExplicitSimp, std::set<unsigned int> & pTemp ) const;
+        int getAllSimplicesForNode( const unsigned int pNode, std::set<unsigned int> & pSimplexId, std::set<unsigned int> & pOutput ) const
+        {
+            std::set<unsigned int> lSet;
+            lSet.insert(pNode);
+            return getAllSimplicesForSet( lSet, pSimplexId, pOutput );
+        }
+        // Get a set of all simplices for which the given set is a member.
+        int getAllSimplicesForSet( const std::set<unsigned int> & pSet, std::set<unsigned int> & pSimplexId,
+            std::set<unsigned int> & pOutput ) const;
         // Is point part of simplex
-        int isPointPartOfSimplex( double * const pPoint, const unsigned int pSimplexInd, double * const pStandardCoords, double * const pBarycentricCoords, double * const pDivergence, int * const pStatus) const;
+        int isPointPartOfSimplex( double * const pPoint, const unsigned int pSimplexInd, double * const pStandardCoords, double * const pBarycentricCoords, 
+            const double pEmbTol, const double * const pCenterOfCurvature, int * const pStatus ) const;
         
         // Populate arrays with explicit mesh from implicit mesh
         int populateArraysFromFullMesh( double * const pNodes, const unsigned int pNumNodes, const unsigned int pD, 
@@ -148,17 +158,15 @@ class ImplicitMesh
         {
             return ( pDimSector * getNumCopiesPerSector( pDim ) );
         }
-        unsigned int sector2ExplicitIndexSize( const unsigned int pSector ) const;
-        std::vector<unsigned int> sector2ExplicitIndexing( const unsigned int pSector ) const;
-        unsigned int sector2ExplicitIndexReverse( const unsigned int pSector, const unsigned int pIndex ) const;
-        unsigned int sector2ExplicitIndex( const unsigned int pSector, const unsigned int pIndex ) const;
+        inline unsigned int getNumInteriorPoints() const;
         inline double getBoundingBoxLength( const unsigned int pDim ) const 
         {
             if (pDim >= getD())
                 return 0.0;
-            const std::pair<unsigned int, unsigned int> & lCurDimBox = getBoundingBox()[pDim];
+            const std::pair<double, double> & lCurDimBox = mBoundingBox[pDim];
             return (lCurDimBox.second - lCurDimBox.first);
         }
+        // Get node that is paired (if any)
         inline unsigned int findExplicitPairedNode(const unsigned int pNodeInd, const unsigned int pDim, const bool pIsFront) const
         {
             if (mPairing.size() > pDim)
@@ -170,6 +178,7 @@ class ImplicitMesh
                 }
             return mMesh.getNN();
         }
+        // Get simplex that is paired (if any)
         inline unsigned int findExplicitPairedSimplex(const unsigned int pSimpInd, const unsigned int pDim, const bool pIsFront) const
         {
             if (mPairingSimplices.size() > pDim)
@@ -238,7 +247,8 @@ extern "C"
         
     // Checks whether a certain point is in a certain simplex
     int implicitMesh_pointInSimplex( const unsigned int pId, const double * const pPoint, const unsigned int pDim, 
-        const unsigned int pSimplex, bool * const pOut );
+        const unsigned int pSimplex, bool * const pOut,
+        const double pEmbTol, const double * const pCenterOfCurvature );
     // Checks whether a certain node is in a certain simplex
     int implicitMesh_nodeInSimplex( const unsigned int pId, const unsigned int pNode, 
         const unsigned int pSimplex, bool * const pOut );

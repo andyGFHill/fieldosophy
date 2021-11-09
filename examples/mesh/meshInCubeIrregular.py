@@ -40,7 +40,7 @@ mesh = mesher.regularMesh.meshInPlaneRegular( coordinateLims[:2, :], np.array([0
 # Refine some points to create irregular mesh
 refineArray = 1 * np.ones(mesh.nodes.shape[0])
 refineArray[[0,11,27]] = 0.1
-mesh, neighs = mesh.refine( maxDiam = refineArray, maxNumNodes = mesh.N + int(1e2) )
+mesh = mesh.refine( maxDiam = refineArray, maxNumNodes = mesh.N + int(1e2) )
 
 
 ax = plt.subplot(221)

@@ -27,5 +27,5 @@ setup( name = NAME,
       packages = ['fieldosophy', 'fieldosophy.GRF', 'fieldosophy.mesh', 'fieldosophy.marginal', 'fieldosophy.misc'],
       # data_files = [ ('' , ['libraries/libSPDEC.so']) ],
       package_data = {"": ["libraries/*.so"]},
-      install_requires=[ 'numpy', 'scipy', 'matplotlib', 'scikit-sparse', 'basemap', 'meshio' ],
+      install_requires=[ 'numpy', 'scipy', 'matplotlib', 'scikit-sparse', 'meshio' ],
       include_package_data=True )

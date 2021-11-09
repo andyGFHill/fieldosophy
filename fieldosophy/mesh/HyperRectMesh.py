@@ -67,7 +67,8 @@ class HyperRectMesh:
         if  self._numSteps is not None and self._numSteps is not np.dtype(np.uintc):
             self._numSteps = self._numSteps.astype(np.uintc)
             
-            
+        self.N = self._mesh.N
+        self.NT = self._mesh.NT    
         self.embD = self._mesh._mesh.embD
         self.topD = self._mesh._mesh.topD
         if (self._offset is not None):
@@ -170,6 +171,37 @@ class HyperRectMesh:
             self._internalID = None
 
             
+        
+        
+    def getEdges(self):
+        """
+        Get edges of hyper rect mesh
+
+        Returns
+        -------
+        None.
+
+        """
+        
+        return self._mesh.getEdges()
+        
+        
+        
+    def getTriangles(self, inds):
+        
+        return self._mesh.getTriangles(inds)
+
+        
+    def getNodes(self, inds):
+        
+        return self._mesh.getNodes(inds)
+        
+        
+    def getLibInstance(self):
+        
+        return self._mesh._mesh.libInstance
+        
+        
         
         
 

@@ -26,27 +26,48 @@
 
 
 
-Eigen::VectorXd ConstMesh::getSimplexStandardCoords( const double * const pPoint, const unsigned int pSimplexId, double * const pDivergence  ) const
+Eigen::VectorXd ConstMesh::getSimplexStandardCoords( const double * const pPoint, const unsigned int pSimplexId, std::vector< double > & pCurNodeCoords, 
+    double * const pDivergence, const double * const pCenterOfCurvature  ) const
 {
     // Get current point
     Eigen::Map<const Eigen::VectorXd> lCurCoords( pPoint, getD() );
     
+    // Get pointer to indices
+    const unsigned int * const lSimplexIndicesPtr = &getSimplices()[(getTopD()+1) * pSimplexId];    
     // Get coordinates of nodes in current simplex
-    std::vector<int> lCurNodes( &getSimplices()[(getTopD()+1) * pSimplexId], &getSimplices()[(getTopD()+1) * (pSimplexId + 1)] );
-    std::vector< double > lCurNodeCoords;
-    lCurNodeCoords.reserve( (getTopD() + 1) * getD() );
-    
+    pCurNodeCoords.clear();    
     for (unsigned int lIterNodes = 0; lIterNodes < getTopD()+1; lIterNodes++)
-        lCurNodeCoords.insert (lCurNodeCoords.end(), 
-            &getNodes()[lCurNodes[lIterNodes]*getD()], 
-            &getNodes()[lCurNodes[lIterNodes]*getD() + getD()]);
+        pCurNodeCoords.insert (pCurNodeCoords.end(), 
+            &getNodes()[lSimplexIndicesPtr[lIterNodes]*getD()], 
+            &getNodes()[lSimplexIndicesPtr[lIterNodes]*getD() + getD()]);
                             
     // Acquire standard coordinates transform
-    MapToSimp lF( lCurNodeCoords.data(), getD(), getTopD() );    
+    MapToSimp lF( pCurNodeCoords.data(), getD(), getTopD() );    
     // check if on submanifold
     if (pDivergence != NULL)
+    {
         // Compute the distance off-submanifold
-        *pDivergence = lF.getDivergence( lCurCoords );
+        *pDivergence = lF.getOrthogonalLength( lCurCoords );
+        
+        // If given a center of curvature
+        if ( pCenterOfCurvature != NULL )
+        {
+            // map center of curvature to Eigen vector
+            Eigen::Map<const Eigen::VectorXd> lLinePoint( pCenterOfCurvature, getD() );
+            // Acquire vector between current point and center of curvature
+            Eigen::VectorXd lTemp = lCurCoords - lLinePoint;
+            // Get parameterization
+            const double lT = lF.getLineIntersection( lLinePoint, lTemp );
+            // If out of hyperplane but line is still cutting
+            if ( (lT != 0.0d) || ( lT != std::numeric_limits<double>::infinity() ) )
+            {
+                // Get point 
+                lTemp= lLinePoint + lT * lTemp;
+                // Return standard coordinates
+                return lF.getStandardCoord(lTemp);                
+            }
+        }
+    }
     
     // Return standard coordinates
     return lF.getStandardCoord(lCurCoords);
@@ -55,65 +76,166 @@ Eigen::VectorXd ConstMesh::getSimplexStandardCoords( const double * const pPoint
 
 // Get which simplex points belong to
 int ConstMesh::getASimplexForPoint( const double * const pPoints, const unsigned int pNumPoints, 
-            unsigned int * const pSimplexIds, double * const pBarycentricCoords, const double pEmbTol ) const
+            unsigned int * const pSimplexIds, double * const pBarycentricCoords, 
+            const double pEmbTol, const double * const pCenterOfCurvature, const unsigned int pNumCentersOfCurvature ) const
 {
     // Assume first point belong to node 0
     unsigned int lCurGraphNode = 0;
     int lStatus = 0;    
-    // Loop through each point
-    #pragma omp parallel for firstprivate(lCurGraphNode) reduction(|:lStatus)
-    for ( unsigned int lIterPoints = 0; lIterPoints < pNumPoints; lIterPoints++ )
-    {         
-        // If error
-        if (lStatus != 0)
-            continue;
     
-        // Get if mesh graph has been computed
-        bool lUseMeshGraph = (mMeshGraph != NULL);
-        // Initiate that simplex is not found
-        bool lSimplexFound = false;
+    #pragma omp parallel firstprivate(lCurGraphNode) reduction(|:lStatus)
+    {
+    
+        std::vector<double> lTemp;
+    
+        // Loop through each point
+        #pragma omp for 
+        for ( unsigned int lIterPoints = 0; lIterPoints < pNumPoints; lIterPoints++ )
+        {         
+            // If error
+            if (lStatus != 0)
+                continue;
         
-        // If mesh graph exist
-        if (lUseMeshGraph)
-        {
-            // Get node number of current point
-            int lOtherStatus = mMeshGraph->getNodeOfPoint( &pPoints[lIterPoints*getD()], getD(), &lCurGraphNode );
-            // Get node object of current point
-            const MeshGraph::Node * lGraphNode = (lOtherStatus == 0) ? mMeshGraph->getNode(lCurGraphNode) : NULL;
-            // If cannot find graph node
-            if (lGraphNode == NULL)
+            // Get if mesh graph has been computed
+            bool lUseMeshGraph = (mMeshGraph != NULL);
+            // Initiate that simplex is not found
+            bool lSimplexFound = false;
+            
+            // If mesh graph exist
+            if (lUseMeshGraph)
             {
-                if (lOtherStatus == 0)
-                    // flag error
-                    lStatus |= 1;
-                else
-                    // flag error
-                    lStatus |= lOtherStatus + 2;
-                    
-                // Look without mesh graph
-                lUseMeshGraph = false;
-            }
-            else
-            {
-                // Loop through all triangles in node
-                std::vector< unsigned int >::const_iterator lIterSimp = std::begin( lGraphNode->mTriangles );
-                while ( lIterSimp != std::end( lGraphNode->mTriangles ) )
+                // Get node number of current point
+                int lOtherStatus = mMeshGraph->getNodeOfPoint( &pPoints[lIterPoints*getD()], getD(), &lCurGraphNode );
+                // Get node object of current point
+                const MeshGraph::Node * lGraphNode = (lOtherStatus == 0) ? mMeshGraph->getNode(lCurGraphNode) : NULL;
+                // If cannot find graph node
+                if (lGraphNode == NULL)
                 {
-                    // Get current point in standard coordinates of chosen simplex
-                    double lDivergence = 0.0;
-                    double * const lDivergencePtr = (getD() > getTopD()) ? &lDivergence : NULL;
-                    const Eigen::VectorXd lStandCoords = getSimplexStandardCoords( &pPoints[lIterPoints*getD()], *lIterSimp, lDivergencePtr );
-                    // Get barycentric coordinates of current point
-                    const Eigen::VectorXd lBarycentricCoords = mesh_getBarycentricFromStandard(lStandCoords);
-                    // If all barycentric coordinates are in between 0 and 1 we found the correct simplex
-                    bool lInsideSimplex = true;
-                    for (unsigned int lIterDims = 0; lIterDims < lBarycentricCoords.size(); lIterDims++)
-                        // If not inside in current simplex
-                        if ( ( lBarycentricCoords.coeff(lIterDims) < 0.0d ) || ( lBarycentricCoords.coeff(lIterDims) > 1.0d ) )
+                    if (lOtherStatus == 0)
+                        // flag error
+                        lStatus |= 1;
+                    else
+                        // flag error
+                        lStatus |= lOtherStatus + 2;
+                        
+                    // Look without mesh graph
+                    lUseMeshGraph = false;
+                }
+                else
+                {
+                    // Loop through all triangles in node
+                    std::vector< unsigned int >::const_iterator lIterSimp = std::begin( lGraphNode->mTriangles );
+                    while ( lIterSimp != std::end( lGraphNode->mTriangles ) )
+                    {
+                        // define place to store divergence value and point to it
+                        double lDivergence = 0.0;
+                        double * const lDivergencePtr = (getD() > getTopD()) ? &lDivergence : NULL;
+                        // Define if a center of curvature should be included
+                        const double * lCenterOfCurvaturePtr = NULL;
+                        if ( pCenterOfCurvature != NULL )
                         {
+                            if (pNumCentersOfCurvature == 1)
+                                lCenterOfCurvaturePtr = pCenterOfCurvature;
+                            else if (pNumCentersOfCurvature == pNumPoints)
+                                lCenterOfCurvaturePtr = &pCenterOfCurvature[lIterPoints * getD()];
+                        }                    
+                        // Get current point in standard coordinates of chosen simplex
+                        const Eigen::VectorXd lStandCoords = getSimplexStandardCoords( &pPoints[lIterPoints*getD()], *lIterSimp, lTemp, lDivergencePtr, lCenterOfCurvaturePtr );
+    
+                        
+                        bool lInsideSimplex = true;
+                        // If divergence was too large
+                        if (lDivergence > pEmbTol)
                             lInsideSimplex = false;
+                        // else if all barycentric coordinates are in between 0 and 1 we found the correct simplex
+                        else
+                        {
+                            double lBarySum = 0.0;
+                            for (unsigned int lIterDims = 0; lIterDims < lStandCoords.size(); ++lIterDims)
+                            {
+                                const double lCurBary = lStandCoords[lIterDims];
+                                lBarySum += lCurBary;
+                                
+                                if ( (lCurBary < 0.0) || (lCurBary > 1.0) )
+                                    lInsideSimplex = false;
+                            }
+                            if ( (lBarySum < 0.0) || (lBarySum > 1.0) )
+                                lInsideSimplex = false;
+                        }
+                        
+                            
+                        // If found the correct simplex
+                        if (lInsideSimplex)
+                        {
+                            // Set that simplex found
+                            lSimplexFound = true;
+                            // Set membership
+                            pSimplexIds[lIterPoints] = *lIterSimp;
+                            // If barycentric coordinates should be given
+                            if (pBarycentricCoords != NULL)
+                            {
+                                double * const lBaryCentricCoordsPtr = &pBarycentricCoords[ lIterPoints * (getTopD()+1) ];
+                                double lBarySum = 0.0;
+                                for (unsigned int lIterDims = 0; lIterDims < lStandCoords.size(); ++lIterDims)
+                                {
+                                    const double lCurBary = lStandCoords[lIterDims];
+                                    lBarySum += lCurBary;
+                                    lBaryCentricCoordsPtr[lIterDims+1] = lCurBary;
+                                }
+                                lBaryCentricCoordsPtr[0] = 1.0 - lBarySum;
+                            }
+                            // Break since no more simplex have to be searched for this particular point
                             break;
                         }
+                    
+                        // Iterate
+                        ++lIterSimp;
+                    }
+                    // If did not find simplex
+                    if ( !lSimplexFound & ( getD() != getTopD() ) )
+                        // Look without mesh graph
+                        lUseMeshGraph = false;
+                }
+                    
+            }   // End of handling of MeshGraph
+            
+            // If mesh graph has not been computed (or failed)
+            if ( !lUseMeshGraph)
+            {
+                // Loop through each simplex
+                for (unsigned int lIterSimp = 0; lIterSimp < getNT(); lIterSimp++)
+                {                    
+                    // define place to store divergence value and point to it
+                    double lDivergence = 0.0;
+                    double * const lDivergencePtr = (getD() > getTopD()) ? &lDivergence : NULL;
+                    // Define if a center of curvature should be included
+                    const double * lCenterOfCurvaturePtr = NULL;
+                    if ( pCenterOfCurvature != NULL )
+                    {
+                        if (pNumCentersOfCurvature == 1)
+                            lCenterOfCurvaturePtr = pCenterOfCurvature;
+                        else if (pNumCentersOfCurvature == pNumPoints)
+                            lCenterOfCurvaturePtr = &pCenterOfCurvature[lIterPoints * getD()];
+                    }                    
+                    // Get current point in standard coordinates of chosen simplex
+                    const Eigen::VectorXd lStandCoords = getSimplexStandardCoords( &pPoints[lIterPoints*getD()], lIterSimp, lTemp, lDivergencePtr, lCenterOfCurvaturePtr );
+                    
+                    // If all barycentric coordinates are in between 0 and 1 we found the correct simplex
+                    bool lInsideSimplex = true;
+                    {
+                        double lBarySum = 0.0;
+                        for (unsigned int lIterDims = 0; lIterDims < lStandCoords.size(); ++lIterDims)
+                        {
+                            const double lCurBary = lStandCoords[lIterDims];
+                            lBarySum += lCurBary;
+                            
+                            if ( (lCurBary < 0.0) || (lCurBary > 1.0) )
+                                lInsideSimplex = false;
+                        }
+                        if ( (lBarySum < 0.0) || (lBarySum > 1.0) )
+                            lInsideSimplex = false;
+                    }
+                        
                     // If divergence was too large
                     if (lDivergence > pEmbTol)
                         lInsideSimplex = false;
@@ -124,86 +246,80 @@ int ConstMesh::getASimplexForPoint( const double * const pPoints, const unsigned
                         // Set that simplex found
                         lSimplexFound = true;
                         // Set membership
-                        pSimplexIds[lIterPoints] = *lIterSimp;
+                        pSimplexIds[lIterPoints] = lIterSimp;
                         // If barycentric coordinates should be given
                         if (pBarycentricCoords != NULL)
-                            // Copy coordinates
-                            memcpy( &pBarycentricCoords[lIterPoints*(getTopD()+1)], lBarycentricCoords.data(), (getTopD()+1)*sizeof(double) );
+                        {
+                            double * const lBaryCentricCoordsPtr = &pBarycentricCoords[ lIterPoints * (getTopD()+1) ];
+                            double lBarySum = 0.0;
+                            for (unsigned int lIterDims = 0; lIterDims < lStandCoords.size(); ++lIterDims)
+                            {
+                                const double lCurBary = lStandCoords[lIterDims];
+                                lBarySum += lCurBary;
+                                lBaryCentricCoordsPtr[lIterDims+1] = lCurBary;
+                            }
+                            lBaryCentricCoordsPtr[0] = 1.0 - lBarySum;
+                        }
                         // Break since no more simplex have to be searched for this particular point
                         break;
-                    }
-                
-                    // Iterate
-                    ++lIterSimp;
-                }
-                // If did not find simplex
-                if ( !lSimplexFound & ( getD() != getTopD() ) )
-                    // Look without mesh graph
-                    lUseMeshGraph = false;
+                    }                
+                }   // End loop over simplices
             }
                 
-        }   // End of handling of MeshGraph
-        
-        // If mesh graph has not been computed (or failed)
-        if ( !lUseMeshGraph)
-        {
-            // Loop through each simplex
-            for (unsigned int lIterSimp = 0; lIterSimp < getNT(); lIterSimp++)
-            {                    
-                // Get current point in standard coordinates of chosen simplex
-                double lDivergence = 0.0;
-                double * const lDivergencePtr = (getD() > getTopD()) ? &lDivergence : NULL;
-                const Eigen::VectorXd lStandCoords = getSimplexStandardCoords( &pPoints[lIterPoints*getD()], lIterSimp, lDivergencePtr );
-                // Get barycentric coordinates of current point
-                const Eigen::VectorXd lBarycentricCoords = mesh_getBarycentricFromStandard(lStandCoords);
-                // If all barycentric coordinates are in between 0 and 1 we found the correct simplex
-                bool lInsideSimplex = true;
-                for (unsigned int lIterDims = 0; lIterDims < lBarycentricCoords.size(); lIterDims++)
-                    // If not inside in current simplex
-                    if ( ( lBarycentricCoords.coeff(lIterDims) < 0.0d ) || ( lBarycentricCoords.coeff(lIterDims) > 1.0d ) )
-                    {
-                        lInsideSimplex = false;
-                        break;
-                    }
-                // If divergence was too large
-                if (lDivergence > pEmbTol)
-                    lInsideSimplex = false;
-                    
-                // If found the correct simplex
-                if (lInsideSimplex)
-                {
-                    // Set that simplex found
-                    lSimplexFound = true;
-                    // Set membership
-                    pSimplexIds[lIterPoints] = lIterSimp;
-                    // If barycentric coordinates should be given
-                    if (pBarycentricCoords != NULL)
-                        // Copy coordinates
-                        memcpy( &pBarycentricCoords[lIterPoints*(getTopD()+1)], lBarycentricCoords.data(), (getTopD()+1)*sizeof(double) );
-                    // Break since no more simplex have to be searched for this particular point
-                    break;
-                }                
-            }   // End loop over simplices
-        }
+            // If no simplex was found
+            if (!lSimplexFound)
+            {
+                // Set membership to one number larger than maximum
+                pSimplexIds[lIterPoints] = getNT();
+                // If barycentric coordinates should be given
+                if (pBarycentricCoords != NULL)
+                    // Insert zeros
+                    for (unsigned int lIterDims = 0; lIterDims < (getTopD()+1); lIterDims++)
+                        pBarycentricCoords[lIterPoints*(getTopD()+1) + lIterDims] = 0.0;
+            }
             
-        // If no simplex was found
-        if (!lSimplexFound)
-        {
-            // Set membership to one number larger than maximum
-            pSimplexIds[lIterPoints] = getNT();
-            // If barycentric coordinates should be given
-            if (pBarycentricCoords != NULL)
-                // Insert zeros
-                for (unsigned int lIterDims = 0; lIterDims < (getTopD()+1); lIterDims++)
-                    pBarycentricCoords[lIterPoints*(getTopD()+1) + lIterDims] = 0.0;
-        }
-        
-        
-    }   // end loop over points
+            
+        }   // end loop over points
+    
+    }   // end of parallell section
 
 
     return lStatus;
 }
+
+
+// Get diameter of simplex
+double ConstMesh::getDiameter( const unsigned int pSimplexInd ) const
+{
+    if (pSimplexInd >= getNT())
+        return -1.0;
+        
+    // Get pointer to node indices of current simplex
+    const unsigned int * lSimplexPtr = &getSimplices()[ pSimplexInd * (getTopD()+1) ];
+    
+    // Go through all nodes
+    double lMaxDiamSqr = 0.0d;
+    for ( unsigned int lIterSimp1 = 0; lIterSimp1+1 < getTopD(); ++lIterSimp1 )
+    {
+        // Go through all nodes in front
+        for ( unsigned int lIterSimp2 = lIterSimp1+1; lIterSimp2 < getTopD(); ++lIterSimp2 )
+        {
+            double lCurDiamSqr = 0.0d;
+            // Go through all dimensions
+            for (unsigned int lIterDims = 0; lIterDims < getD(); ++lIterDims )
+            {                
+                const double lNodeDiff = getNodes()[ lIterSimp1 * getD() + lIterDims ] - getNodes()[ lIterSimp2 * getD() + lIterDims ];
+                lCurDiamSqr += lNodeDiff * lNodeDiff;
+            }
+            if ( lCurDiamSqr > lMaxDiamSqr )
+                lMaxDiamSqr = lCurDiamSqr;
+        }
+    }
+    
+    // Return square root of maxDiamSqrt
+    return std::sqrt( lMaxDiamSqr );
+}
+
 
 // Get a simplex index for a simplex where node is a part
 int ConstMesh::getASimplexForNode( const unsigned int * const pNodes, const unsigned int pNumNodes, unsigned int * const pSimplexIds) const
@@ -309,14 +425,103 @@ int ConstMesh::getASimplexForNode( const unsigned int * const pNodes, const unsi
     return lStatus;
 }
 
+// Get a simplex index for a simplex where set is a part
+int ConstMesh::getASimplexForSet( const std::set<unsigned int> & pSet, unsigned int & pSimplexId) const
+{
+
+    unsigned int lCurGraphNode = 0;
+    unsigned int lStatus;
+
+    // Get current node array
+    const double * const lCurNode = &getNodes()[ *pSet.begin()  * getD()];
+
+    // Get if mesh graph has been computed
+    bool lUseMeshGraph = (mMeshGraph != NULL);
+    // Initiate that simplex is not found
+    bool lSimplexFound = false;
+    
+
+    // If mesh graph exist
+    if (lUseMeshGraph)
+    {
+        // Get graph node number of current node
+        int lOtherStatus = mMeshGraph->getNodeOfPoint( lCurNode, getD(), &lCurGraphNode );
+        // Get node object of current point
+        const MeshGraph::Node * lGraphNode = (lOtherStatus == 0) ? mMeshGraph->getNode(lCurGraphNode) : NULL;
+        // If cannot find graph node
+        if (lGraphNode == NULL)
+        {
+            // getNode failed
+            if (lOtherStatus == 0)
+                // flag error
+                lStatus |= 1;
+            else    // If getNodePoint failed
+                // flag error
+                lStatus |= lOtherStatus + 2;
+            // do not use mesh graph
+            lUseMeshGraph = false;
+        }
+        else // If mesh graph was found
+        {
+            // Loop through all simplices in graph node
+            for ( std::vector< unsigned int >::const_iterator lIterSimp = std::begin( lGraphNode->mTriangles );
+                lIterSimp != std::end( lGraphNode->mTriangles ); ++lIterSimp )
+            {
+                lSimplexFound = isSetPartOfSimplex( pSet, *lIterSimp );
+                // If found simplex
+                if (lSimplexFound)
+                {
+                    // Set membership
+                    pSimplexId = *lIterSimp;
+                    // Break out of loop
+                    break;
+                }
+            }
+            // If did not find simplex
+            if ( !lSimplexFound )
+                // Look without mesh graph
+                lUseMeshGraph = false;
+        }
+    }   // End of handling of MeshGraph
+    
+    // If mesh graph has not been computed (or failed)
+    if ( !lUseMeshGraph)
+    {
+        // Loop through each simplex
+        for (unsigned int lIterSimp = 0; lIterSimp < getNT(); lIterSimp++)
+        {
+            lSimplexFound = isSetPartOfSimplex( pSet, lIterSimp );
+            // If found simplex
+            if (lSimplexFound)
+            {
+                // Set membership
+                pSimplexId = lIterSimp;
+                // Break out of loop
+                break;
+            }
+        }   // End loop over simplices
+    }   // End of if not using mesh graph
+        
+    // If no simplex was found
+    if (!lSimplexFound)
+        // Set membership to one number larger than maximum
+        pSimplexId = getNT();
+
+
+    return lStatus;
+}
+
+
 
 // Get a set of all simplices for which the given point is a member.
 int ConstMesh::getAllSimplicesForPoint( const double * const pPoint, unsigned int pSimplexId, 
-    std::set<unsigned int> & pOutput, std::set<unsigned int> & pTemp ) const
+    std::set<unsigned int> & pOutput, 
+    const double pEmbTol, const double * const pCenterOfCurvature ) const
 {   
     // Clear output
     pOutput.clear();
-    pTemp.clear();
+    
+    std::set<unsigned int> lExclude, lInclude;
      
     // If out of bounds
     if (pSimplexId > getNT())
@@ -325,45 +530,63 @@ int ConstMesh::getAllSimplicesForPoint( const double * const pPoint, unsigned in
     if (getNeighs() == NULL)
         return 2;
         
+    const unsigned int lNumCentersOfCurvature = (pCenterOfCurvature == NULL) ? 0 : 1;
+        
     // If have no suggestions of simplexId
     if (pSimplexId == getNT())
     {
         // Acquire one
-        int lStatus = getASimplexForPoint( pPoint, 1, &pSimplexId);
+        int lStatus = getASimplexForPoint( pPoint, 1, &pSimplexId, NULL, pEmbTol, pCenterOfCurvature, lNumCentersOfCurvature );
         // Handle error
         if (lStatus)
             return 3;
     }
        
     // Insert current simplex
-    pTemp.insert( pSimplexId );
+    lInclude.insert( pSimplexId );
     
     // Go through all simplices chosen
-    while ( pTemp.size() > 0)
+    while ( lInclude.size() > 0)
     {
         // Pop first value
-        const unsigned int lCurSimplex = *pTemp.begin();
-        pTemp.erase( pTemp.begin() ); 
+        const unsigned int lCurSimplex = *lInclude.begin();
+        lInclude.erase( lInclude.begin() ); 
+        // If current simplex is a dummy
+        if ( lCurSimplex >= getNT() )
+            // skip ahead
+            continue;   
         // If current simplex is already present in output
         if ( pOutput.count( lCurSimplex ) )
             // skip ahead
             continue;   
+        // If current simplex is part of exclusion set
+        if ( lExclude.count( lCurSimplex ) )
+            // skip ahead
+            continue;   
         
         // Get if lcurSimplex is outside (-1), on border (0), or in the middle of (1) simplex
-        int lBaryStatus;        
-        int lStatus = getCoordinatesGivenSimplex( pPoint, 1, lCurSimplex, NULL, NULL, NULL, &lBaryStatus);
+        double lBaryStatus;        
+        int lStatus = getCoordinatesGivenSimplex( pPoint, 1, lCurSimplex, NULL, NULL, 
+            pEmbTol, pCenterOfCurvature, lNumCentersOfCurvature, &lBaryStatus);
         // If bad status
         if (lStatus)
             // Continue without taking notice
             continue;
-        // If outside
-        if (lBaryStatus < 0)
+        // If clearly outside
+        if (lBaryStatus < -1e-4)
             // skip ahead
-            continue;
-        // Insert simplex into output
-        pOutput.insert( lCurSimplex );
+            continue;            
+        
+        // If inside simplex
+        if (lBaryStatus >= 0)
+            // Insert simplex into output
+            pOutput.insert( lCurSimplex );
+        else
+            // Add to exclusion
+            lExclude.insert( lCurSimplex );
+        
         // Investigate all neighboring simplices
-        pTemp.insert( 
+        lInclude.insert( 
             &getNeighs()[lCurSimplex*(getTopD()+1)], 
             &getNeighs()[lCurSimplex*(getTopD()+1) + (getTopD()+1)] 
             );
@@ -372,12 +595,14 @@ int ConstMesh::getAllSimplicesForPoint( const double * const pPoint, unsigned in
     return 0;
 }
 
-int ConstMesh::getAllSimplicesForNode( const unsigned int pNode, unsigned int pSimplexId,
-    std::set<unsigned int> & pOutput, std::set<unsigned int> & pTemp ) const
+
+// Get a set of all simplices for which the given set is a member.
+int ConstMesh::getAllSimplicesForSet( const std::set<unsigned int> & pSet, unsigned int pSimplexId,
+    std::set<unsigned int> & pOutput ) const
 {
     // Clear output
     pOutput.clear();
-    pTemp.clear();
+    std::set<unsigned int>  lTemp;
     
     // If simplex if is out of bounds
     if (pSimplexId > getNT())
@@ -390,31 +615,34 @@ int ConstMesh::getAllSimplicesForNode( const unsigned int pNode, unsigned int pS
     if (pSimplexId == getNT())
     {
         // Acquire one
-        int lStatus = getASimplexForNode( &pNode, 1, &pSimplexId);
+        int lStatus = getASimplexForSet( pSet, pSimplexId);
         // Handle error
         if (lStatus)
             return 3;
     }
 
     // Insert current simplex
-    pTemp.insert( pSimplexId );
+    lTemp.insert( pSimplexId );
     // Go through all simplices chosen
-    while ( pTemp.size() > 0)
+    while ( lTemp.size() > 0)
     {
         // Pop first value
-        const unsigned int lCurSimplex = *pTemp.begin();
-        pTemp.erase( pTemp.begin() );    
+        const unsigned int lCurSimplex = *lTemp.begin();
+        lTemp.erase( lTemp.begin() );    
+        // If current simplex does not exist
+        if ( lCurSimplex >= getNT() )
+            continue;
         // If current simplex is already present in output
         if ( pOutput.count( lCurSimplex ) )
             continue;
         // if current simplex is not associated with node    
-        if ( !isNodePartOfSimplex( pNode, lCurSimplex ) )
+        if ( !isSetPartOfSimplex( pSet, lCurSimplex ) )
             continue;
         
         // Insert simplex into output
         pOutput.insert( lCurSimplex );
         // Investigate all neighboring simplices
-        pTemp.insert( 
+        lTemp.insert( 
             &getNeighs()[lCurSimplex*(getTopD()+1)], 
             &getNeighs()[lCurSimplex*(getTopD()+1) + (getTopD()+1)] 
             );
@@ -425,59 +653,91 @@ int ConstMesh::getAllSimplicesForNode( const unsigned int pNode, unsigned int pS
 
 // Get standard- and/or barycentric coordinates for points given simplex
 int ConstMesh::getCoordinatesGivenSimplex( const double * const pPoints, const unsigned int pNumPoints, const unsigned int pSimplexId,
-    double * const pStandardCoords, double * const pBarycentricCoords, double * const pDivergence, int * const pStatus) const
+    double * const pStandardCoords, double * const pBarycentricCoords, 
+    const double pEmbTol, const double * const pCenterOfCurvature, const unsigned int pNumCentersOfCurvature, double * const pBaryOutsidedness ) const
 {
     // If given simplex does not exist
     if (pSimplexId >= getNT())
         // Flag error
         return 1;
-
-    // Loop through each point
-    for (unsigned int lIterPoints = 0; lIterPoints < pNumPoints; lIterPoints++)
+        
+    if ( pCenterOfCurvature == NULL )
     {
-        // Get current point in standard coordinates of chosen simplex
-        double * const lDivergencePtr = (pDivergence == NULL) ? NULL : &pDivergence[lIterPoints];
-        const Eigen::VectorXd lStandCoords = getSimplexStandardCoords( &pPoints[lIterPoints*getD()], pSimplexId, lDivergencePtr );
-        // If should return standard coordinates
-        if (pStandardCoords != NULL)
-            // Copy coordinates
-            memcpy( &pStandardCoords[lIterPoints*getTopD()], lStandCoords.data(), getTopD()*sizeof(double) );
-            
-        // If should return barycentric coordinates or status
-        if ( (pBarycentricCoords != NULL) || (pStatus != NULL) )
-        {    
-            // Get barycentric coordinates of current point
-            const Eigen::VectorXd lBarycentricCoords = mesh_getBarycentricFromStandard(lStandCoords);        
-            // If barycentric coordinates should be returned
-            if (pBarycentricCoords != NULL)
-                // Copy coordinates
-                memcpy( &pBarycentricCoords[lIterPoints*(getTopD()+1)], lBarycentricCoords.data(), (getTopD()+1)*sizeof(double) );
-            // If status should be returned
-            if (pStatus != NULL)
+        if (pNumCentersOfCurvature > 0)
+            return 1;
+    }         
+    else
+    {
+        if ( (pNumCentersOfCurvature != 1) && (pNumCentersOfCurvature != pNumPoints) )
+            return 1;
+    }
+        
+    int lStatus = 0;
+        
+    #pragma omp parallell reduction( | : lStatus)
+    {
+        
+        std::vector<double> lTemp;
+    
+        // Loop through each point
+        #pragma omp for
+        for (unsigned int lIterPoints = 0; lIterPoints < pNumPoints; lIterPoints++)
+        {        
+            double lDivergence;
+            double * const lDivergencePtr = &lDivergence;
+            // Define if a center of curvature should be included
+            const double * lCenterOfCurvaturePtr = NULL;
+            if ( pCenterOfCurvature != NULL )
             {
-                int lBaryStatus = 0;
-                for (unsigned int lIterBary = 0; lIterBary < lBarycentricCoords.size(); lIterBary++)
+                if (pNumCentersOfCurvature == 1)
+                    lCenterOfCurvaturePtr = pCenterOfCurvature;
+                else if (pNumCentersOfCurvature == pNumPoints)
+                    lCenterOfCurvaturePtr = &pCenterOfCurvature[lIterPoints * getD()];
+            }
+            // Get current point in standard coordinates of chosen simplex
+            const Eigen::VectorXd lStandCoords = getSimplexStandardCoords( &pPoints[lIterPoints*getD()], pSimplexId, lTemp, lDivergencePtr, lCenterOfCurvaturePtr );
+            // If should return standard coordinates
+            if (pStandardCoords != NULL)
+                // Copy coordinates
+                memcpy( &pStandardCoords[lIterPoints*getTopD()], lStandCoords.data(), getTopD()*sizeof(double) );
+                
+            // If should return barycentric coordinates or status
+            if ( (pBarycentricCoords != NULL) || (pBaryOutsidedness != NULL) )
+            {
+                // Loop through all standard coordinates
+                double lBarySum = 0.0;
+                double lMinimum = 1.0;
+                for ( unsigned int lIterStand = 0; lIterStand < lStandCoords.size(); ++lIterStand )
                 {
-                    const double lCurBaryCoord = lBarycentricCoords.coeff(lIterBary);
-                     // If current barycentric coordinate is below 0 or above 1   
-                    if ( (lCurBaryCoord < 0.0) || (lCurBaryCoord > 1.0) )
-                        // Set as outside
-                        lBaryStatus = -1;
-                    // If status is not outside
-                    if ( lBaryStatus >= 0 )
-                        // If current barycentric coordinate is not on an edge
-                        if ( (lCurBaryCoord != 0.0) || (lCurBaryCoord != 1.0) )
-                            // Set as inside
-                            lBaryStatus = 1;
+                    const double lCurBary = lStandCoords[lIterStand];
+                    if ( pBarycentricCoords != NULL )
+                        pBarycentricCoords[lIterStand+1] = lCurBary;
+                    lBarySum += lCurBary;
+                    if (lCurBary < lMinimum)
+                        lMinimum = lCurBary;
+                    else if ( 1.0  < lMinimum + lCurBary)
+                        lMinimum = 1.0 - lCurBary;
                 }
-            
-                // Return value for this point
-                pStatus[lIterPoints] = lBaryStatus;
+                if ( pBarycentricCoords != NULL )
+                    pBarycentricCoords[0] = 1.0 - lBarySum;
+                if ( lBarySum  < lMinimum )
+                    lMinimum = lBarySum;
+                else if ( 1.0 < lMinimum + lBarySum)
+                    lMinimum = 1.0 - lBarySum;
+                    
+                // If outside of embedded tolerance
+                if ( lDivergence > pEmbTol )
+                    // Set as outside
+                    lMinimum = -10;
+                    
+                if (pBaryOutsidedness != NULL)
+                    // Return value for this point
+                    pBaryOutsidedness[lIterPoints] = lMinimum;
             }
         }
-    }
+    }   // End of parallell
 
-    return 0;
+    return lStatus;
 }
 
 
@@ -614,18 +874,9 @@ int FullMesh::refine( const unsigned int pMaxNumNodes, std::vector<double> & pMa
     // See if allready reached maximum number of nodes
     if (getNN() >= pMaxNumNodes)
         return 0;
-    // See if allready reached maximum number of nodes
+    // See if maximum diameter was wrong dimensionality
     if ( (pMaxDiam.size() != 1) && (pMaxDiam.size() != getNN() ) )
         return 1;
-    // If no neigbors given
-    if (!hasNeighs())
-        // Return error since those are necessary
-        return 1;
-        
-    // Get index of maximum number of simplices
-    const unsigned int lMaxNumSimplices = -1;
-    // Preallocate status return variable
-    int lStatus = 0;
     
     // Preallocate vector for storing all edges indices
     std::vector<std::set<unsigned int>> lEdgeIndices;
@@ -666,50 +917,48 @@ int FullMesh::refine( const unsigned int pMaxNumNodes, std::vector<double> & pMa
                 return 2;
         }
     }
-    
-    // Preallocate
-    std::set<unsigned int> lNeighboringSimplices1;
-    std::set<unsigned int> lNeighboringSimplices2;
-    std::set<unsigned int> lSharingSimplices;
-    std::set<unsigned int> lTempSet;
-    std::vector<unsigned int> lSimplexAccounting;
-    lSimplexAccounting.reserve(getNT());
-    std::vector<double> lSimplexMaxEdge;
-    lSimplexMaxEdge.reserve(getNT());
-    
-    // Loop through all simplices to rename dummy variables
-    #pragma omp parallell for
-    for ( unsigned int lIterSimplex = 0; lIterSimplex < getNT(); lIterSimplex++ )
-        // Set dummy variables of current simplex and neighborhood to be maximal
-        for (unsigned int lIterNodeInds = 0; lIterNodeInds < getTopD()+1; lIterNodeInds++)
-        {
-            unsigned int * const lCurNodeIndsPtr = &mFullSimplices.data()[ lIterSimplex * (getTopD()+1) + lIterNodeInds ];
-            if ( *lCurNodeIndsPtr >= getNN() )
-                *lCurNodeIndsPtr = pMaxNumNodes;                
-            unsigned int * const lCurSimplexIndsPtr = &mFullNeighs.data()[ lIterSimplex * (getTopD()+1) + lIterNodeInds ];
-            if ( *lCurSimplexIndsPtr >= getNT() )
-                *lCurSimplexIndsPtr = lMaxNumSimplices;
-        }
-    
-    // While the number of nodes are not too great and there are edges to split
-    bool lContinueToLoop = true;
-    while ( lContinueToLoop )
-    {
-        // Get number of nodes before updating this round
-        const unsigned int lLastEpochNN = getNN();
-        // Assume no edges to split anymore
-        unsigned int lNumSimplicesToUpdate = 0;
-
-        // Initialize simplex accounting to no updated simplices
-        lSimplexAccounting.assign( getNT(), 0 );
-        // Initialize simplex max edge to no distance
-        lSimplexMaxEdge.assign( getNT(), 0.0d );
         
-        // Loop through all simplices
-        #pragma omp parallell for reduction( +:lNumSimplicesToUpdate )
-        for ( unsigned int lIterSimplex = 0; lIterSimplex < getNT(); lIterSimplex++ )
-        {            
-            // Loop through all edges to find the largest edge
+    
+        
+    // Preallocate vectors of new nodes
+    std::vector<unsigned int> lNewEdgesParentEdges;
+    std::vector< unsigned int > lNewNodeIndices;
+    
+    std::vector< unsigned int > lCurEdgesToRefine;
+    lCurEdgesToRefine.reserve( (getTopD()+1)*2 );
+    std::vector< double > lCurDistanceToRefine;
+    lCurDistanceToRefine.reserve( (getTopD()+1) );
+    std::vector< unsigned int > lCurEdgesNotToRefine;
+    lCurEdgesNotToRefine.reserve( (getTopD()+1)*2 );
+    std::vector< unsigned int > lSimplexList;
+    
+    // Try to refine further
+    bool lInvestigateFurther = true;
+    while ( lInvestigateFurther )
+    {
+        // Assume that no more investigation is necessary
+        lInvestigateFurther = false;
+        
+        // Get maximum number of nodes to create in this iteration
+        const unsigned int lMaxNumNewNodes = ( getNT()*(getTopD()+1) + getNN() > pMaxNumNodes ) ? pMaxNumNodes - getNN() : getNT()*(getTopD()+1);
+        // Clear vector and reserve maximun required
+        lNewEdgesParentEdges.clear();
+        lNewEdgesParentEdges.reserve( lMaxNumNewNodes*2 );
+        lNewNodeIndices.clear();
+        lNewNodeIndices.reserve( lMaxNumNewNodes );
+        
+        // Loop through all current simplices
+        const unsigned lCurNT = getNT();
+        const unsigned lCurNN = getNN();
+        for ( unsigned int lIterSimplex = 0; lIterSimplex < lCurNT; lIterSimplex++ )
+        {
+        
+            // Clear 
+            lCurEdgesToRefine.clear();
+            lCurDistanceToRefine.clear();
+            lCurEdgesNotToRefine.clear();
+        
+            // Loop through all edges and populate lcurEdges
             for ( unsigned int lIterEdges = 0; lIterEdges < lEdgeIndices.size(); lIterEdges++)
             {
                 // Get the indices of the two points in edge
@@ -718,401 +967,342 @@ int FullMesh::refine( const unsigned int pMaxNumNodes, std::vector<double> & pMa
                 // Get node indices of the two points in edge
                 const unsigned int lNode1Index = getSimplices()[ lIterSimplex * (getTopD()+1) + lNode1EdgeIndex ];
                 const unsigned int lNode2Index = getSimplices()[ lIterSimplex * (getTopD()+1) + lNode2EdgeIndex ];
+                
                 // Get maximum distance of current edge
                 double lMaxDiam = pMaxDiam[0];
                 // If more than one value
                 if ( pMaxDiam.size() > 1 )
                     // Use the smallest of them
                     lMaxDiam = ( pMaxDiam[ lNode1Index ] < pMaxDiam[ lNode2Index ] ) ? pMaxDiam[ lNode1Index ] : pMaxDiam[ lNode2Index ];
-                
+                    
                 // Map the two nodes of current edge
                 Eigen::Map<const Eigen::VectorXd> lNode1( &getNodes()[getD() * lNode1Index], getD() );
                 Eigen::Map<const Eigen::VectorXd> lNode2( &getNodes()[getD() * lNode2Index], getD() );
+                
                 // Compute length in between points
                 const double lDistance = (lNode1-lNode2).norm();
                 
-                // If current distance is larger than maximum allowed distance
+                // If current distance is larger than maximum allowed distance 
                 if ( lDistance > lMaxDiam )
-                    // If current distance if larger than maximum
-                    if (lDistance > lSimplexMaxEdge[ lIterSimplex ])
-                    {
-                        lSimplexMaxEdge[ lIterSimplex ] = lDistance;
-                        lSimplexAccounting[ lIterSimplex ] = lIterEdges;
-                    }                
+                {
+                    // If distance is more than double that of maximum distance
+                    if (lDistance > 2*lMaxDiam)
+                        // Will need further investigation
+                        lInvestigateFurther = true;
+                
+                    // Store current edge
+                    lCurEdgesToRefine.push_back(lNode1Index);
+                    lCurEdgesToRefine.push_back(lNode2Index);
+                    lCurDistanceToRefine.push_back(lDistance);
+                }
+                else
+                {
+                    // Store current edge
+                    lCurEdgesNotToRefine.push_back(lNode1Index);
+                    lCurEdgesNotToRefine.push_back(lNode2Index);
+                }
             }
             
-            // If should update simplex
-            if (lSimplexMaxEdge[ lIterSimplex ] > 0)
-                // Increment number of edges to split
-                lNumSimplicesToUpdate++;            
-        }
-        
-        if (lNumSimplicesToUpdate == 0)
-            lContinueToLoop = false;
-        else
-            // Loop through all simplices
-            for ( unsigned int lIterSimplex = 0; lIterSimplex < lSimplexMaxEdge.size(); lIterSimplex++ )
-                // If the current edge should be split
-                if ( lSimplexMaxEdge.at( lIterSimplex ) > 0 )
+            // If not any edges to refine
+            if ( lCurEdgesToRefine.size() == 0 )
+                // continue the loop with next
+                continue;
+
+            // Sort edges to refine from largest diameter to smallest
+            {
+                // Sort edges to refine
+                bool lSorted = false;
+                // Loop while not sorted
+                while (!lSorted)
                 {
-                    // If maximum number of nodes already
-                    if (pMaxNumNodes <= getNN())
-                        // Break out 
-                        break;
-                
-                    // Check that number of simplices to update is not zero
-                    if (lNumSimplicesToUpdate == 0)
-                        return 3;
-                    // Check that number of edges are correct
-                    if (lEdgeIndices.at( lSimplexAccounting[ lIterSimplex ] ).size() != 2)
-                        return 4;
-                        
-                    // Get the indices of the edges of the two points in edge
-                    const unsigned int lNode1EdgeIndex = *lEdgeIndices[ lSimplexAccounting[ lIterSimplex ] ].begin();
-                    const unsigned int lNode2EdgeIndex = *std::next(lEdgeIndices[ lSimplexAccounting[ lIterSimplex ] ].begin());
-                    // Get the indices of the two points in edge
-                    const unsigned int lNode1Index = mFullSimplices[ lIterSimplex * (getTopD()+1) + lNode1EdgeIndex ];
-                    const unsigned int lNode2Index = mFullSimplices[  lIterSimplex * (getTopD()+1) + lNode2EdgeIndex ];
+                    // Assume sorted
+                    lSorted = true;
                     
-                    // Get all simplices sharing node1
-                    lStatus = getAllSimplicesForNode( lNode1Index, lIterSimplex, lNeighboringSimplices1, lTempSet );
-                    if (lStatus)
-                        return 5;
-                    // Get all simplices sharing node2
-                    lStatus = getAllSimplicesForNode( lNode2Index, lIterSimplex, lNeighboringSimplices2, lTempSet );
-                    if (lStatus)
-                        return 5;
-                    // Get all simplices sharing both
-                    misc_setIntersection( lNeighboringSimplices1, lNeighboringSimplices2, lSharingSimplices);
-                    if ( lSharingSimplices.size() == 0 )
-                        return 5;
-                    // Assume no other simplices sharing edge has a different value
-                    bool lSharingSimplicesAgree = true;
-                    // Loop through all these simplices
-                    for ( std::set<unsigned int>::const_iterator lIterIntersection = lSharingSimplices.begin(); lIterIntersection != lSharingSimplices.end(); lIterIntersection++ )
+                    // Go through all edges to refine
+                    std::vector<double>::iterator lIterDistancesToRefine = lCurDistanceToRefine.begin();
+                    for ( std::vector<unsigned int>::iterator lIterEdgesToRefine = lCurEdgesToRefine.begin(); lIterEdgesToRefine != lCurEdgesToRefine.end(); )
                     {
-                        // If other simplex has already been updated
-                        if ( *lIterIntersection >= lSimplexMaxEdge.size() )
-                            lSharingSimplicesAgree = false;
-                        // If new simplex has a max edge with a different value
-                        else if (lSimplexMaxEdge[ *lIterIntersection ] != lSimplexMaxEdge[ lIterSimplex ] )
-                            // Flag that old simplex should not be updated
-                            lSharingSimplicesAgree = false;
-                            
-                        if (!lSharingSimplicesAgree)
-                            break;
+                        // If there are values before
+                        if ( lIterEdgesToRefine != lCurEdgesToRefine.begin() )
+                        {
+                            // the values before have a smaller distance
+                            if ( *std::prev(lIterDistancesToRefine) < *lIterDistancesToRefine )
+                            {
+                                // Set that not sorted
+                                lSorted = false;
+                                // Switch values in between
+                                const double lDoubleSwitcher = *lIterDistancesToRefine;
+                                *lIterDistancesToRefine = *std::prev(lIterDistancesToRefine);
+                                *std::prev(lIterDistancesToRefine) = lDoubleSwitcher;
+                                
+                                const unsigned int lUintSwitcher1 = *lIterEdgesToRefine;
+                                *lIterEdgesToRefine = *std::prev(lIterEdgesToRefine,2);
+                                *std::prev(lIterEdgesToRefine,2) = lUintSwitcher1;
+                                
+                                const unsigned int lUintSwitcher2 = *std::next(lIterEdgesToRefine);
+                                *std::next(lIterEdgesToRefine) = *std::prev(lIterEdgesToRefine);
+                                *std::prev(lIterEdgesToRefine) = lUintSwitcher2;
+                            }
+                        }
+                    
+                        // Advance iterator
+                        lIterEdgesToRefine = std::next(lIterEdgesToRefine , 2);
+                        lIterDistancesToRefine++;
                     }
-                        
-                    // If all sharing simplices do not agree
-                    if (!lSharingSimplicesAgree)
+                }
+            }
+            
+            
+            // Loop through all new edges to refine to see which ones should be created and which ones are already created
+            for ( std::vector<unsigned int>::const_iterator lIterEdgesToRefine = lCurEdgesToRefine.begin(); lIterEdgesToRefine != lCurEdgesToRefine.end(); )
+            {
+            
+                // Get smallest index of edge
+                const unsigned int lSmallestIndex = ( *lIterEdgesToRefine < *std::next(lIterEdgesToRefine) ) ? *lIterEdgesToRefine : *std::next(lIterEdgesToRefine);
+                // Get largest index of edge
+                const unsigned int lLargestIndex = ( *lIterEdgesToRefine > *std::next(lIterEdgesToRefine) ) ? *lIterEdgesToRefine : *std::next(lIterEdgesToRefine);
+
+                bool lAlreadyPresent = false;
+
+                // If topologically more than one dimensional
+                if ( getTopD() > 1 )
+                {
+                    // Loop through new edges to see if needed edge was already created
+                    const unsigned int lNumEdgesToSearch = lNewEdgesParentEdges.size()/2;
+                    unsigned int lIndex = lNumEdgesToSearch;
+                    
+                    #pragma omp parallel firstprivate(lSmallestIndex, lLargestIndex, lNumEdgesToSearch) shared( lNewEdgesParentEdges, lIndex )
                     {
-                        // Mark current simplex as not to update
-                        lSimplexMaxEdge[ lIterSimplex ] = 0.0d;
-                        // Remove number of simplices to update since one has been split now
-                        lNumSimplicesToUpdate--;
+                        unsigned int lPrivateIndex = 0;
+                        int lStatus = 0;
+                        # pragma omp for
+                        for (unsigned int lIterNewParentEdges = 0; lIterNewParentEdges < lNumEdgesToSearch; lIterNewParentEdges++)
+                        {
+                            // If not already found index
+                            if ( !lStatus )
+                                // If the sought after edge alrady exists
+                                if ( (lNewEdgesParentEdges[ lIterNewParentEdges * 2 ] == lSmallestIndex ) && ( lNewEdgesParentEdges[ lIterNewParentEdges * 2 + 1] == lLargestIndex ) )
+                                {
+                                    // Set index
+                                    lPrivateIndex = lIterNewParentEdges;
+                                    lStatus = 1;
+                                }
+                        }
+                        // If found
+                        if (lStatus)
+                        {
+                            #pragma omp critical (mesh_refine_findAlreadyPresent)
+                            {
+                                lIndex = lPrivateIndex;
+                            }
+                        }
+                    }
+                    
+                    if (lIndex < lNumEdgesToSearch )
+                    {
+                        // Save current new node index
+                        lNewNodeIndices.push_back( lIndex );
+                        // Mark as already present
+                        lAlreadyPresent = true;
+                    }
+                }
+
+                // If are not allowed to refine edges further and if needed new node was not already created
+                if ( (lNewEdgesParentEdges.size() >= 2*lMaxNumNewNodes) && ( !lAlreadyPresent ) )
+                {
+                    // Remove current edges to refine
+                    lIterEdgesToRefine = lCurEdgesToRefine.erase( lIterEdgesToRefine );
+                    lIterEdgesToRefine = lCurEdgesToRefine.erase( lIterEdgesToRefine );
+                }
+                else
+                {
+                    // if needed new node was not already created
+                    if ( !lAlreadyPresent )
+                    {
+                        // Insert parent edge of new edges
+                        lNewNodeIndices.push_back( lNewEdgesParentEdges.size() / 2 );
+                        lNewEdgesParentEdges.push_back( lSmallestIndex );
+                        lNewEdgesParentEdges.push_back( lLargestIndex ); 
+                    }
+                    // Increment iterators
+                    lIterEdgesToRefine = std::next( lIterEdgesToRefine, 2 );
+                }                
+            }
+            
+            // Create simplices
+            {
+                // If one-dimensional topology
+                if (getTopD() == 1)
+                {
+                    // get iterator to current simplex
+                    const std::vector<unsigned int>::iterator lOrigSimplexIter = std::next(mFullSimplices.begin(), lIterSimplex * (getTopD()+1));
+                    // Copy current simplex to new simplex
+                    mFullSimplices.insert( mFullSimplices.end(), 
+                    std::next(mFullSimplices.begin(), lIterSimplex * (getTopD()+1)), 
+                    std::next(mFullSimplices.begin(), lIterSimplex * (getTopD()+1) + (getTopD()+1) ) );
+                    mNumSimplices++;
+                    updateConstMeshPointers();
+                    // Modify old simplex
+                    mFullSimplices[ lIterSimplex*(getTopD()+1) + 1] = getNN() + lNewNodeIndices.back();
+                    // Modify new simplex
+                    *std::prev(mFullSimplices.end(), getTopD()+1 ) = getNN() + lNewNodeIndices.back();
+                }
+                else
+                {
+                
+                    // If all edges should be refined in current simplex and if in two topological dimensions
+                    if ( (getTopD() == 2) && (lCurEdgesToRefine.size() == 3*2) )
+                    {       
+                        const std::vector<unsigned int>::const_iterator lFirstNodeIndexIter = std::prev( lNewNodeIndices.end(), 3 );
+                        const std::vector<unsigned int>::const_iterator lFirstEdgeIter = std::next( lCurEdgesToRefine.begin(), 0 );
+                        const std::vector<unsigned int>::const_iterator lSecondEdgeIter = std::next( lCurEdgesToRefine.begin(), 2 );
+                        const std::vector<unsigned int>::const_iterator lThirdEdgeIter = std::next( lCurEdgesToRefine.begin(), 4 );
+                    
+                                     
+                        // Modify old simplex
+                        for ( unsigned int lIterEdgesToRefine = 0; lIterEdgesToRefine < 3; lIterEdgesToRefine++ )
+                            mFullSimplices[ lIterSimplex * (getTopD()+1) + lIterEdgesToRefine] = getNN() + *std::next(lFirstNodeIndexIter, lIterEdgesToRefine);
+                        
+                        // Create first of three simplices where all but one node indices are new
+                        mFullSimplices.push_back( getNN() + *std::next(lFirstNodeIndexIter, 0) );
+                        mFullSimplices.push_back( getNN() + *std::next(lFirstNodeIndexIter, 1) );
+                        if ( ( *lFirstEdgeIter == *lSecondEdgeIter ) || ( *lFirstEdgeIter == *std::next(lSecondEdgeIter) ) )
+                            mFullSimplices.push_back( *lFirstEdgeIter );
+                        else //if ( *std::next(lFirstEdgeIter) == *std::next(lSecondEdgeIter) )
+                            mFullSimplices.push_back( *std::next(lFirstEdgeIter) );
+                            
+                        // Create second of three simplices where all but one node indices are new
+                        mFullSimplices.push_back( getNN() + *std::next(lFirstNodeIndexIter, 0) );
+                        mFullSimplices.push_back( getNN() + *std::next(lFirstNodeIndexIter, 2) );
+                        if ( ( *lFirstEdgeIter == *lThirdEdgeIter ) || ( *lFirstEdgeIter == *std::next(lThirdEdgeIter) ) )
+                            mFullSimplices.push_back( *lFirstEdgeIter );
+                        else //if ( *std::next(lFirstEdgeIter) == *std::next(lSecondEdgeIter) )
+                            mFullSimplices.push_back( *std::next(lFirstEdgeIter) );
+                            
+                        // Create third of three simplices where all but one node indices are new
+                        mFullSimplices.push_back( getNN() + *std::next(lFirstNodeIndexIter, 1) );
+                        mFullSimplices.push_back( getNN() + *std::next(lFirstNodeIndexIter, 2) );
+                        if ( ( *lSecondEdgeIter == *lThirdEdgeIter ) || ( *lSecondEdgeIter == *std::next(lThirdEdgeIter) ) )
+                            mFullSimplices.push_back( *lSecondEdgeIter );
+                        else //if ( *std::next(lFirstEdgeIter) == *std::next(lSecondEdgeIter) )
+                            mFullSimplices.push_back( *std::next(lSecondEdgeIter) );
+                            
+                        mNumSimplices += 3;
+                        updateConstMeshPointers();                            
                     }
                     else
                     {
+                        // Insert an iterator to current simplex
+                        lSimplexList.clear();
+                        lSimplexList.push_back( lIterSimplex );
                     
-                        // Map the two nodes of current edge
-                        Eigen::Map<const Eigen::VectorXd> lNode1( &mFullNodes.data()[getD() * lNode1Index], getD() );
-                        Eigen::Map<const Eigen::VectorXd> lNode2( &mFullNodes.data()[getD() * lNode2Index], getD() );
-                        // Get node in between
-                        const Eigen::VectorXd lNode3 = 0.5 * (lNode1 + lNode2);
-                        // Push the second point into the back of nodes and replace its values with node 3 instead
-                        for (unsigned int lIterD = 0; lIterD < getD(); lIterD++)
+                        // Loop through all edges to refine
+                        unsigned int lIterNumEdge = 0;
+                        for ( std::vector<unsigned int>::const_iterator lIterEdgesToRefine = lCurEdgesToRefine.begin(); lIterEdgesToRefine != lCurEdgesToRefine.end(); )
                         {
-                            mFullNodes.push_back( lNode3[lIterD] );
-                        }
-                        // Increase the number of nodes
-                        mNumNodes++;
-                        // Update pointers
-                        updateConstMeshPointers();
-                        
-                        // If one maximum diameter for each node
-                        if ( pMaxDiam.size() > 1 )
-                            // Add maximum allowed diameter for new node
-                            pMaxDiam.push_back( 0.5 * (pMaxDiam[lNode1Index] + pMaxDiam[lNode2Index]) );
-                        
-                        // Loop through all simplices sharing edge
-                        for ( std::set<unsigned int>::const_iterator lIterIntersection = lSharingSimplices.begin(); lIterIntersection != lSharingSimplices.end(); lIterIntersection++ )
-                        {                        
-                            // Add new shadow simplex and update old simplex
-                            for (unsigned int lIterSimpDim = 0; lIterSimpDim < getTopD()+1; lIterSimpDim++)
+                            // Loop through all simplices that are part of old simplex
+                            for ( unsigned int lIterSimplicesList = 0; lIterSimplicesList < lSimplexList.size(); lIterSimplicesList++ )
                             {
-                                // Get current simplex index
-                                const unsigned int lCurNodeIndex = mFullSimplices[  *lIterIntersection * (getTopD()+1) + lIterSimpDim ];
-                                // If equal to node 1 index
-                                if (lCurNodeIndex == lNode1Index)
+                                const unsigned int lCurOrigSimplexInd = lSimplexList[lIterSimplicesList];
+                            
+                                // Find locations of the two node indices of current edge in original simplex
+                                unsigned int lFirstLocalIndex = getTopD()+1;
+                                unsigned int lSecondLocalIndex = getTopD()+1;
+                                for ( unsigned int lIterLocalIndices = 0; lIterLocalIndices < getTopD()+1; lIterLocalIndices++ )
                                 {
-                                    // Let original simplex keep node 1 while new simplex use node 3 instead
-                                    mFullSimplices.push_back( getNN() - 1 );
+                                    // If first index
+                                    if ( mFullSimplices[lCurOrigSimplexInd * (getTopD()+1) + lIterLocalIndices] == *lIterEdgesToRefine )
+                                        lFirstLocalIndex = lIterLocalIndices;
+                                    // If second index
+                                    if ( mFullSimplices[lCurOrigSimplexInd * (getTopD()+1) + lIterLocalIndices] == *std::next(lIterEdgesToRefine) )
+                                        lSecondLocalIndex = lIterLocalIndices;
                                 }
-                                else
-                                {
-                                    // If equal to node 2 index
-                                    if (lCurNodeIndex == lNode2Index)
-                                        // Let new simplex keep node 2 while original simplex use node 3 instead
-                                        mFullSimplices[ *lIterIntersection * (getTopD()+1) + lIterSimpDim ] = getNN()-1;
+                                // If not both indices were found
+                                if ( (lFirstLocalIndex > getTopD()) || (lSecondLocalIndex > getTopD()) )
+                                    continue;
                                     
-                                    // Insert the same index
-                                    mFullSimplices.push_back( lCurNodeIndex );
-                                }
-                                    
-                                // Add a copy of old neighborhood
-                                mFullNeighs.push_back( mFullNeighs[ *lIterIntersection * (getTopD()+1) + lIterSimpDim ] );
+                                // Add to list of iterators
+                                lSimplexList.push_back( mFullSimplices.size() / (getTopD()+1) );
+                                // Copy current simplex to new simplex
+                                mFullSimplices.insert( mFullSimplices.end(), 
+                                    std::next(mFullSimplices.begin(), lCurOrigSimplexInd * (getTopD()+1) ), 
+                                    std::next(mFullSimplices.begin(), lCurOrigSimplexInd * (getTopD()+1) + (getTopD()+1) ) );
+                                mNumSimplices++;
+                                updateConstMeshPointers();                            
+                                
+                                // Modify old simplex
+                                mFullSimplices[ lCurOrigSimplexInd * (getTopD()+1) + lSecondLocalIndex ] = 
+                                    getNN() + *std::prev( lNewNodeIndices.end(), lCurEdgesToRefine.size()/2 - lIterNumEdge );
+                                // Modify new simplex
+                                mFullSimplices[ lSimplexList.back() * (getTopD()+1) + lFirstLocalIndex ] = 
+                                    getNN() + *std::prev( lNewNodeIndices.end(), lCurEdgesToRefine.size()/2 - lIterNumEdge );
+    
                             }
-                            // Increase the number of simplices
-                            mNumSimplices++;   
-                            // Update pointers
-                            updateConstMeshPointers();
                             
-                            // Mark current simplex as updated
-                            lSimplexMaxEdge[ *lIterIntersection ] = 0.0d;
-                            // Remove number of simplices to update since one has been split now
-                            lNumSimplicesToUpdate--;
+                            // Increment iterators
+                            lIterEdgesToRefine = std::next( lIterEdgesToRefine, 2 );
+                            lIterNumEdge++;
                             
-                        } // End of loop through sharing simplices        
-                        
-                        // Handle neighborhoods
-                        {                                
-                            // Loop through all simplices sharing edge to update their neighborhood
-                            std::set<unsigned int>::const_iterator lIterIntersection = lSharingSimplices.begin();
-                            for ( unsigned int lIterChangedSimplices = 0; lIterChangedSimplices < lSharingSimplices.size(); lIterChangedSimplices++ )
-                            {
-                                // Get complementary shadow
-                                const unsigned int lComplementaryShadow = (lIterChangedSimplices + getNT()) - lSharingSimplices.size();
-                                
-                                // Go through neighborhood
-                                for ( unsigned int lIterNeighIndices = 0; lIterNeighIndices < getTopD() + 1; lIterNeighIndices++)
-                                {
-                                    // Get index of supposed neighbor
-                                    const unsigned int lCurNeighIndex = getNeighs()[*lIterIntersection * (getTopD()+1) + lIterNeighIndices];
-                                    
-                                    // If index is not dummy
-                                    if (lCurNeighIndex < getNT() )
-                                    {
-                                        // Make sure that neighbor is considered neighbor with this
-                                        unsigned int lNeighborsThisIndex = getTopD()+1;
-                                        for ( unsigned int lIterNeighIndices2 = 0; lIterNeighIndices2 < getTopD() + 1; lIterNeighIndices2++)
-                                            // If the same as the original simplex
-                                            if ( mFullNeighs.at( lCurNeighIndex * (getTopD()+1) + lIterNeighIndices2 ) == *lIterIntersection )
-                                            {
-                                                lNeighborsThisIndex = lIterNeighIndices2;
-                                                // Break out
-                                                break;
-                                            }
-
-                                        // If not present in neighbors neighbors
-                                        if (lNeighborsThisIndex == getTopD()+1 )
-                                            // Signal error
-                                            return 10;
-                                    
-                                        // If not actual neighbors
-                                        if ( !areSimplicesNeighbors( *lIterIntersection, lCurNeighIndex ) )
-                                        {
-                                            // Is the former neigbor part of updated simplices?
-                                            if ( lSharingSimplices.count( lCurNeighIndex ) )
-                                            {
-                                                // This case should not be possible
-                                                // Signal error
-                                                return 11;
-                                            }
-                                            else
-                                            {
-                                                // The shadow should be switched to complementary shadow
-                                                mFullNeighs[ lComplementaryShadow * (getTopD()+1) + lIterNeighIndices ] = lCurNeighIndex;
-                                                // In the other neighbor, the neighbor should be complementary shadow
-                                                mFullNeighs[ lCurNeighIndex * (getTopD()+1) + lNeighborsThisIndex ] = lComplementaryShadow;
-                                                // Set old link to dummy
-                                                mFullNeighs[ *lIterIntersection * (getTopD()+1) + lIterNeighIndices ] = lMaxNumSimplices;
-                                            }
-                                        }
-                                    }
-                                }   // End of going through neighborhhods
-                                
-                                // Go through neighborhood
-                                for ( unsigned int lIterNeighIndices = 0; lIterNeighIndices < getTopD() + 1; lIterNeighIndices++)
-                                {
-                                    // Get index of supposed neighbor
-                                    const unsigned int lCurNeighIndex = getNeighs()[lComplementaryShadow * (getTopD()+1) + lIterNeighIndices];
-                                    
-                                    // If index is not a dummy
-                                    if (lCurNeighIndex < lMaxNumSimplices)
-                                    {
-                                        // Make sure that neighbor is considered neighbor with this
-                                        unsigned int lNeighborsThisIndex = getTopD()+1;
-                                        for ( unsigned int lIterNeighIndices2 = 0; lIterNeighIndices2 < getTopD() + 1; lIterNeighIndices2++)
-                                            // If the same as the original simplex
-                                            if ( 
-                                                (getNeighs()[lCurNeighIndex * (getTopD()+1) + lIterNeighIndices2] == *lIterIntersection) || 
-                                                (getNeighs()[lCurNeighIndex * (getTopD()+1) + lIterNeighIndices2] == lComplementaryShadow) 
-                                                )
-                                            {
-                                                lNeighborsThisIndex = lIterNeighIndices2;
-                                                // Break out
-                                                break;
-                                            }
-
-                                        // If not present in neighbors neighbors
-                                        if (lNeighborsThisIndex == getTopD()+1 )
-                                            // Signal error
-                                            return 13;
-                                    
-                                        // If not actual neighbors
-                                        if ( !areSimplicesNeighbors( lComplementaryShadow, lCurNeighIndex ) )
-                                        {
-                                            // Is the former neigbor part of updated simplices?
-                                            if ( lSharingSimplices.count( lCurNeighIndex ) )
-                                            {
-                                                // find its order
-                                                unsigned int lIterChangedSimplices2 = 0;
-                                                for ( ; lIterChangedSimplices2 <= lSharingSimplices.size(); lIterChangedSimplices2++)
-                                                {
-                                                    if ( *std::next(lSharingSimplices.begin(), lIterChangedSimplices2 ) == lCurNeighIndex )
-                                                        break;
-                                                }
-                                                if (lIterChangedSimplices2 == lSharingSimplices.size())
-                                                    return 14;
-                                            
-                                                // Get its complementary
-                                                const unsigned int lComplementaryShadow2 = (lIterChangedSimplices2 + getNT()) - lSharingSimplices.size();                                            
-                                                // The old neighbor should be switched to complementary shadow
-                                                mFullNeighs[ lComplementaryShadow * (getTopD()+1) + lIterNeighIndices ] = lComplementaryShadow2;
-                                                // In the other neighbor, the neighbor should be complementary shadow
-                                                mFullNeighs[ lComplementaryShadow2 * (getTopD()+1) + lNeighborsThisIndex ] = lComplementaryShadow;
-
-                                            }
-                                            else
-                                            {
-                                                // The old neighbor should be switched to original index
-                                                mFullNeighs[ *lIterIntersection * (getTopD()+1) + lIterNeighIndices ] = lCurNeighIndex;
-                                                // In the other neighbor, the neighbor should be original or complementary shadow
-                                                mFullNeighs[ lCurNeighIndex * (getTopD()+1) + lNeighborsThisIndex ] = *lIterIntersection;
-                                                // Set old link to dummy
-                                                mFullNeighs[ lComplementaryShadow * (getTopD()+1) + lIterNeighIndices ] = lMaxNumSimplices;
-                                            }
-                                        }    
-                                        // If they are neigbors and it is written that the original is
-                                        else if (lNeighborsThisIndex == *lIterIntersection)
-                                        {
-                                            // The old neighbor should be switched to original index
-                                            mFullNeighs[ lComplementaryShadow * (getTopD()+1) + lIterNeighIndices ] = lCurNeighIndex;
-                                            // In the other neighbor, the neighbor should be original or complementary shadow
-                                            mFullNeighs[ lCurNeighIndex * (getTopD()+1) + lNeighborsThisIndex ] = lComplementaryShadow;
-                                        }
-                                    }
-                                }   // End of going through neighborhhods
-                                
-                                // If original and complementary are not already paired
-                                {
-                                    bool lIsPart = false;
-                                    unsigned int lFirstDummy = getTopD()+1;
-                                    for ( unsigned int lIterNeighIndices = 0; lIterNeighIndices < getTopD() + 1; lIterNeighIndices++)
-                                    {
-                                        const unsigned int lCurVal = getNeighs()[ *lIterIntersection * ( getTopD() + 1 ) + lIterNeighIndices ];
-                                        // If current new simplex is already part of neighborhood
-                                        if ( lCurVal == lComplementaryShadow )
-                                            lIsPart = true;
-                                        // If dummy
-                                        else if ( (lCurVal >= getNT() ) && (lFirstDummy > getTopD()) )
-                                            lFirstDummy = lIterNeighIndices;
-                                    }
-                                    // If current new simplex is not part and a dummy exists
-                                    if ( (!lIsPart) && lFirstDummy <= getTopD() )
-                                    {
-                                        mFullNeighs[ *lIterIntersection * ( getTopD() + 1 ) + lFirstDummy ] = lComplementaryShadow;
-                                    }
-                                    
-                                    lIsPart = false;
-                                    lFirstDummy = getTopD()+1;
-                                    for ( unsigned int lIterNeighIndices = 0; lIterNeighIndices < getTopD() + 1; lIterNeighIndices++)
-                                    {
-                                        const unsigned int lCurVal = getNeighs()[ lComplementaryShadow * ( getTopD() + 1 ) + lIterNeighIndices ];
-                                        // If current new simplex is already part of neighborhood
-                                        if ( lCurVal == *lIterIntersection )
-                                            lIsPart = true;
-                                        // If dummy
-                                        else if ( ( lCurVal >= getNT() ) && (lFirstDummy > getTopD()) )
-                                            lFirstDummy = lIterNeighIndices;
-                                    }
-                                    // If current new simplex is not part and a dummy exists
-                                    if ( (!lIsPart) && lFirstDummy <= getTopD() )
-                                    {
-                                        mFullNeighs[ lComplementaryShadow * ( getTopD() + 1 ) + lFirstDummy ] = *lIterIntersection;
-                                    }
-                                }
-                                
-                                // Go through all neighbors and make sure that they are truly neighbors
-                                for ( unsigned int lIterNeighIndices = 0; lIterNeighIndices < getTopD() + 1; lIterNeighIndices++)
-                                {
-                                    unsigned int lCurVal = getNeighs()[ *lIterIntersection * ( getTopD() + 1 ) + lIterNeighIndices ];
-                                    if (lCurVal < getNT())
-                                      // Make sure that neighbors are neighbors
-                                      if (!areSimplicesNeighbors( *lIterIntersection, lCurVal ))
-                                          return 16;
-                                          
-                                    lCurVal = getNeighs()[ lComplementaryShadow * ( getTopD() + 1 ) + lIterNeighIndices ];
-                                    if (lCurVal < getNT())
-                                        // Make sure that neighbors are neighbors
-                                        if (!areSimplicesNeighbors( lComplementaryShadow, lCurVal ))
-                                            return 17;
-                                }
-                            
-                                // Increment pointer
-                                lIterIntersection++;
-                            }   // End of loop over updated simplices
-                        
-                        }   // End of handling neighborhood scope 
-                        
-                    }   // End of if other simplices did not have higher                
-                    
-                    
-                }   // End of split of current simplex            
+                        } // End of loop through edges to refine
+                    }   // End of not refining all in 2D
                 
-        // If reached maximum number of nodes
-        if (pMaxNumNodes <= getNN())
+                }   // end of case of topological dimension above 1
+            }   // end of creating new simplices
+                
+        } // end of looping through simplices
+    
+    
+        // Create new nodes
         {
-            // Set that no more should be updated
-            lContinueToLoop = false;
-            break;
+            // Get number of nodes to create
+            const unsigned int lCurNN = lNewEdgesParentEdges.size()/2;
+            // Loop over all new nodes that should be created and create them
+            for ( std::vector<unsigned int>::const_iterator lIterEdges = lNewEdgesParentEdges.begin(); lIterEdges != lNewEdgesParentEdges.end();  )
+            {
+                // Get the index of the first node in edge
+                const unsigned int lNode1EdgeIndex = *lIterEdges;
+                lIterEdges++;
+                // Get the index of the second node in edge
+                const unsigned int lNode2EdgeIndex = *lIterEdges;
+                lIterEdges++;
+                   
+                // Map the two nodes of current edge
+                Eigen::Map<const Eigen::VectorXd> lNode1( &mFullNodes.data()[getD() * lNode1EdgeIndex], getD() );
+                Eigen::Map<const Eigen::VectorXd> lNode2( &mFullNodes.data()[getD() * lNode2EdgeIndex], getD() );
+                // Get the mean value of them as the new node
+                Eigen::VectorXd lNewNode = 0.5d * (lNode1 + lNode2);
+        
+                // Add node to mesh
+                mFullNodes.insert( mFullNodes.end(), lNewNode.data(), &lNewNode.data()[getD()] );
+                
+                // If one maximum diameter for each node
+                if ( pMaxDiam.size() > 1 )
+                    // Add maximum allowed diameter for new node
+                    pMaxDiam.push_back( 0.5 * (pMaxDiam[lNode1EdgeIndex] + pMaxDiam[lNode2EdgeIndex]) );
+            }
+            
+            // If transformation is defined and new nodes has been created
+            if ( ( lCurNN > 0 ) && (transformationPtr != NULL) )
+            {
+                // Transform updated points
+                const int lStatus = (*transformationPtr)(&mFullNodes.data()[getNN() * getD()], lCurNN );
+                if (lStatus)
+                    return 6;
+            }
+            
+            // Update number of nodes
+            mNumNodes += lCurNN;
+            updateConstMeshPointers();
         }
         
-        // If has been updating and transformation is defined
-        if ( (getNN() > lLastEpochNN) && (transformationPtr != NULL) )
-        {
-            // Transform updated points
-            lStatus = (*transformationPtr)(&mFullNodes.data()[lLastEpochNN * getD()], getNN()-lLastEpochNN );
-            if (lStatus)
-                return 6;
-        }
+        // If are not allowed to refine all edges
+        if (lCurNN >= lMaxNumNewNodes)
+            // Set that no more iterations
+            lInvestigateFurther = false;
+    
+    
+    }   // End of refine further loop
 
-    }   // End of while loop while edges to split
-    
-    // Loop through all simplices
-    #pragma omp parallell for
-    for ( unsigned int lIterSimplex = 0; lIterSimplex < getNT(); lIterSimplex++ )
-    {
-        // Sort neighbors
-        std::sort( &mFullNeighs.data()[ lIterSimplex * (getTopD()+1) ], &mFullNeighs.data()[ lIterSimplex * (getTopD()+1) ] + (getTopD()+1) );
-
-        // Go through all elements    
-        for (unsigned int lIterNodeInds = 0; lIterNodeInds < getTopD()+1; lIterNodeInds++)
-        {
-            // Set dummy variables to highest node number
-            unsigned int * const lCurNodeIndsPtr = &mFullSimplices.data()[ lIterSimplex * (getTopD()+1) + lIterNodeInds ];
-            if ( *lCurNodeIndsPtr > getNN() )
-                *lCurNodeIndsPtr = getNN();
-            // change value to dummy variables to highest simplex number
-            unsigned int * const lCurSimplexIndsPtr = &mFullNeighs.data()[ lIterSimplex * (getTopD()+1) + lIterNodeInds ];
-            if ( *lCurSimplexIndsPtr >= getNT() )
-                *lCurSimplexIndsPtr = getNT();
-        }
-    }
-    
-    
-        
-    
     return 0;
 }
 
@@ -1549,7 +1739,7 @@ MapToSimp::MapToSimp( const double * const pPoints, const unsigned int pD, const
         Eigen::Map< const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> > lPoints( &pPoints[mD], mD, mTopD ); 
         // Get matrix of point 0 subtracted from consecutive points ( the matrix of row vectors {point_j - _point_0}_j )
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> lF = lPoints.colwise() - mPoint0;
-        // Perform a QR facotorization of lF
+        // Perform a QR factorization of lF
         mQR = lF.colPivHouseholderQr();
         
         // Get the R1 matrix
@@ -1576,11 +1766,11 @@ Eigen::VectorXd MapToSimp::solve( const Eigen::VectorXd & pVector ) const
     const Eigen::MatrixXd lQ1 = lQ.topLeftCorner(mD, mTopD);
     
     // Get solution
-    Eigen::VectorXd lTemp = lQ1.transpose() * pVector;
-    lTemp = lR1.lu().solve( lTemp );
-    lTemp = lP * lTemp;
+    Eigen::VectorXd lOutput = lQ1.transpose() * pVector;
+    lOutput = lR1.lu().solve( lOutput );
+    lOutput = lP * lOutput;
     
-    return lTemp;
+    return lOutput;
 }
 
 Eigen::VectorXd MapToSimp::solveTransposed( const Eigen::VectorXd & pVector ) const
@@ -1594,15 +1784,15 @@ Eigen::VectorXd MapToSimp::solveTransposed( const Eigen::VectorXd & pVector ) co
     const Eigen::MatrixXd lQ1 = lQ.topLeftCorner(mD, mTopD);    
     
      // Get solution
-    Eigen::VectorXd lTemp = lP.inverse() * pVector;
-    lTemp = lR1T.lu().solve( lTemp );
-    lTemp = lQ1 * lTemp;
+    Eigen::VectorXd lOutput = lP.inverse() * pVector;
+    lOutput = lR1T.lu().solve( lOutput );
+    lOutput = lQ1 * lOutput;
 
-    return lTemp;
+    return lOutput;
 }
 
-// Get divergence length from subspace spanned by simplex
-double MapToSimp::getDivergence( const Eigen::VectorXd & pVector ) const
+// Get length between hyperplane of simpex and vector
+double MapToSimp::getOrthogonalLength( const Eigen::VectorXd & pVector ) const
 {
     if (mD == mTopD)
         return 0.0d;
@@ -1614,8 +1804,47 @@ double MapToSimp::getDivergence( const Eigen::VectorXd & pVector ) const
     const Eigen::MatrixXd lQ2 = lQ.block(0, mTopD, mD, mD - mTopD);
     // Get projection on complement to simplex subspace
     const Eigen::VectorXd lCompProj = lQ2.transpose() * lVector;
-    // return l2 distance of lCompProj
+    // return L2 distance of lCompProj
     return lCompProj.norm();
+}
+
+// Get parameter value 't' of line parameterized as 'pLinePoint' + t*'pLineVector', for the point where line cuts hyperplane of simplex.
+double MapToSimp::getLineIntersection( const Eigen::VectorXd & pLinePoint, const Eigen::VectorXd & pLineVector ) const
+{
+    if (mD == mTopD)
+        // Return that line inteserction is at t = 0
+        return 0.0d;
+        
+    // Get Q2
+    const Eigen::MatrixXd lQ = mQR.householderQ();
+    const Eigen::MatrixXd lQ2 = lQ.block(0, mTopD, mD, mD - mTopD);
+    
+    // Get length of line vector projected on complement to hyperplane spanned by simplex
+    const double lCompProjLineVectorLength = (lQ2.transpose() * pLineVector).norm();
+    // Get length of vector between line point and simplex point 0 projected on complement to hyperplane spanned by simplex
+    const double lCompProjLinePointLength = (lQ2.transpose() * (pLinePoint - mPoint0) ).norm();
+    
+    // If line point is inside hyperplane
+    if ( lCompProjLinePointLength < 1e-16 )
+        // Return that line inteserction is at t = 0
+        return 0.0d;
+    
+    // If the line vector is perpendicular to the complement space
+    if ( lCompProjLineVectorLength < 1e-10 )
+        // Return that line is not intersecting with hyperplane
+        return std::numeric_limits<double>::infinity();
+    
+    // Get line parameter value of intersection
+    double lT = lCompProjLinePointLength / lCompProjLineVectorLength;
+    // Get what should supposedly be a point in the hyperplane and project vector between that and point 0 to the complement space, and take length of that
+    const double lDivergence = ( lQ2.transpose() * (pLinePoint + lT * pLineVector - mPoint0) ).norm();
+    // If divergence is not small enough
+    if ( lDivergence > 1e-10 )
+        // Flip sign
+        lT = -lT;
+    
+    // Return value
+    return lT;
 }
 
 // Map from simplex space to original space
@@ -1856,7 +2085,7 @@ int ExtendMesh::computeNewSubSimplices( const unsigned int pSimplexInd, const un
             lIterComplyEdges2 != lComplyFaces.end();  )
             {
                 // Get intersection of current edge and current sub-simplex
-                misc_setIntersection( lCurSubSimp, *lIterComplyEdges2, lIntersection);
+                misc_setIntersection<unsigned int>( lCurSubSimp, *lIterComplyEdges2, lIntersection);
                     
                 // Assume shouldn't claim face            
                 bool lClaimFace = false;            
@@ -1951,13 +2180,16 @@ int ExtendMesh::computeNewSubSimplices( const unsigned int pSimplexInd, const un
                     // See if current test set is sharing faces with any of the banned faces
                     for ( std::list< std::set<unsigned int> >::const_iterator lIterBanned = lBannedEdges.begin(); 
                         lIterBanned != lBannedEdges.end(); ++lIterBanned )
+                    {
                         // If the face is shared
-                        if ( misc_numSharedElements(lTestSet, *lIterBanned, lIntersection) == (mTopD+1) )
+                        misc_setIntersection<unsigned int>(lTestSet, *lIterBanned, lIntersection);
+                        if ( lIntersection.size() == (mTopD+1) )
                         {
                             // Forbid current simplex
                             lAllowed = false;
                             break;
                         }
+                    }
                     // If test set is allowed
                     if (lAllowed)
                     {
@@ -2085,25 +2317,6 @@ int mesh_getEdgesAndRelations( std::vector<unsigned int> &pEdges, std::vector<un
 
 
 
-
-// Get barycentric coordinates from standard simplex coordinates
-inline Eigen::VectorXd mesh_getBarycentricFromStandard( const Eigen::VectorXd & lStand )
-{
-    Eigen::VectorXd lBary( lStand.size()+1 );
-    
-    double lFirstBary = 0.0d;
-    for (unsigned int lIter = 0; lIter < lStand.size(); lIter++)
-    {
-        lBary(lIter+1) = lStand.coeff(lIter);
-        lFirstBary += lBary.coeff(lIter+1);
-    }
-    lBary(0) = 1.0d - lFirstBary;
-    
-    return lBary;
-}
-
-
-
 // Acquire a vector of all unique edges of a simplex
 int mesh_getEdgesOfSimplex( std::vector< std::set<unsigned int> > & pOut, const unsigned int pNumCombinations,
     const unsigned int pEdgeDim, const unsigned int pTopologicalD, const unsigned int * const pSimplex )
@@ -2175,8 +2388,17 @@ extern "C"
         const double * const pPoints, const unsigned int pNumPoints,
         const double * const pNodes, const unsigned int pNumNodes,
         const unsigned int * const pMesh, const unsigned int pNumSimplices,
-        const unsigned int pD, const unsigned int pTopD, const double pEmbTol)
+        const unsigned int pD, const unsigned int pTopD, const double pEmbTol,
+        const double * const pCenterOfCurvature, const unsigned int pNumCentersOfCurvature )
     {
+    
+        if ( (pCenterOfCurvature == NULL) && (pNumCentersOfCurvature > 0) )
+            return 1;
+        if ( (pCenterOfCurvature != NULL) && (pNumCentersOfCurvature == 0) )
+            return 1;
+        if ( (pNumCentersOfCurvature > 1) && (pNumCentersOfCurvature != pNumPoints) )
+            return 1;
+    
         // Create internal representation of mesh
         ConstMesh lConstMesh( pNodes, pD, pNumNodes, pMesh, pNumSimplices, pTopD );
         
@@ -2186,25 +2408,25 @@ extern "C"
             lConstMesh.computeMeshGraph( 1000, 0.0d, 20 );
         
         // Get which triangle each point is a member of
-        std::vector<unsigned int> lMemberList;
-        lMemberList.reserve(pNumPoints);
-        std::vector<double> lBaryList;
-        lBaryList.reserve(pNumPoints*(pTopD+1));
-        int lStatus = lConstMesh.getASimplexForPoint( pPoints, pNumPoints, lMemberList.data(), lBaryList.data(), pEmbTol );
+        std::vector<unsigned int> lMemberList( pNumPoints, 0 );
+        std::vector<double> lBaryList( pNumPoints*(pTopD+1), 0.0d );
+        int lStatus = lConstMesh.getASimplexForPoint( pPoints, pNumPoints, lMemberList.data(), lBaryList.data(), pEmbTol, pCenterOfCurvature, pNumCentersOfCurvature );
         if (lStatus != 0)
             // Flag error
-            return lStatus;
+            return lStatus + 1;
         
         // Keeps track of which data index the next observation element should be pushed into
         unsigned int lDataIndex = 0;
     
         // Loop through each point
         for ( unsigned int lIterPoint = 0; lIterPoint < pNumPoints; lIterPoint++ )
-        {            
+        {       
+            // Get simplex index
+            const unsigned int lSimplexId = lMemberList[lIterPoint];
+             
             // Loop through each node in simplex
             for (unsigned int lIterNodes = 0; lIterNodes < (pTopD+1); lIterNodes++)
             {
-                const unsigned int lSimplexId = lMemberList[lIterPoint];
                 // If simplex was found
                 if ( lSimplexId  < lConstMesh.getNT() )
                 {
@@ -2577,7 +2799,6 @@ extern "C"
     // Refines chosen simplices
     int mesh_refineMesh( const double * const pNodes, const unsigned int pNumNodes, const unsigned int pD,
         const unsigned int * const pSimplices, const unsigned int pNumSimplices, const unsigned int pTopD,
-        const unsigned int * const pNeighs,
         unsigned int * const pNewNumNodes, unsigned int * const pNewNumSimplices, unsigned int * const pId,
         const unsigned int pMaxNumNodes, const double * const pMaxDiam, const unsigned int pNumMaxDiam,
         int (* transformationPtr)(double *, unsigned int) )
@@ -2589,7 +2810,7 @@ extern "C"
         std::vector<double> lMaxDiam( pMaxDiam, pMaxDiam + pNumMaxDiam );
         
         // Create internal mesh
-        FullMesh lMesh( pNodes, pD, pNumNodes, pSimplices, pNumSimplices, pTopD, pNeighs );
+        FullMesh lMesh( pNodes, pD, pNumNodes, pSimplices, pNumSimplices, pTopD );
         // Refine
         int lStatus = lMesh.refine( pMaxNumNodes, lMaxDiam, transformationPtr );
         if (lStatus)

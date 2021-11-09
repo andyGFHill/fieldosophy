@@ -197,7 +197,7 @@ def meshInPlane( boundaryPolygon, maxDiam, geo_filename, msh_filename = None, vt
         
         
     if boundaryPolygon.shape[0] < mesh.nodes.shape[1]:
-        mesh.nodes = mesh.nodes[:, 0:boundaryPolygon.shape[0]]
+        mesh.nodes = mesh.nodes[:, 0:boundaryPolygon.shape[0]].copy()
         mesh.embD = mesh.topD
         
     return mesh

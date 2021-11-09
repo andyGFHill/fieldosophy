@@ -73,13 +73,19 @@ class Mesh:
         # Get topological mesh        
         if triangles.dtype is not np.dtype(np.uintc):
             triangles = triangles.astype(np.uintc)
+        if not triangles.flags['C_CONTIGUOUS']:
+            triangles = np.ascontiguousarray(triangles)
         self.triangles = triangles
+        
         
         # Get nodes
         if nodes.dtype is not np.dtype("float64"):
             nodes = nodes.astype(np.float64)
+        if not nodes.flags['C_CONTIGUOUS']:
+            nodes = np.ascontiguousarray(nodes)
         self.nodes = nodes
 
+    
         
         
     def copy(self):
@@ -89,7 +95,7 @@ class Mesh:
     # %% member functions        
     
     
-    def refine( self, maxDiam, maxNumNodes, neighs = None, transformation = None ):
+    def refine( self, maxDiam, maxNumNodes, transformation = None ):
         # Refine mesh or simplices thereof
         
         # If maxDiam is not an array
@@ -101,16 +107,9 @@ class Mesh:
         if (maxDiam.size != 1) and (maxDiam.size != self.N):
             raise Exception( "maxDiam did not have the right size" )
             
-        # If no neighborhood structure given
-        if neighs is None:
-            neighs = self.getNeighs()
-        if neighs.dtype is not np.uintc:
-            neighs = neighs.astype(np.uintc)
-            
         nodes_p = self.nodes.ctypes.data_as(self.c_double_p) 
         maxDiam_p = maxDiam.flatten().ctypes.data_as(self.c_double_p) 
         triangles_p = self.triangles.ctypes.data_as(self.c_uint_p) 
-        neighs_p = neighs.ctypes.data_as(self.c_uint_p)         
         
         newNumNodes = ctypes.c_uint( 0 )
         newNumSimplices = ctypes.c_uint( 0 )
@@ -140,14 +139,12 @@ class Mesh:
         self._libInstance.mesh_refineMesh.argtypes = [ \
               self.c_double_p, ctypes.c_uint, ctypes.c_uint, \
               self.c_uint_p, ctypes.c_uint, ctypes.c_uint, \
-              self.c_uint_p, \
               self.c_uint_p, self.c_uint_p, self.c_uint_p, \
               ctypes.c_uint, self.c_double_p, ctypes.c_uint,\
               CMPFUNC ]
         status = self._libInstance.mesh_refineMesh( \
             nodes_p, ctypes.c_uint( self.N ), ctypes.c_uint( self.embD ), \
             triangles_p, ctypes.c_uint( self.NT ), ctypes.c_uint( self.topD ), \
-            neighs_p, \
             ctypes.byref(newNumNodes), ctypes.byref(newNumSimplices), ctypes.byref(meshId), \
             ctypes.c_uint(np.uintc(maxNumNodes)), maxDiam_p, ctypes.c_uint(np.uintc(maxDiam.size)), \
             cmp_func )
@@ -158,36 +155,27 @@ class Mesh:
         newNodes_p = newNodes.ctypes.data_as(self.c_double_p)
         newSimplices = np.zeros( (newNumSimplices.value, self.topD+1), dtype=np.uintc )
         newSimplices_p = newSimplices.ctypes.data_as(self.c_uint_p)
-        newNeighs = np.zeros( (newNumSimplices.value, self.topD+1), dtype=np.uintc )
-        newNeighs_p = newNeighs.ctypes.data_as(self.c_uint_p)
             
         # Acquire low-level mesh
         self._libInstance.mesh_acquireMesh.restype = ctypes.c_int
         self._libInstance.mesh_acquireMesh.argtypes = [ ctypes.c_uint, \
               self.c_double_p, ctypes.c_uint, ctypes.c_uint, \
-              self.c_uint_p, ctypes.c_uint, ctypes.c_uint, \
-              self.c_uint_p ]
+              self.c_uint_p, ctypes.c_uint, ctypes.c_uint ]
         status = self._libInstance.mesh_acquireMesh( meshId, \
             newNodes_p, newNumNodes, ctypes.c_uint( self.embD ), \
-            newSimplices_p, newNumSimplices, ctypes.c_uint( self.topD ), \
-            newNeighs_p )
+            newSimplices_p, newNumSimplices, ctypes.c_uint( self.topD ) )
         if status != 0:
             raise Exception( "Uknown error occured! Error code " + str(status) + " from mesh_acquireMesh()" ) 
             
             
         # Return new mesh
-        return ( Mesh(newSimplices, newNodes), newNeighs )
+        return Mesh(newSimplices, newNodes)
     
     
     
     
-    def getObsMat( self, points, embTol = 0.0 ):
+    def getObsMat( self, points, embTol = 0.0, centersOfCurvature = None ):
         # Acquire observation matrix (in non-manifold space)
-    
-#        # If on a manifold
-#        if self.topD < self.embD:
-#            # TODO handle manifolds
-#            raise Exception( "Cannot handle submanifolds yet!" ) 
             
         if points.dtype is not np.dtype(np.float64):
             points = points.astype(np.float64)
@@ -198,6 +186,20 @@ class Mesh:
         nodes_p = self.nodes.ctypes.data_as(self.c_double_p) 
         # Represent the points
         points_p = points.ctypes.data_as(self.c_double_p) 
+        # Represent the centers of curvature
+        centersOfCurvature_p = None
+        numCentersOfCurvature = 0
+        if centersOfCurvature is not None:
+            if not isinstance(centersOfCurvature, np.ndarray ):
+                raise Exception("'centersOfCurvature' is not a numpy array")
+            if centersOfCurvature.ndim != 2:
+                raise Exception("'centersOfCurvature' is not a 2-dimensional array")
+            
+            if centersOfCurvature.shape[1] != self.embD:
+                raise Exception("'centersOfCurvature' did not have the right dimensionality")
+            numCentersOfCurvature = centersOfCurvature.shape[0]
+            centersOfCurvature = centersOfCurvature.astype(np.float64)
+            centersOfCurvature_p = centersOfCurvature.ctypes.data_as(self.c_double_p)
         
         # Store observation matrix
         data = np.NaN * np.ones( ( points.shape[0] * (self.topD+1) ), dtype=np.float64 )
@@ -214,13 +216,15 @@ class Mesh:
               self.c_double_p, ctypes.c_uint, \
               self.c_double_p, ctypes.c_uint, \
               self.c_uint_p, ctypes.c_uint, \
-              ctypes.c_uint, ctypes.c_uint, ctypes.c_double ]  
+              ctypes.c_uint, ctypes.c_uint, ctypes.c_double, \
+              self.c_double_p, ctypes.c_uint]  
         status = self._libInstance.mesh_getObservationMatrix( \
             data_p, row_p, col_p, ctypes.c_uint( data.size ), \
             points_p, ctypes.c_uint( points.shape[0] ), \
             nodes_p, ctypes.c_uint( self.nodes.shape[0] ), \
             triangles_p, ctypes.c_uint( self.triangles.shape[0] ), \
-            ctypes.c_uint( self.embD ), ctypes.c_uint( self.topD ), ctypes.c_double( embTol ) )    
+            ctypes.c_uint( self.embD ), ctypes.c_uint( self.topD ), ctypes.c_double( embTol ), \
+            centersOfCurvature_p, ctypes.c_uint( numCentersOfCurvature ) )
         if status != 0:
             if status == 1:
                 raise Exception( "TODO" ) 
@@ -234,7 +238,7 @@ class Mesh:
         out = out.tocsr()
         
         # Get nans
-        zeroInds = (np.sum( out, axis = 1 ) == 0).nonzero()
+        zeroInds = (np.sum( out, axis = 1 ) == 0).nonzero()[0]
         out[ zeroInds, 0 ] = np.nan
         
         return( out )
@@ -254,12 +258,18 @@ class Mesh:
         
         if self.topD > 1:
             # Get all edges
-            edges = Mesh.getEdges( self.triangles, self.topD, 2, libInstance = self._libInstance )
+            edges = Mesh.getEdges( self.triangles, self.topD, self.topD, libInstance = self._libInstance )
             # Get all neighbors
             neighs = Mesh.getSimplexNeighbors( edges["simplicesForEdges"], edges["edgesForSimplices"], libInstance = self._libInstance )
         else:
-            neighs = np.stack( ( np.arange( 0,self.NT-2, dtype=np.uintc ), np.arange( 2,self.NT, dtype=np.uintc ) ) ).transpose()
-            neighs = np.concatenate( ( np.array([self.NT, 1]).reshape((1,-1)), neighs, np.array([self.NT-2, self.NT]).reshape((1,-1))) )
+            
+            # Get all simplices sharing node indices with current simplices (excluding current simplex)
+            neighs = [ np.setdiff1d( np.nonzero( np.any( np.isin( self.triangles, self.triangles[iter,:]), axis = 1 ) )[0], np.array([iter]) )  for iter in range(self.NT) ]
+            # The simplices which are not sharing all of their edges
+            for iter in range(self.NT):
+                if neighs[iter].size < 2:
+                    neighs[iter] = np.append( neighs[iter], self.NT * np.ones( 2 - neighs[iter].size) )
+            neighs = np.array(neighs, dtype=np.uintc)            
         
         return neighs
         
@@ -478,6 +488,20 @@ class Mesh:
         
         '''
         
+        if topD == 1:
+            
+            edges = np.unique(triangles).reshape((-1,1))
+            simplicesForEdges = [ np.nonzero(np.any(triangles == edges[iter], axis=1))[0] for iter in range(edges.size) ]
+            for iter in range(edges.size):
+                if (simplicesForEdges[iter].size < 2):
+                    simplicesForEdges[iter] = np.append( simplicesForEdges[iter], triangles.shape[0] * np.ones( (2 - simplicesForEdges[iter].size) ) )
+            simplicesForEdges = np.array(simplicesForEdges, dtype=np.uintc)
+            
+            edgesForSimplices = triangles
+            
+            return { "edges":edges, "simplicesForEdges":simplicesForEdges, "edgesForSimplices":edgesForSimplices }
+        
+        
         if libInstance is None:
             libInstance = ctypes.CDLL(libPath)
         
@@ -620,11 +644,62 @@ class Mesh:
         
         
         
-    def meshOnSphere( boundaryPolygon, maxDiam, maxNumNodes, radius = 1 ):
-        """ Creates triangular mesh on sphere surface. """    
+    def meshOnCircle( maxDiam, maxNumNodes, radius = 1 ):
+        """ Creates 1D mesh on circle. """ 
+
+    
+        # ---- Create original rectangle ----
+        numberOfNodes = np.min( ( maxNumNodes, np.ceil( np.pi / np.arcsin(np.min( (np.abs(maxDiam)/2.0 / radius, 1.0) )) ) ) ).astype(int)
+        
+        nodes = np.linspace( 0, 360, num = numberOfNodes + 1 )
+        nodes = nodes[0:-1] 
+        nodes = radius * np.stack( ( np.cos( nodes * np.pi/180 ), np.sin( nodes * np.pi/180 ) ) ).transpose().copy()
+        
+        triangles = np.stack( (np.arange(0, nodes.shape[0]), np.arange(1, nodes.shape[0] + 1)) ).transpose().copy()
+        triangles[-1, 1] = 0
+        
+        
+#        def transformation(x):
+#            return radius * geom.mapToHypersphere(x)
+#        
+#        # Transform nodes of box
+#        nodes = transformation(nodes)
+#    
+        # Create mesh of box
+        mesh = Mesh(nodes = nodes, triangles = triangles)
+        
+        # Get neighbors
+        neighs = np.arange(0,triangles.shape[0]).reshape((-1,1)) * np.ones((1,2))
+        neighs[:,0] = (neighs[:,0]-1) % triangles.shape[0]
+        neighs[:,1] = (neighs[:,1]+1) % triangles.shape[0]
+        
+#    
+#        # Refine to perfection
+#        mesh, neighs = mesh.refine( maxDiam = maxDiam, maxNumNodes = maxNumNodes, transformation = transformation )
+        
+        
+           
+        return (mesh, neighs)
     
     
-        # ---- Create original box ----
+    
+    def meshInSquare( scale ):
+        """ Creates simplicial mesh in box. """    
+        
+        triangles = np.array([ [0,1,2], [1,2,3]], dtype=int)
+        nodes = np.array( [ [0,0], [0,1], [1,0], [1,1] ], dtype=np.float64) * scale.reshape((1,-1))
+        
+        mesh = Mesh( triangles, nodes )
+        
+        return mesh
+    
+    
+
+    
+    
+    def meshOnBox( maxDiam, maxNumNodes ):
+        """ Creates triangular mesh on box surface. """    
+        
         
         nodes = np.zeros((8, 3))
         # Loop through each dimension
@@ -648,20 +723,83 @@ class Mesh:
         triangles[10, :] = np.array([1,3,5])
         triangles[11, :] = np.array([3,5,7])
         
-        def transformation(x):
-            return radius * geom.mapToHypersphere(x)
-        
-        # Transform nodes of box
-        nodes = transformation(nodes)
-    
         # Create mesh of box
         mesh = Mesh(nodes = nodes, triangles = triangles)
-    
+        
         # Refine to perfection
-        mesh, neighs = mesh.refine( maxDiam = maxDiam, maxNumNodes = maxNumNodes, transformation = transformation )
+        mesh, neighs = mesh.refine( maxDiam = maxDiam, maxNumNodes = maxNumNodes )
         
+        return mesh
+    
+    
+    
+    def meshOnSphere( maxDiam, maxNumNodes, radius = 1 ):
+        """ Creates triangular mesh on sphere surface. """    
+    
+        def transformation(x):
+            return radius * geom.mapToHypersphere(x)
+    
         
+        # ------- Create original icosahedron --------
+        mesh = Mesh.icosahedronSurface(radius)
+        mesh = Mesh( nodes = mesh["nodes"], triangles = mesh["triangles"] )
+        
+        # Refine to perfection
+        mesh = mesh.refine( maxDiam = maxDiam, maxNumNodes = maxNumNodes, transformation = transformation )
            
-        return (mesh, neighs)
+        return mesh
+    
+    
+    
+    def icosahedronSurface(r):
+        """
+        Returns a icosahedral mesh with radius r
+        
+        :return: A dictionary with 'nodes' and 'triangles'
+        """
+    
+        c = (1.0+np.sqrt(5))/2.0
+    
+        nodes = np.array( [ \
+            [-1.0, c, 0.0], \
+            [1.0, c, 0.0], \
+            [-1.0, -c, 0.0], \
+            [1.0, -c, 0.0], \
+            [0.0, -1.0, c], \
+            [0.0, 1.0, c], \
+            [0.0, -1.0, -c], \
+            [0.0, 1.0, -c], \
+            [c, 0.0, -1.0], \
+            [c, 0.0, 1.0], \
+            [-c, 0.0, -1.0], \
+            [-c, 0.0, 1.0] \
+           ] )
+            
+        nodes = nodes * r / np.sqrt(c**2+1)
+            
+        triangles = np.array( [ \
+            [0, 11, 5], \
+            [0, 5, 1], \
+            [0, 1, 7], \
+            [0, 7, 10], \
+            [0, 10, 11], \
+            [1, 5, 9], \
+            [5, 11, 4], \
+            [11, 10, 2], \
+            [10, 7, 6], \
+            [7, 1, 8], \
+            [3, 9, 4], \
+            [3, 4, 2], \
+            [3, 2, 6], \
+            [3, 6, 8], \
+            [3, 8, 9], \
+            [4, 9, 5], \
+            [2, 4, 11], \
+            [6, 2, 10], \
+            [8, 6, 7], \
+            [9, 8, 1] \
+            ] )
+            
+        return {"nodes":nodes, "triangles":triangles}
     
     

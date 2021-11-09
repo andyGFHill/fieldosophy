@@ -57,11 +57,7 @@ int ImplicitMesh::defineExtensionInCurrentDims( const double * const pOffset, co
         mNT *= *lIterCopies;
 
     // Initialize number of nodes to zero
-    mNN = 0;
-    // Loop through all sectors
-    for( unsigned int lSector = 0; lSector < getNumCopiesPerSector(getD()); lSector++ )
-        // Add current sectors index size
-        mNN += sector2ExplicitIndexSize( lSector );    
+    mNN = mMesh.getNN() * getNumSectors();
     
     return 0;
 }
@@ -180,6 +176,15 @@ int ImplicitMesh::populateBoundingBox()
         lIterSimplices = &lIterSimplices[mMesh.getTopD()+1];
     }
     
+    
+    // If on embedded manifold
+    if ( mMesh.getD() != mMesh.getTopD() )
+    {
+        // Clear all pairings to mark that explicit mesh is not extendable
+        mPairing.clear();
+        // Return from function signalling success
+        return 0;
+    }
     
     // Loop through all dimensions to find pairings
     std::vector<double> lNode;
@@ -347,7 +352,7 @@ int ImplicitMesh::getNode(const unsigned int pNodeIndex, std::vector<double> & p
     pOutput.insert( pOutput.end(), &mMesh.getNodes()[lExplicitInd * getD()], &mMesh.getNodes()[(lExplicitInd+1) * getD()] );
     
     // If only explicit
-    if (mCopiesPerDimension.size()==0)
+    if (!isExtended())
         return 0;
     
     // Go through all dimensions
@@ -416,231 +421,29 @@ int ImplicitMesh::getSimplex(const unsigned int pSimplexIndex, std::set<unsigned
     return 0;
 }
 
-
-
-// Get number of indices
-unsigned int ImplicitMesh::sector2ExplicitIndexSize( const unsigned int pSector ) const
+// Get diameter of simplex
+double ImplicitMesh::getDiameter( const unsigned int pSimplexInd ) const
 {
-    // Initialize as 0
-    unsigned int lSize = 0;
-
-    // Go through each explicit node
-    for ( unsigned int lIterNode = 0; lIterNode < mMesh.getNN(); lIterNode++ )
-    {
-        // Assume curent should be added
-        bool lAdd = true;
-    
-        // Go through each dimension
-        std::vector< std::pair< std::set<unsigned int>, std::set<unsigned int> > >::const_iterator lIterBoundingNodes = getBoundingNodes().begin();
-        for (unsigned int lIterDims = 0; lIterDims < mMesh.getD(); lIterDims++)
-        {
-            const unsigned int lCurDimSector = getCurDimSector( pSector, lIterDims );
-            
-            // If should remove some nodes
-            if (lCurDimSector > 0)
-                // If the current node is part of the ones to remove
-                if ( lIterBoundingNodes->first.count(lIterNode) )
-                {
-                    // Set adding to false
-                    lAdd = false;
-                    // Break out
-                    break;
-                }
-            // Increment iterators
-            ++lIterBoundingNodes;
-        }
-        // If should be added
-        if (lAdd)
-            lSize++;
-    }
-        
-    return lSize;
+    if ( pSimplexInd >= getNT() )
+        return -1.0d;
+    // Get explicit simplex
+    const unsigned int lExplicitSimplex = simplexInd2ExplicitInd(pSimplexInd);
+    // Get diameter of explicit simplex    
+    return getConstMesh().getDiameter( lExplicitSimplex );
 }
-// Get explicit index of chosen index for current sector
-unsigned int ImplicitMesh::sector2ExplicitIndex( const unsigned int pSector, const unsigned int pIndex ) const
-{
-    // Initialize as 0
-    unsigned int lOut = 0;
-    bool lFound = false;
 
-    // Go through each explicit node
-    for ( unsigned int lIterNode = 0; lIterNode <= pIndex; lIterNode++ )
-    {
-        // Assume curent should be added
-        bool lAdd = true;
-    
-        // Go through each dimension
-        std::vector< std::pair< std::set<unsigned int>, std::set<unsigned int> > >::const_iterator lIterBoundingNodes = getBoundingNodes().begin();
-        for (unsigned int lIterDims = 0; lIterDims < mMesh.getD(); lIterDims++)
-        {
-            const unsigned int lCurDimSector = getCurDimSector( pSector, lIterDims );
-            
-            // If should remove some nodes
-            if (lCurDimSector > 0)
-                // If the current node is part of the ones to remove
-                if ( lIterBoundingNodes->first.count(lIterNode) )
-                {
-                    // Set adding to false
-                    lAdd = false;
-                    // Break out
-                    break;
-                }
-            // Increment iterators
-            ++lIterBoundingNodes;
-        }
-        // If should be added
-        if (lAdd)
-        {
-            lOut++;
-            if (lIterNode == pIndex)
-                lFound = true;
-        }
-    }
-    
-    if (lFound)
-        return lOut-1;
-        
-    return mMesh.getNN();
-}
-// Get real index of pIndex in explicit index
-unsigned int ImplicitMesh::sector2ExplicitIndexReverse( const unsigned int pSector, const unsigned int pIndex ) const
-{
-    // Initialize as 0
-    unsigned int lOut = 0;
-
-    // Go through each explicit node
-    for ( unsigned int lIterNode = 0; lIterNode < mMesh.getNN(); lIterNode++ )
-    {
-        // Assume curent should be added
-        bool lAdd = true;
-    
-        // Go through each dimension
-        std::vector< std::pair< std::set<unsigned int>, std::set<unsigned int> > >::const_iterator lIterBoundingNodes = getBoundingNodes().begin();
-        for (unsigned int lIterDims = 0; lIterDims < mMesh.getD(); lIterDims++)
-        {
-            const unsigned int lCurDimSector = getCurDimSector( pSector, lIterDims );
-            
-            // If should remove some nodes
-            if (lCurDimSector > 0)
-                // If the current node is part of the ones to remove
-                if ( lIterBoundingNodes->first.count(lIterNode) )
-                {
-                    // Set adding to false
-                    lAdd = false;
-                    // Break out
-                    break;
-                }
-            // Increment iterators
-            ++lIterBoundingNodes;
-        }
-        // If should be added
-        if (lAdd)
-        {
-            lOut++;
-            if (lOut == pIndex+1)
-                return lIterNode;
-        }
-    }
-        
-    return mMesh.getNN();
-}
-// Get a vector with the order of the indices that are interesting for this sector
-std::vector<unsigned int> ImplicitMesh::sector2ExplicitIndexing( const unsigned int pSector ) const
-{
-    // Handle errors
-    if (pSector >= getNumCopiesPerSector(getD()) )
-        return std::vector<unsigned int>();
-
-    // Declare output
-    std::vector<unsigned int> lOut;
-    lOut.reserve(mMesh.getNN());
-
-    // Go through each explicit node
-    for ( unsigned int lIterNode = 0; lIterNode < mMesh.getNN(); lIterNode++ )
-    {
-        // Assume it should be added
-        bool lAdd = true;
-    
-        // Go through each dimension
-        std::vector< std::pair< std::set<unsigned int>, std::set<unsigned int> > >::const_iterator lIterBoundingNodes = getBoundingNodes().begin();
-        for (unsigned int lIterDims = 0; lIterDims < mMesh.getD(); lIterDims++)
-        {
-            const unsigned int lCurDimSector = getCurDimSector( pSector, lIterDims );
-            
-            // If should remove some nodes
-            if (lCurDimSector > 0)
-                // If the current node is part of the ones to remove
-                if ( lIterBoundingNodes->first.count(lIterNode) )
-                {
-                    // Set adding to false
-                    lAdd = false;
-                    // Break out
-                    break;
-                }
-            // Increment iterators
-            ++lIterBoundingNodes;
-        }
-        // If should be added
-        if (lAdd)
-            lOut.push_back(lIterNode);
-    }
-    
-    return lOut;
-}
 
 
 
 
 int ImplicitMesh::nodeInd2SectorAndExplicitInd( const unsigned int pNodeInd, unsigned int & pSector, unsigned int & pExplicitInd ) const
 {
-    // Initialize sector 0
-    pSector = 0;
-    // Initialize explicit ind
-    pExplicitInd = pNodeInd;
-    
-    // If original sector
-    if (pNodeInd < mMesh.getNN())
-        return 0;
-
-    // Handle errors
-    if (mCopiesPerDimension.size() != getD())
-        return 1;
     if (pNodeInd >= getNN())
         return 2;
+    pSector = pNodeInd / mMesh.getNN();
+    pExplicitInd = pNodeInd % mMesh.getNN();
 
-    // Get index lookup table            
-    unsigned int lLookupSize = sector2ExplicitIndexSize( pSector );
-    while (pExplicitInd >= lLookupSize)
-    {    
-        // Increment current sector
-        pSector++;
-        // Decrement explicit ind with corresponding
-        pExplicitInd -= lLookupSize;
-
-        // Get lookup size of next sector
-        const unsigned int lNextLookupSize = sector2ExplicitIndexSize( pSector );
-        // If more than one row until sector
-        if ( pExplicitInd >= lNextLookupSize * (mCopiesPerDimension[0]-1) )
-        {
-            pSector += mCopiesPerDimension[0]-1;
-            pExplicitInd -= (mCopiesPerDimension[0]-1) * lNextLookupSize;
-            lLookupSize = sector2ExplicitIndexSize( pSector );
-        }
-        else
-        {
-            const unsigned int lExtra = pExplicitInd / lNextLookupSize;
-            pExplicitInd -= lExtra * lNextLookupSize;
-            pSector += lExtra;
-        }
-        if (lLookupSize == 0)
-            return 4;
-    }    
-    
-    // Get correct explicit index
-    pExplicitInd = sector2ExplicitIndexReverse( pSector, pExplicitInd );
-    
     return 0;
-
 }
 
 int ImplicitMesh::sectorAndExplicit2NodeInd( unsigned int pSector, const unsigned int pExplicitInd, unsigned int & pNodeInd ) const
@@ -649,7 +452,7 @@ int ImplicitMesh::sectorAndExplicit2NodeInd( unsigned int pSector, const unsigne
     pNodeInd = pExplicitInd;
     
     // If no extension
-    if (mCopiesPerDimension.size() == 0)
+    if (!isExtended())
     {
         if (pSector > 0)
             return 1;
@@ -662,11 +465,6 @@ int ImplicitMesh::sectorAndExplicit2NodeInd( unsigned int pSector, const unsigne
         return 1;
     if (pSector >= getNumCopiesPerSector(getD()) )
         return 1;
-
-    // If in sector 0
-    if (pSector == 0)
-        return 0;
-        
         
     // Loop through dimensions
     std::vector< std::pair< std::set<unsigned int>, std::set<unsigned int> > >::const_iterator lIterBoundingNodes = getBoundingNodes().begin();
@@ -691,7 +489,6 @@ int ImplicitMesh::sectorAndExplicit2NodeInd( unsigned int pSector, const unsigne
                     {
                         // Switch explicit ind to back
                         pNodeInd = lIterPairing2->second;
-                        
                         break;
                     }
             }
@@ -700,105 +497,37 @@ int ImplicitMesh::sectorAndExplicit2NodeInd( unsigned int pSector, const unsigne
         ++lIterBoundingNodes;
         ++lIterPairing;
     }
-    /*
-    unsigned int lSubtractedNodes = 0;
-    unsigned int lAddedNodes = pSector * getConstMesh().getNN();
-    for (unsigned int lIterDims = 0; lIterDims < getD(); lIterDims++)
-    {
-        // Get number of sectors per index
-        const unsigned int lNumSectorsPerIndex = getNumCopiesPerSector( lIterDims );
-        // Get number of rows of current dimension
-        const unsigned int lNumRows = pSector / lNumSectorsPerIndex;
-        // Get set of all front bounding nodes
-        const std::set<unsigned int> & lSet1 = getBoundingNodes()[lIterDims].first;
-        // Get number of nodes on the border in current dimension
-        const unsigned int lCurNumBorderNodes = lSet1.size();
-        
-        if (lNumRows > 0)
-        {
-            lSubtractedNodes += (lNumRows-1) * lCurNumBorderNodes;
-            lSubtractedNodes += (pSector - lNumSectorsPerIndex * lNumRows ) * lCurNumBorderNodes;
-            // Go through prior dimensions
-            for (unsigned int lIterDims2 = lIterDims; lIterDims2 > 0; lIterDims2--)
-            {
-                // Get set of all front bounding nodes
-                const std::set<unsigned int> & lSet2 = getBoundingNodes()[lIterDims2-1].first;
-                // Get intersection
-                std::set<unsigned int> lSetIntersection = misc_setIntersection( lSet1, lSet2 );
-                // Get numbers shared
-                const unsigned int lNumShared = lSetIntersection.size();
-                // Get second num rows
-                const unsigned int lNumRows2 = pSector / getNumCopiesPerSector( lIterDims2-1 );
-                // Get number of sectors where both dimension have non zero sectors
-                
-                unsigned int lTemp1 = (pSector-1) / getNumCopiesPerSector( lIterDims );
-                if (lTemp1 > mCopiesPerDimension[lIterDims])
-                    lTemp1 = mCopiesPerDimension[lIterDims];
-                unsigned int lTemp2 = (pSector-1) / getNumCopiesPerSector( lIterDims2 );
-                if (lTemp2 > mCopiesPerDimension[lIterDims2])
-                    lTemp2 = mCopiesPerDimension[lIterDims2];
-                
-                lAddedNodes += ( (pSector-1) - (lTemp1 + lTemp2) ) * lNumShared;
-                
-            }
-        }
-    }
-    if (lSubtractedNodes > lAddedNodes)
-        return 3;
-    */
     
+    pNodeInd = pSector * mMesh.getNN() + pNodeInd;
     
-    
-    
-    
-    // Initialize
-    unsigned int lSector = 0;
-    unsigned int lOut = 0;
-    unsigned int lLookupSize = sector2ExplicitIndexSize( lSector );
-    // Move through all sectors until in the right sector
-    while (lSector < pSector)
-    {
-        if (lLookupSize == 0)
-            return 3;
-    
-        // Add number of new indices in current sector
-        lOut += lLookupSize;
-        // Increment sector
-        lSector++;
-
-        // Get lookup size of next sector
-        const unsigned int lNextLookupSize = sector2ExplicitIndexSize( lSector );
-        // If more than one row until sector
-        if ( pSector+1 > lSector + mCopiesPerDimension[0] )
-        {
-            lSector += mCopiesPerDimension[0]-1;
-            lOut += (mCopiesPerDimension[0]-1) * lNextLookupSize;
-            lLookupSize = sector2ExplicitIndexSize( lSector );
-        }
-        else
-        {
-            lOut += (pSector-lSector) * lNextLookupSize;
-            lSector = pSector;
-        }
-    }
-    
-    
-    // Get which index is equal to pNodeInd in current sectors explicit index
-    const unsigned int lExplicitIndex = sector2ExplicitIndex( pSector, pNodeInd );
-    // Handle error
-    if (lExplicitIndex >= mMesh.getNN())
-        return 2;    
-    // Update output
-    pNodeInd = lOut + lExplicitIndex;
 
     return 0;
 }
+
+
+
+unsigned int ImplicitMesh::getNumInteriorPoints() const
+{
+    unsigned int lInteriorPoints = mMesh.getNN();
+    std::set<unsigned int> lOldSet, lSet;
+    for (unsigned int lIterDims = 0; lIterDims < getD(); lIterDims++)
+    {
+        const std::set<unsigned int> & lFirstNodes = getBoundingNodes()[lIterDims].first;
+        misc_setIntersection<unsigned int>( lFirstNodes, lOldSet, lSet);                
+        const unsigned int lCurNumNodes = lFirstNodes.size() - lSet.size();
+        lInteriorPoints -= lCurNumNodes;
+        lOldSet.insert( lFirstNodes.begin(), lFirstNodes.end() );
+    }
+    return lInteriorPoints;
+}
+
+
 
 // Get sector of point
 unsigned int ImplicitMesh::point2Sector( const double * const pPoint ) const
 {
     // If no extension
-    if (mCopiesPerDimension.size() == 0)
+    if (!isExtended())
     {
         return 0;
     }
@@ -818,7 +547,7 @@ unsigned int ImplicitMesh::point2Sector( const double * const pPoint ) const
             return getNT();
         lTemp /= lLength;
         // If no implicit extension 
-        if (mCopiesPerDimension.size() == 0) 
+        if (!isExtended()) 
         {
             if (lTemp == 1.0)
                 return 0;
@@ -878,52 +607,55 @@ int ImplicitMesh::getNeighborsFromSimplex(const unsigned int pSimplexInd, std::s
             pNeighs.insert( lImplicitSimp );
         }
         else // If neighbor does not exist in explicit mesh
-            // Get which side to start investigate (from front of lowest dimension and forward)
-            for (unsigned int lIterSide = lSide; lIterSide < 2 * getD(); lIterSide++)
-            {
-                // Get current dimension
-                const unsigned int lCurDim = lIterSide / 2;
-                // Get if front or in back
-                const bool lInFront = (lIterSide % 2 == 0);
-                // Get sector index in current dimension
-                const unsigned int lCurSector = getCurDimSector( lSector, lCurDim );
-                // If the sector should have a neighboring sector in this dimension
-                if ( ( (lCurSector > 0) && lInFront ) || ( (lCurSector+1 < mCopiesPerDimension[lCurDim]) && !lInFront ) )
+            // If mesh is extended
+            if ( isExtended() )
+                // Get which side to start investigate (from front of lowest dimension and forward)
+                for (unsigned int lIterSide = lSide; lIterSide < 2 * getD(); lIterSide++)
                 {
-                    // Get sector of potential neighbor
-                    unsigned int lNeighSector = lSector;
-                    if (lInFront)
-                        lNeighSector -=  getNumCopiesPerSector( lCurDim );
-                    else
-                        lNeighSector +=  getNumCopiesPerSector( lCurDim );
-                    
-                    // Loop through paired simplices for current border
-                    for ( std::vector<std::pair<unsigned int, unsigned int>>::const_iterator lIterPairings = mPairingSimplices[lCurDim].begin(); 
-                        lIterPairings != mPairingSimplices[lCurDim].end(); ++lIterPairings)
+                    // Get current dimension
+                    const unsigned int lCurDim = lIterSide / 2;
+                    // Get if front or in back
+                    const bool lInFront = (lIterSide % 2 == 0);
+                    // Get sector index in current dimension
+                    const unsigned int lCurSector = getCurDimSector( lSector, lCurDim );
+                    // If the sector should have a neighboring sector in this dimension
+                    if ( ( (lCurSector > 0) && lInFront ) || ( (lCurSector+1 < mCopiesPerDimension[lCurDim]) && !lInFront ) )
                     {
-                        // Get potential matching of explicit simplex
-                        const unsigned int lPotentialExplicitSimp = lInFront ? lIterPairings->first : lIterPairings->second;
+                        // Get sector of potential neighbor
+                        unsigned int lNeighSector = lSector;
+                        if (lInFront)
+                            lNeighSector -=  getNumCopiesPerSector( lCurDim );
+                        else
+                            lNeighSector +=  getNumCopiesPerSector( lCurDim );
                         
-                        // If current pairing includes the current explicit simplex
-                        if ( lPotentialExplicitSimp == lExplicitSimp )
+                        // Loop through paired simplices for current border
+                        for ( std::vector<std::pair<unsigned int, unsigned int>>::const_iterator lIterPairings = mPairingSimplices[lCurDim].begin(); 
+                            lIterPairings != mPairingSimplices[lCurDim].end(); ++lIterPairings)
                         {
-                            // Get explicit neighbor index
-                            const unsigned int lExplicitNeigh = lInFront ? lIterPairings->second : lIterPairings->first;
-                            // Get implicit simplex
-                            const unsigned int lImplicitSimp = sectorAndExplicit2SimplexInd( lNeighSector, lExplicitNeigh );
-                            // If error
-                            if (lImplicitSimp >= getNT())
-                                return 3;
-                            // Insert simplex
-                            pNeighs.insert( lImplicitSimp );
-                            // Insert that current side has been handled
-                            lSide = lIterSide+1;
-                            // Break out of loop
-                            break;
+                            // Get potential matching of explicit simplex
+                            const unsigned int lPotentialExplicitSimp = lInFront ? lIterPairings->first : lIterPairings->second;
+                            
+                            // If current pairing includes the current explicit simplex
+                            if ( lPotentialExplicitSimp == lExplicitSimp )
+                            {
+                                // Get explicit neighbor index
+                                const unsigned int lExplicitNeigh = lInFront ? lIterPairings->second : lIterPairings->first;
+                                // Get implicit simplex
+                                const unsigned int lImplicitSimp = sectorAndExplicit2SimplexInd( lNeighSector, lExplicitNeigh );
+                                // If error
+                                if (lImplicitSimp >= getNT())
+                                    return 3;
+                                // Insert simplex
+                                pNeighs.insert( lImplicitSimp );
+                                // Insert that current side has been handled
+                                lSide = lIterSide+1;
+                                // Break out of loop
+                                break;
+                            }
                         }
                     }
                 }
-            }
+            
 
     }   // End of loop through all neighbors
     
@@ -932,14 +664,15 @@ int ImplicitMesh::getNeighborsFromSimplex(const unsigned int pSimplexInd, std::s
 
 // Get a simplex index for a simplex where points are part
 int ImplicitMesh::getASimplexForPoint( double * const pPoints, const unsigned int pNumPoints, 
-    unsigned int * const pSimplexIds, double * const pBarycentricCoords) const
+    unsigned int * const pSimplexIds, double * const pBarycentricCoords, 
+    const double pEmbTol, const double * const pCenterOfCurvature, const unsigned int pNumCentersOfCurvature) const
 {    
     int lStatus = 0;
 
     // If no implicit extension
-    if (mCopiesPerDimension.size() == 0)
+    if (!isExtended())
         // run through ConstMesh equivalent to acquire explicit simplices for all points
-        return mMesh.getASimplexForPoint( pPoints, pNumPoints, pSimplexIds, pBarycentricCoords );
+        return mMesh.getASimplexForPoint( pPoints, pNumPoints, pSimplexIds, pBarycentricCoords, pEmbTol, pCenterOfCurvature, pNumCentersOfCurvature );
 
     // Loop through all points to translate them to explicit sectors
     #pragma omp parallel for reduction(|:lStatus)
@@ -961,7 +694,7 @@ int ImplicitMesh::getASimplexForPoint( double * const pPoints, const unsigned in
         for (unsigned int lIterDim = 0; lIterDim < getD(); lIterDim++)
             lPointPtr[lIterDim] -= mOffset[lIterDim] + ((double)getCurDimSector( lSector, lIterDim )) * getBoundingBoxLength(lIterDim);
         // run through ConstMesh equivalent to acquire explicit simplices for all points
-        lStatus = mMesh.getASimplexForPoint( lPointPtr, 1, lSimpPtr, lBarycentricPtr );
+        lStatus = mMesh.getASimplexForPoint( lPointPtr, 1, lSimpPtr, lBarycentricPtr, pEmbTol, pCenterOfCurvature, pNumCentersOfCurvature );
         // Go through each dimension and translate to original sector again
         for (unsigned int lIterDim = 0; lIterDim < getD(); lIterDim++)
             lPointPtr[lIterDim] += mOffset[lIterDim] + ((double)getCurDimSector( lSector, lIterDim )) * getBoundingBoxLength(lIterDim);
@@ -970,6 +703,8 @@ int ImplicitMesh::getASimplexForPoint( double * const pPoints, const unsigned in
             lStatus = 1+lStatus;
         // Update from explicit simplex to implicit simplex
         *lSimpPtr = sectorAndExplicit2SimplexInd( lSector, *lSimpPtr );
+        if (lStatus)
+            *lSimpPtr = getNT();
     }
     
     return 0;
@@ -977,16 +712,18 @@ int ImplicitMesh::getASimplexForPoint( double * const pPoints, const unsigned in
 
 // Get a set of all simplices for which the given point is a member.
 int ImplicitMesh::getAllSimplicesForPoint( double * const pPoint, std::set<unsigned int> & pSimplexId,
-    std::set<unsigned int> & pOutput, std::set<unsigned int> & pExplicitSimp, std::set<unsigned int> & pTemp ) const
+    std::set<unsigned int> & pOutput,
+    const double pEmbTol, const double * const pCenterOfCurvature ) const
 {
     // Clear output
     pOutput.clear();
+    std::set<unsigned int> lExplicitSimp, lExcludeSimp;
     int lStatus = 0;
 
     // If no implicit extension
-    if (mCopiesPerDimension.size() == 0)
+    if (!isExtended())
         // Get all explicit simplices for point
-        return mMesh.getAllSimplicesForPoint( pPoint, *pSimplexId.begin(), pOutput, pExplicitSimp );
+        return mMesh.getAllSimplicesForPoint( pPoint, *pSimplexId.begin(), pOutput, pEmbTol, pCenterOfCurvature );
     
     while ( pSimplexId.size() > 0 )
     {
@@ -996,6 +733,12 @@ int ImplicitMesh::getAllSimplicesForPoint( double * const pPoint, std::set<unsig
         if (lSimplexId >= getNT())
             return 2;
             
+        // If simplex should be excluded
+        if ( lExcludeSimp.count( lSimplexId ) )
+            // Continue
+            continue;
+        lExcludeSimp.insert( lSimplexId );
+            
         // Acquire current simplex sector
         const unsigned int lSector = simplexInd2Sector(lSimplexId);    
         // Acquire explicit simplex
@@ -1004,7 +747,9 @@ int ImplicitMesh::getAllSimplicesForPoint( double * const pPoint, std::set<unsig
         for (unsigned int lIterDim = 0; lIterDim < getD(); lIterDim++)
             pPoint[lIterDim] -= mOffset[lIterDim] + ((double)getCurDimSector( lSector, lIterDim )) * getBoundingBoxLength(lIterDim);
         // Get all explicit simplices for point
-        int lStatus = mMesh.getAllSimplicesForPoint( pPoint, lExplicitSimplex, pExplicitSimp, pTemp  );
+        int lStatus = mMesh.getAllSimplicesForPoint( pPoint, lExplicitSimplex, lExplicitSimp, pEmbTol, pCenterOfCurvature  );
+        if (lStatus)
+            return 3;
         
         // Go through each dimension 
         for (unsigned int lIterDim = 0; lIterDim < getD(); lIterDim++)
@@ -1014,8 +759,8 @@ int ImplicitMesh::getAllSimplicesForPoint( double * const pPoint, std::set<unsig
             // Get current bounding box
             const std::pair<double, double> & lCurBoundingBox = getBoundingBox()[lIterDim];
             // Get if in front or back
-            const bool lIsFront = (pPoint[lIterDim] == lCurBoundingBox.first);
-            const bool lIsBack = (pPoint[lIterDim] == lCurBoundingBox.second);
+            const bool lIsFront = (pPoint[lIterDim] <= lCurBoundingBox.first);
+            const bool lIsBack = (pPoint[lIterDim] >= lCurBoundingBox.second);
             
             // If (not the first and part of front) or (if not the last and part of back)
             if ( ( (lCurDimSector > 0) && lIsFront ) || ( (lCurDimSector + 1 < mCopiesPerDimension[lIterDim]) && lIsBack ) )
@@ -1023,7 +768,7 @@ int ImplicitMesh::getAllSimplicesForPoint( double * const pPoint, std::set<unsig
                 // Acquire neighboring sector
                 const unsigned int lNeighborSector = lIsFront ? lSector - getNumCopiesPerSector(lIterDim) : lSector + getNumCopiesPerSector(lIterDim);
                 // Go through all explicit simplices
-                for ( std::set<unsigned int>::const_iterator lIterSimplices = pExplicitSimp.begin(); lIterSimplices != pExplicitSimp.end(); ++lIterSimplices )
+                for ( std::set<unsigned int>::const_iterator lIterSimplices = lExplicitSimp.begin(); lIterSimplices != lExplicitSimp.end(); ++lIterSimplices )
                 {
                     // Get paired simplex    
                     const unsigned int lPairedExplicitSimplex = findExplicitPairedSimplex(*lIterSimplices, lIterDim, lIsFront);
@@ -1040,13 +785,30 @@ int ImplicitMesh::getAllSimplicesForPoint( double * const pPoint, std::set<unsig
                         break;
                     }
                 }
-            }
-            // translate point back to original sector
+                // If no explicit simplices, use explicit simplex instead
+                if ( lExplicitSimp.size() == 0 )
+                {
+                    // Get paired simplex    
+                    const unsigned int lPairedExplicitSimplex = findExplicitPairedSimplex( lExplicitSimplex, lIterDim, lIsFront);
+                    // If found a pairing
+                    if ( lPairedExplicitSimplex < mMesh.getNT() )
+                    {
+                        // Get potential new index
+                        const unsigned int lPotentialNewIndex = sectorAndExplicit2SimplexInd( lNeighborSector, lPairedExplicitSimplex );
+                        // If not already present in output
+                        if (pOutput.count(lPotentialNewIndex) == 0)
+                            // Add to simplex set
+                            pSimplexId.insert(lPotentialNewIndex);
+                    }
+                }
+            }   // end of if front or back
+            
+            // translate point back to original sector    
             pPoint[lIterDim] += mOffset[lIterDim] + ((double)lCurDimSector) * getBoundingBoxLength(lIterDim);        
         }   // End of loop through dimensions
         
         // Go through explicit simplices and transform from explicit to implicit simplices
-        for ( std::set<unsigned int>::const_iterator lIterSimplices = pExplicitSimp.begin(); lIterSimplices != pExplicitSimp.end(); ++lIterSimplices )
+        for ( std::set<unsigned int>::const_iterator lIterSimplices = lExplicitSimp.begin(); lIterSimplices != lExplicitSimp.end(); ++lIterSimplices )
             pOutput.insert( sectorAndExplicit2SimplexInd( lSector, *lIterSimplices ) );
     }   // End of loop while pSimplexId is not empty
     
@@ -1056,7 +818,8 @@ int ImplicitMesh::getAllSimplicesForPoint( double * const pPoint, std::set<unsig
 
 // Is point part of simplex
 int ImplicitMesh::isPointPartOfSimplex( double * const pPoint, const unsigned int pSimplexInd, 
-    double * const pStandardCoords, double * const pBarycentricCoords, double * const pDivergence, int * const pStatus) const
+    double * const pStandardCoords, double * const pBarycentricCoords, 
+    const double pEmbTol, const double * const pCenterOfCurvature, int * const pStatus ) const
 {
     // Get sector of current point
     const unsigned int lSector = point2Sector( pPoint );
@@ -1070,8 +833,21 @@ int ImplicitMesh::isPointPartOfSimplex( double * const pPoint, const unsigned in
         for (unsigned int lIterDim = 0; lIterDim < getD(); lIterDim++)
             pPoint[lIterDim] -= mOffset[lIterDim] + ((double)getCurDimSector( lSector, lIterDim )) * getBoundingBoxLength(lIterDim);        
     // Get standard- and/or barycentric coordinates for point given simplex
+    const unsigned int lNumCentersOfCurvature = (pCenterOfCurvature == NULL) ? 0 : 1;
+    double lBaryStatus;
     int lErrorStatus = mMesh.getCoordinatesGivenSimplex( pPoint, 1, lSimplexInd,
-        pStandardCoords, pBarycentricCoords, pDivergence, pStatus);
+        pStandardCoords, pBarycentricCoords, pEmbTol, pCenterOfCurvature, lNumCentersOfCurvature, &lBaryStatus);
+    if (pStatus != NULL)
+    {
+        *pStatus = 1;
+    
+        if (lBaryStatus < 0)
+            *pStatus = -1;
+        else if (lBaryStatus == 0)
+            *pStatus = 0;
+    }
+    
+        
     // Go through each dimension and translate to original sector again
     if (lSector != 0)
         for (unsigned int lIterDim = 0; lIterDim < getD(); lIterDim++)
@@ -1088,7 +864,7 @@ int ImplicitMesh::getASimplexForNode( const unsigned int * const pNodes, const u
     int lStatus = 0;
  
     // If no implicit extension
-    if (mCopiesPerDimension.size() == 0)
+    if (!isExtended())
         // run through ConstMesh equivalent to acquire explicit simplices for all points
         return mMesh.getASimplexForNode( pNodes, pNumNodes, pSimplexIds );
 
@@ -1125,25 +901,94 @@ int ImplicitMesh::getASimplexForNode( const unsigned int * const pNodes, const u
     return 0;
 }
 
-// Get a set of all simplices for which the given node is a member.
-int ImplicitMesh::getAllSimplicesForNode( const unsigned int pNode, std::set<unsigned int> & pSimplexId,
-    std::set<unsigned int> & pOutput, std::set<unsigned int> & pExplicitSimp, std::set<unsigned int> & pTemp ) const
+// Get a simplex index for a simplex where set is a part
+int ImplicitMesh::getASimplexForSet( const std::set<unsigned int> & pSet, unsigned int & pSimplexId) const
+{   
+    int lStatus = 0;
+ 
+    // If no implicit extension
+    if (!isExtended())
+        // run through ConstMesh equivalent to acquire explicit simplices for all points
+        return mMesh.getASimplexForSet( pSet, pSimplexId );
+    
+    std::set<unsigned int> lExplicitSet;
+    unsigned int lSector;
+    bool lSectorSet = false;
+    unsigned int lFlipAround = 0;
+    
+    while ( lFlipAround < pSet.size() )
+    {
+    
+        lExplicitSet.clear();
+        for ( std::set<unsigned int>::const_iterator lIter = pSet.begin(); lIter != pSet.end(); ++lIter )
+        {
+            // Acquire explicit node
+            unsigned int lNodeSector;
+            unsigned int lExplicitNode;
+            lStatus = nodeInd2SectorAndExplicitInd( *lIter, lNodeSector, lExplicitNode );
+            if (lStatus)
+                return 1;
+                
+            if (!lSectorSet)
+            {
+                lSector = lNodeSector;
+                lSectorSet = true;
+            }
+                
+            // If sectors of node and other nodes are not the same
+            if (lNodeSector != lSector)
+            {
+                // Try to convert explicit node to suiting sector
+                lStatus = getExplicitIndInSector( lExplicitNode, lNodeSector, lSector );
+                // If failed
+                if (lStatus)
+                {
+                    // Set current sector to the right one
+                    lSector = lNodeSector;
+                    // increment flip around
+                    ++lFlipAround;
+                    // break out
+                    break;
+                }
+                
+            }
+            // Insert into set of explicit nodes            
+            lExplicitSet.insert(lExplicitNode);
+        }
+        
+        // run through ConstMesh equivalent to acquire explicit simplices for node
+        lStatus = mMesh.getASimplexForSet( lExplicitSet, pSimplexId );
+        if (lStatus)
+        {
+            lStatus = 1+lStatus;
+            continue;
+        }
+        // Acquire implicit simplex    
+        pSimplexId = sectorAndExplicit2SimplexInd( lSector, pSimplexId );
+        
+        return 0;
+    }
+    
+    return 4;
+    
+}
+
+// Get a set of all simplices for which the given set is a member.
+int ImplicitMesh::getAllSimplicesForSet( const std::set<unsigned int> & pSet, std::set<unsigned int> & pSimplexId,
+    std::set<unsigned int> & pOutput) const
 {
     // Clear output
     pOutput.clear();
     int lStatus = 0;
     
-    // If no implicit extension
-    if (mCopiesPerDimension.size() == 0)
-        // Get all explicit simplices for point
-        return mMesh.getAllSimplicesForNode( pNode, *pSimplexId.begin(), pOutput, pTemp );
+    std::set<unsigned int> lExplicitSimp;
     
-    // Acquire explicit node
-    unsigned int lNodeSector;
-    unsigned int lExplicitNode;
-    lStatus = nodeInd2SectorAndExplicitInd( pNode, lNodeSector, lExplicitNode );
-    if (lStatus)
-        return 1;
+    // If no implicit extension
+    if (!isExtended())
+        return mMesh.getAllSimplicesForSet( pSet, *pSimplexId.begin(), pOutput );
+        
+    // Get copy of curent set
+    std::set<unsigned int> lExplicitSet;
     
     while ( pSimplexId.size() > 0 )
     {
@@ -1157,18 +1002,32 @@ int ImplicitMesh::getAllSimplicesForNode( const unsigned int pNode, std::set<uns
         const unsigned int lSimplexSector = simplexInd2Sector(lSimplexId);    
         // Acquire explicit simplex
         const unsigned int lExplicitSimplex = simplexInd2ExplicitInd( lSimplexId );
-        // If sectors of node and simplex are not the same
-        if (lSimplexSector != lNodeSector)
+        
+        // Get set of nodes in corresponding sector
+        lExplicitSet.clear();
+        for ( std::set<unsigned int>::const_iterator lIter = pSet.begin(); lIter != pSet.end(); ++lIter )
         {
-            // Try to convert explicit node to suiting sector
-            lStatus = getExplicitIndInSector( lExplicitNode, lNodeSector, lSimplexSector );
+            // Acquire explicit node
+            unsigned int lNodeSector;
+            unsigned int lExplicitNode;
+            lStatus = nodeInd2SectorAndExplicitInd( *lIter, lNodeSector, lExplicitNode );
             if (lStatus)
-                // Flag error
-                return 4;
+                return 1;
+            // If sectors of node and simplex are not the same
+            if (lSimplexSector != lNodeSector)
+            {
+                // Try to convert explicit node to suiting sector
+                lStatus = getExplicitIndInSector( lExplicitNode, lNodeSector, lSimplexSector );
+                if (lStatus)
+                    // Flag error
+                    return 4;
+            }
+            // Insert into set of explicit nodes            
+            lExplicitSet.insert(lExplicitNode);
         }
         
-        // Get all explicit simplices for node
-        lStatus = mMesh.getAllSimplicesForNode( lExplicitNode, lExplicitSimplex, pExplicitSimp, pTemp  );
+        // Get all explicit simplices for set
+        lStatus = mMesh.getAllSimplicesForSet( lExplicitSet, lExplicitSimplex, lExplicitSimp  );
         if (lStatus)
             return 3;    
     
@@ -1178,8 +1037,13 @@ int ImplicitMesh::getAllSimplicesForNode( const unsigned int pNode, std::set<uns
             // Get current dimension sector
             const unsigned int lCurDimSector = getCurDimSector( lSimplexSector, lIterDim );
             // Get if in front or back
-            const bool lIsFront = getBoundingNodes()[lIterDim].first.count(lExplicitNode);
-            const bool lIsBack = getBoundingNodes()[lIterDim].second.count(lExplicitNode);
+            bool lIsFront = true;
+            bool lIsBack = true;
+            for ( std::set<unsigned int>::const_iterator lIterExplicitSet = lExplicitSet.begin(); lIterExplicitSet != lExplicitSet.end(); ++lIterExplicitSet )
+            {
+                lIsFront &= getBoundingNodes()[lIterDim].first.count( *lIterExplicitSet );
+                lIsBack &= getBoundingNodes()[lIterDim].second.count( *lIterExplicitSet );
+            }
             
             // If not the first and part of front or if not the last and part of back
             if ( ( (lCurDimSector > 0) && lIsFront ) || ( (lCurDimSector + 1 < mCopiesPerDimension[lIterDim]) && lIsBack) )
@@ -1187,7 +1051,7 @@ int ImplicitMesh::getAllSimplicesForNode( const unsigned int pNode, std::set<uns
                 // Acquire neighboring sector
                 const unsigned int lNeighborSector = lIsFront ? lSimplexSector - getNumCopiesPerSector(lIterDim) : lSimplexSector + getNumCopiesPerSector(lIterDim);
                 // Go through all explicit simplices involving lExplicitNode
-                for ( std::set<unsigned int>::const_iterator lIterSimplices = pExplicitSimp.begin(); lIterSimplices != pExplicitSimp.end(); ++lIterSimplices )
+                for ( std::set<unsigned int>::const_iterator lIterSimplices = lExplicitSimp.begin(); lIterSimplices != lExplicitSimp.end(); ++lIterSimplices )
                 {
                     // Get paired simplex    
                     const unsigned int lPairedExplicitSimplex = findExplicitPairedSimplex(*lIterSimplices, lIterDim, lIsFront);
@@ -1196,6 +1060,7 @@ int ImplicitMesh::getAllSimplicesForNode( const unsigned int pNode, std::set<uns
                     {
                         // Get potential new index
                         const unsigned int lPotentialNewIndex = sectorAndExplicit2SimplexInd( lNeighborSector, lPairedExplicitSimplex );
+
                         // If not already present in output
                         if (pOutput.count(lPotentialNewIndex) == 0)
                         {
@@ -1210,12 +1075,10 @@ int ImplicitMesh::getAllSimplicesForNode( const unsigned int pNode, std::set<uns
         }   // End of looping through dimension    
         
         // Go through explicit simplices and transform from explicit to implicit simplices and insert in output
-        for ( std::set<unsigned int>::const_iterator lIterSimplices = pExplicitSimp.begin(); lIterSimplices != pExplicitSimp.end(); ++lIterSimplices )
+        for ( std::set<unsigned int>::const_iterator lIterSimplices = lExplicitSimp.begin(); lIterSimplices != lExplicitSimp.end(); ++lIterSimplices )
             pOutput.insert( sectorAndExplicit2SimplexInd( lSimplexSector, *lIterSimplices ) );
     
     }   // End of while loop through pSimplexId
-    
-    
     
     return 0;
 }
@@ -1227,7 +1090,7 @@ int ImplicitMesh::getExplicitIndInSector( unsigned int & pExplicitInd,
     // Is sectors are the same
     if ( pToSector == pFromSector)
         return 0;
-    if (mCopiesPerDimension.size() == 0)
+    if (!isExtended())
         return 1;
     // if sectors are out of bounds
     if ( ( pFromSector >= getNumCopiesPerSector( getD()) ) || ( pToSector >= getNumCopiesPerSector( getD()) ) )
@@ -1287,6 +1150,9 @@ int ImplicitMesh::populateArraysFromFullMesh( double * const pNodes, const unsig
     unsigned int * const pSimplices, const unsigned int pNumSimplices, const unsigned int pTopD,
     unsigned int * const pNeighs ) const
 {
+
+    int lStatus = 0;
+
     // If nodes should be retrieved
     if (pNodes != NULL)
     {
@@ -1294,30 +1160,43 @@ int ImplicitMesh::populateArraysFromFullMesh( double * const pNodes, const unsig
         if (pNumNodes != getNN())
             return 1;
             
-        // Preallocate nodes vector
-        std::vector<double> lNode;
-        lNode.reserve( getD() );
-        
-        // Loop through all nodes
-        double * lNodePtr = pNodes;
-        for ( unsigned int lIterNodes = 0; lIterNodes < getNN(); lIterNodes++ )
+        #pragma omp parallel reduction( | : lStatus )
         {
-            // Get current node
-            int lStatus = getNode(lIterNodes, lNode);
-            // Handle error
-            if (lStatus)
-                return 2;
             
-            // Loop through all dimensions
-            for ( std::vector<double>::const_iterator lIter = lNode.begin(); lIter != lNode.end(); ++lIter )
+            // Preallocate nodes vector
+            std::vector<double> lNode;
+            lNode.reserve( getD() );
+            
+            // Loop through all nodes
+            #pragma omp for
+            for ( unsigned int lIterNodes = 0; lIterNodes < getNN(); lIterNodes++ )
             {
-                // Move current double to output node
-                *lNodePtr = *lIter;
-                // Increment iterator
-                lNodePtr++;
+                if (lStatus)
+                    continue;
+            
+                // Get pointer to current output for node
+                double * lNodePtr = &pNodes[ getD() * lIterNodes ];
+            
+                // Get current node
+                lStatus = getNode(lIterNodes, lNode);
+                if (lStatus)
+                    continue;
+                
+                // Loop through all dimensions
+                for ( std::vector<double>::const_iterator lIter = lNode.begin(); lIter != lNode.end(); ++lIter )
+                {
+                    // Move current double to output node
+                    *lNodePtr = *lIter;
+                    // Increment iterator
+                    ++lNodePtr;
+                }
             }
-        }
-    }
+        }   // end of parallel section
+        // Handle error
+        if (lStatus)
+            return 2;
+        
+    }   // End of if nodes should be used
     
     // If simplices should be retrieved
     if (pSimplices != NULL)
@@ -1326,30 +1205,41 @@ int ImplicitMesh::populateArraysFromFullMesh( double * const pNodes, const unsig
         if (pNumSimplices != getNT())
             return 1;
             
-        // Preallocate simplices vector
-        std::set<unsigned int> lSimplex;
-        std::set<unsigned int> lTemp1;
-        
-        // Loop through all simplices
-        unsigned int* lSimplexPtr = pSimplices;
-        for ( unsigned int lIterSimplices = 0; lIterSimplices < getNT(); lIterSimplices++ )
+        #pragma omp parallel reduction( | : lStatus )
         {
-            // Get current simplex
-            int lStatus = getSimplex(lIterSimplices, lSimplex, lTemp1);
-            // Handle error
-            if (lStatus)
-                return 3;
             
-            // Loop through all dimensions
-            for ( std::set<unsigned int>::const_iterator lIter = lSimplex.begin(); lIter != lSimplex.end(); ++lIter )
+            // Preallocate simplices vector
+            std::set<unsigned int> lSimplex;
+            std::set<unsigned int> lTemp1;
+            
+            // Loop through all simplices
+            #pragma omp for
+            for ( unsigned int lIterSimplices = 0; lIterSimplices < getNT(); lIterSimplices++ )
             {
-                // Move current element to output simplex
-                *lSimplexPtr = *lIter;
-                // Increment iterator
-                lSimplexPtr++;
+                if (lStatus)
+                    continue;
+                unsigned int * lSimplexPtr = &pSimplices[ (getTopD()+1) * lIterSimplices ];
+            
+                // Get current simplex
+                lStatus = getSimplex(lIterSimplices, lSimplex, lTemp1);
+                // Handle error
+                if (lStatus)
+                    continue;
+                
+                // Loop through all dimensions
+                for ( std::set<unsigned int>::const_iterator lIter = lSimplex.begin(); lIter != lSimplex.end(); ++lIter )
+                {
+                    // Move current element to output simplex
+                    *lSimplexPtr = *lIter;
+                    // Increment iterator
+                    ++lSimplexPtr;
+                }
             }
-        }
-    }
+        }   // end of parallel section
+        // Handle error
+        if (lStatus)
+            return 3;
+    }   // end of if simplices should be retrieved
 
     // If neighbors should be retrieved
     if (pNeighs != NULL)
@@ -1358,34 +1248,46 @@ int ImplicitMesh::populateArraysFromFullMesh( double * const pNodes, const unsig
         if (pNumSimplices != getNT())
             return 1;
             
-        std::set<unsigned int> lCurNeighs;
-    
-        unsigned int* lNeighsPtr = pNeighs;
-        for ( unsigned int lIterSimplices = 0; lIterSimplices < getNT(); lIterSimplices++ )
+        #pragma omp parallel reduction( | : lStatus )
         {
-            // Get current neighbors
-            int lStatus = getNeighborsFromSimplex(lIterSimplices, lCurNeighs);
-            if (lStatus)
-                return 3 + lStatus;
-            // Loop through all elements of vector
-            for ( std::set<unsigned int>::const_iterator lIter = lCurNeighs.begin(); lIter != lCurNeighs.end(); ++lIter )
-            {
-                // Move current element to output neighbor
-                *lNeighsPtr = *lIter;
-                // Increment iterator
-                lNeighsPtr++;
-            }
-            // Fill in the surplus
-            for (unsigned int lIter = lCurNeighs.size(); lIter < getTopD()+1; lIter++)
-            {
-                // Fill upp with dummies
-                *lNeighsPtr = getNT();
-                // Increment iterator
-                lNeighsPtr++;
-            }
-        }
             
-    }
+            std::set<unsigned int> lCurNeighs;
+            # pragma omp for
+            for ( unsigned int lIterSimplices = 0; lIterSimplices < getNT(); lIterSimplices++ )
+            {
+                if (lStatus)
+                    continue;
+            
+                unsigned int * lNeighsPtr = &pNeighs[ (getTopD()+1) * lIterSimplices ];
+            
+                // Get current neighbors
+                lStatus = getNeighborsFromSimplex(lIterSimplices, lCurNeighs);
+                if (lStatus)
+                    continue;
+                // Loop through all elements of vector
+                for ( std::set<unsigned int>::const_iterator lIter = lCurNeighs.begin(); lIter != lCurNeighs.end(); ++lIter )
+                {
+                    // Move current element to output neighbor
+                    *lNeighsPtr = *lIter;
+                    // Increment iterator
+                    lNeighsPtr++;
+                }
+                // Fill in the surplus
+                for (unsigned int lIter = lCurNeighs.size(); lIter < getTopD()+1; lIter++)
+                {
+                    // Fill upp with dummies
+                    *lNeighsPtr = getNT();
+                    // Increment iterator
+                    ++lNeighsPtr;
+                }
+            }
+        
+        }   // End of parallel section
+        // Handle error
+        if (lStatus)
+            return 4;
+            
+    }   // End of if neighbors should be retrieved
     
     
     return 0;
@@ -1525,7 +1427,8 @@ extern "C"
     }
     
     // Checks whether a certain point is in a certain simplex
-    int implicitMesh_pointInSimplex( const unsigned int pId, const double * const pPoint, const unsigned int pDim, const unsigned int pSimplex, bool * const pOut )
+    int implicitMesh_pointInSimplex( const unsigned int pId, const double * const pPoint, const unsigned int pDim, const unsigned int pSimplex, bool * const pOut,
+        const double pEmbTol, const double * const pCenterOfCurvature )
     {
         int lStatus = 0;
         
@@ -1544,7 +1447,7 @@ extern "C"
         std::vector<double> lPoint( pPoint, &pPoint[pDim] );
         // Get one simplex index for a simplex where point is a part
         unsigned int lOneSimplex;
-        lStatus = lImplicitMesh->getASimplexForPoint( lPoint.data(), 1, &lOneSimplex);
+        lStatus = lImplicitMesh->getASimplexForPoint( lPoint.data(), 1, &lOneSimplex, NULL, 0, NULL, 0);
         if (lStatus)
             return 3;
         
@@ -1552,9 +1455,7 @@ extern "C"
         std::set<unsigned int> lSimplexIds;
         lSimplexIds.insert(lOneSimplex);
         std::set<unsigned int> lAllSimplices;
-        std::set<unsigned int> lTempSet1;
-        std::set<unsigned int> lTempSet2;
-        lStatus = lImplicitMesh->getAllSimplicesForPoint( lPoint.data(), lSimplexIds, lAllSimplices, lTempSet1, lTempSet2 );
+        lStatus = lImplicitMesh->getAllSimplicesForPoint( lPoint.data(), lSimplexIds, lAllSimplices, pEmbTol, pCenterOfCurvature );
         if (lStatus)
             return 4;
             
@@ -1587,7 +1488,7 @@ extern "C"
         std::set<unsigned int> lAllSimplices;
         std::set<unsigned int> lTempSet1;
         std::set<unsigned int> lTempSet2;
-        lStatus = lImplicitMesh->getAllSimplicesForNode( pNode, lSimplexIds, lAllSimplices, lTempSet1, lTempSet2 );
+        lStatus = lImplicitMesh->getAllSimplicesForNode( pNode, lSimplexIds, lAllSimplices );
         if (lStatus)
             return 2 + lStatus;
     
