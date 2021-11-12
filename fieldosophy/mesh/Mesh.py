@@ -315,95 +315,72 @@ class Mesh:
         # Saves current mesh to file
         Mesh.saveMeshToFile(self, msh_filename, vtk_filename)
     
-        
-        
-        
-    
-    
-    def cutOutsideMeshOnSphere( self, activePoints, distance ):
-        """ Remove nodes in mesh outside of specified spherical distance """
-        
-        # Copy curent mesh
-        mesh = self.copy()
-        
-        numNodes = mesh.nodes.shape[0]
-        numActive = activePoints.shape[1]
-        numTriangles = mesh.triangles.shape[0]
-        
-        minDistInd, minDist = geom.smallestDistanceBetweenPointsOnSphere( mesh.nodes, activePoints.transpose().copy(), self._libInstance )
-        
-        # Mark all nodes too far away as outside
-        outside = minDist > distance        
-        # Get triangles with outside nodes
-        outsideTriangles = np.any( np.isin( mesh.triangles, np.where(outside) ), axis=1 )
-        # Get triangles with inside nodes
-        insideTriangles = np.any( np.isin( mesh.triangles, np.where(~outside) ), axis=1 )
-        # Get triangles with both inside and outside nodes
-        bothTriangles = insideTriangles & outsideTriangles
-        # Get nodes which are part of bothTriangles
-        connected = np.full(numNodes, False, dtype=bool)
-        connected[ np.unique( mesh.triangles[ bothTriangles, : ].flatten() ) ] = True
-        # Get nodes which are both connected and outside
-        outsideConnected = connected & outside
-        
-        # Remove all triangles that are purely outside
-        mesh.triangles = mesh.triangles[insideTriangles, :]    
-        # Get index of points not to remove
-        keepPoints = outsideConnected | ~outside    
-        keepPointsIndex = np.zeros( numNodes )
-        keepPointsIndex[keepPoints] = np.array(range(np.sum(keepPoints)))
-        # Go through each triangle and rename index
-        for iter in range(mesh.triangles.shape[0]):
-            mesh.triangles[iter, :] = keepPointsIndex[ mesh.triangles[iter, :] ].astype(int)
-        # Remove points
-        mesh.nodes = mesh.nodes[keepPoints]
-        
-        return Mesh(mesh.triangles, mesh.nodes)
-    
-    
-    
-    
-    
-    def cutOutsideMesh( self, activePoints, distance ):
-        """ Remove nodes in mesh outside of specified planar distance """
+
+
+    def cutMesh( self, outside, includeBorderTriangles = True ):
+        """ Remove nodes in mesh. It is possible to keep nodes which faces also includes nodes which explicitly should be kept if the 'includeBorderTriangles' flag is set. """
         
         # copy current mesh
         mesh = self.copy()
         
-        numNodes = mesh.nodes.shape[0]
-        numActive = activePoints.shape[1]
-        numTriangles = mesh.triangles.shape[0]
-        
-        minDistInd, minDist = geom.smallestDistanceBetweenPoints( mesh.nodes, activePoints.transpose().copy(), self._libInstance )
-        
-        # Mark all nodes too far away as outside
-        outside = minDist > distance        
+        numNodes = mesh.N
+
         # Get triangles with outside nodes
         outsideTriangles = np.any( np.isin( mesh.triangles, np.where(outside) ), axis=1 )
         # Get triangles with inside nodes
         insideTriangles = np.any( np.isin( mesh.triangles, np.where(~outside) ), axis=1 )
         # Get triangles with both inside and outside nodes
         bothTriangles = insideTriangles & outsideTriangles
+        
         # Get nodes which are part of bothTriangles
         connected = np.full(numNodes, False, dtype=bool)
-        connected[ np.unique( mesh.triangles[ bothTriangles, : ].flatten() ) ] = True
-        # Get nodes which are both connected and outside
-        outsideConnected = connected & outside
+        connected[ np.unique( mesh.triangles[ bothTriangles, : ].flatten() ) ] = True        
+        
+        # Acquire which triangles and nodes to use
+        useTriangles = insideTriangles & ~bothTriangles
+        useNodes = ~outside
+        if includeBorderTriangles:
+            useTriangles = insideTriangles | bothTriangles
+            useNodes = ~outside | connected
         
         # Remove all triangles that are purely outside
-        mesh.triangles = mesh.triangles[insideTriangles, :]    
+        mesh.triangles = mesh.triangles[useTriangles, :]    
         # Get index of points not to remove
-        keepPoints = outsideConnected | ~outside    
-        keepPointsIndex = np.sum(keepPoints) * np.ones( (numNodes) )
-        keepPointsIndex[keepPoints] = np.array(range(np.sum(keepPoints)))
+        keepPointsIndex = np.sum(useNodes) * np.ones( (numNodes) )
+        keepPointsIndex[useNodes] = np.array(range(np.sum(useNodes)))
         # Go through each triangle and rename index
         for iter in range(mesh.triangles.shape[0]):
             mesh.triangles[iter, :] = keepPointsIndex[ mesh.triangles[iter, :] ].astype(int)
         # Remove points
-        mesh.nodes = mesh.nodes[keepPoints]
+        mesh.nodes = mesh.nodes[useNodes]
         
         return Mesh(mesh.triangles, mesh.nodes)
+     
+        
     
+    
+    def cutOutsideMeshOnSphere( self, activePoints, distance, includeBorderTriangles = True ):
+        """ Remove nodes in mesh outside of specified spherical distance """
+
+        # Get minimum distance between nodes and active points
+        minDistInd, minDist = geom.smallestDistanceBetweenPointsOnSphere( self.nodes, activePoints.transpose().copy(), self._libInstance )
+        # Mark all nodes too far away as outside
+        outside = minDist > distance        
+        # cut away the unecessary nodes and triangles of mesh
+        return self.cutMesh( outside, includeBorderTriangles )
+    
+    
+    
+    def cutOutsideMesh( self, activePoints, distance, includeBorderTriangles = True ):
+        """ Remove nodes in mesh outside of specified planar distance """
+        
+        # Get minimum distance between nodes and active points
+        minDistInd, minDist = geom.smallestDistanceBetweenPoints( self.nodes, activePoints.transpose().copy(), self._libInstance )
+        # Mark all nodes too far away as outside
+        outside = minDist > distance
+        # cut away the unecessary nodes and triangles of mesh
+        return self.cutMesh( outside, includeBorderTriangles )
+        
     
     
     def saveMeshToFile(self, msh_filename = None, vtk_filename = None):
