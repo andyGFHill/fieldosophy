@@ -288,6 +288,53 @@ int ConstMesh::getASimplexForPoint( const double * const pPoints, const unsigned
 }
 
 
+
+
+
+// Get gradient of linear function on face
+int ConstMesh::getGradientChainCoefficientsOfSimplex( double * const pGradientCoefficients, const unsigned int pNumRows, const unsigned int pNumCols, 
+    const unsigned int pSimplexInd ) const
+{
+
+    if (pSimplexInd >= getNT())
+        return 1;
+    if (pNumRows != getD())
+        return 2;
+    if (pNumCols != getTopD() + 1)
+        return 3;
+        
+    // Get pointer to node indices of current simplex
+    const unsigned int * lSimplexIndicesPtr = &getSimplices()[ pSimplexInd * (getTopD()+1) ];
+    
+    // Get pointer to vector to store nodes in
+    std::vector<double> lCurNodeCoords;
+    lCurNodeCoords.reserve( getD() * (getTopD()+1) );
+        
+    // Get coordinates of nodes in current simplex
+    for (unsigned int lIterNodes = 0; lIterNodes < getTopD()+1; lIterNodes++)
+        lCurNodeCoords.insert (lCurNodeCoords.end(), 
+            &getNodes()[lSimplexIndicesPtr[lIterNodes]*getD()], 
+            &getNodes()[lSimplexIndicesPtr[lIterNodes]*getD() + getD()]);
+                                
+    // Acquire standard coordinates transform
+    MapToSimp lF( lCurNodeCoords.data(), getD(), getTopD() );
+    
+    // Acquire F^-T
+    Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>> lFInvT( &pGradientCoefficients[getD()], getD(), getTopD() );
+    lFInvT = lF.solveTransposed( Eigen::MatrixXd::Identity(getTopD(), getTopD()) );
+    // Acquire first column
+    Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>> lFirstColumn( pGradientCoefficients, getD(), 1 );
+    lFirstColumn = - lFInvT * Eigen::VectorXd::Ones( getTopD() );
+    
+    
+
+
+    return 0;
+}
+
+
+
+
 // Get diameter of simplex
 double ConstMesh::getDiameter( const unsigned int pSimplexInd ) const
 {
@@ -1737,7 +1784,7 @@ MapToSimp::MapToSimp( const double * const pPoints, const unsigned int pD, const
     {
         // Get matrix of consecutive points 
         Eigen::Map< const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> > lPoints( &pPoints[mD], mD, mTopD ); 
-        // Get matrix of point 0 subtracted from consecutive points ( the matrix of row vectors {point_j - _point_0}_j )
+        // Get matrix of point 0 subtracted from consecutive points ( the matrix of column vectors {point_j - _point_0}_j )
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> lF = lPoints.colwise() - mPoint0;
         // Perform a QR factorization of lF
         mQR = lF.colPivHouseholderQr();
@@ -1751,7 +1798,7 @@ MapToSimp::MapToSimp( const double * const pPoints, const unsigned int pD, const
         mDeterminant = 1.0d;
 }
 
-Eigen::VectorXd MapToSimp::solve( const Eigen::VectorXd & pVector ) const
+Eigen::MatrixXd MapToSimp::solve( const Eigen::MatrixXd & pVector ) const
 {
     // If of full rank
     if (mD == mTopD)
@@ -1766,14 +1813,14 @@ Eigen::VectorXd MapToSimp::solve( const Eigen::VectorXd & pVector ) const
     const Eigen::MatrixXd lQ1 = lQ.topLeftCorner(mD, mTopD);
     
     // Get solution
-    Eigen::VectorXd lOutput = lQ1.transpose() * pVector;
+    Eigen::MatrixXd lOutput = lQ1.transpose() * pVector;
     lOutput = lR1.lu().solve( lOutput );
     lOutput = lP * lOutput;
     
     return lOutput;
 }
 
-Eigen::VectorXd MapToSimp::solveTransposed( const Eigen::VectorXd & pVector ) const
+Eigen::MatrixXd MapToSimp::solveTransposed( const Eigen::MatrixXd & pVector ) const
 {
     // Get the R1^T matrix
     Eigen::MatrixXd lR1T = mQR.matrixR().topLeftCorner(mTopD, mTopD).transpose().triangularView<Eigen::Lower>();
@@ -1784,7 +1831,7 @@ Eigen::VectorXd MapToSimp::solveTransposed( const Eigen::VectorXd & pVector ) co
     const Eigen::MatrixXd lQ1 = lQ.topLeftCorner(mD, mTopD);    
     
      // Get solution
-    Eigen::VectorXd lOutput = lP.inverse() * pVector;
+    Eigen::MatrixXd lOutput = lP.inverse() * pVector;
     lOutput = lR1T.lu().solve( lOutput );
     lOutput = lQ1 * lOutput;
 
@@ -1848,7 +1895,7 @@ double MapToSimp::getLineIntersection( const Eigen::VectorXd & pLinePoint, const
 }
 
 // Map from simplex space to original space
-Eigen::VectorXd MapToSimp::multiplyWithF( const Eigen::VectorXd & pVector ) const
+Eigen::MatrixXd MapToSimp::multiplyWithF( const Eigen::MatrixXd & pVector ) const
 {
     // Get the R1 matrix
     Eigen::MatrixXd lR1 = mQR.matrixR().topLeftCorner(mTopD, mTopD).triangularView<Eigen::Upper>();
@@ -1858,7 +1905,7 @@ Eigen::VectorXd MapToSimp::multiplyWithF( const Eigen::VectorXd & pVector ) cons
     const Eigen::MatrixXd lQ = mQR.householderQ();
     const Eigen::MatrixXd lQ1 = lQ.topLeftCorner(mD, mTopD);    
     
-    Eigen::VectorXd lTemp = (lP.inverse() * pVector);
+    Eigen::MatrixXd lTemp = (lP.inverse() * pVector);
     lTemp = lR1 * lTemp;
     lTemp = lQ1 * lTemp;
     
@@ -2452,6 +2499,76 @@ extern "C"
     
         return 0;
     }
+    
+    
+    
+    
+    
+    // Maps triangle values to matrices
+    int mesh_getGradientCoefficientMatrix( const unsigned int pNonNulls, double * const pData, 
+        unsigned int * const pRow, unsigned int * const pCol, unsigned int * const pDataIndex,
+        const double * const pNodes, const unsigned int pNumNodes,
+        const unsigned int * const pMesh, const unsigned int pNumSimplices,
+        const unsigned int pD, const unsigned int pTopD )
+    {
+    
+        // Create internal representation of mesh
+        ConstMesh lConstMesh( pNodes, pD, pNumNodes, pMesh, pNumSimplices, pTopD );
+    
+        int lStatus = 0;
+    
+        // Loop through each simplex
+        #pragma omp parallel reduction(max:lStatus)
+        {
+            // Preallocate gradient coefficients
+            std::vector<double> lGradientCoefficients( pD * (pTopD+1), 0 );
+            // Initialize status
+            lStatus = 0;
+        
+            #pragma omp for
+            for ( unsigned int lIterSimp = 0; lIterSimp < pNumSimplices; lIterSimp++ )
+            {
+                // Check status
+                if (lStatus != 0)
+                    continue;
+                // Get coefficients of gradient of linear function on face
+                lStatus = lConstMesh.getGradientChainCoefficientsOfSimplex( lGradientCoefficients.data(), pD, pTopD+1, lIterSimp );
+                if (lStatus)
+                {
+                    lStatus += 1;
+                    continue;
+                }
+
+                // Insert values
+                #pragma omp critical (mesh_gradientCoefficientMatrix)
+                {
+                    if (*pDataIndex + pD * (pTopD+1) >= pNonNulls)
+                    {
+                        lStatus = 1;
+                    }
+                    else
+                    {
+                        // Loop through each node
+                        for ( unsigned int lIterNode = 0; lIterNode < pTopD+1; lIterNode++ )
+                            // Loop through each dimension
+                            for ( unsigned int lIterD = 0; lIterD < pD; lIterD++ )
+                            {
+    
+                                pRow[ *pDataIndex ] = lIterSimp * pD + lIterD;
+                                pCol[ *pDataIndex ] = lConstMesh.getSimplices()[ lIterSimp * (pTopD+1) + lIterNode ];
+                                pData[ *pDataIndex ] = lGradientCoefficients[ lIterNode * pD + lIterD];
+                                // Advance counter
+                                (*pDataIndex)++;                        
+                            }
+                    }
+                }
+            }   // End of for
+
+        }   // End of parallel
+    
+        return lStatus;
+    }
+    
     
     
     

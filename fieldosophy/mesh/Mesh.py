@@ -245,6 +245,58 @@ class Mesh:
     
     
     
+    def grad( self ):
+        # Acquire the gradients coefficient matrix of faces in the mesh
+            
+        # Represent the triangles
+        triangles_p = self.triangles.ctypes.data_as(self.c_uint_p) 
+        # Represent the nodes
+        nodes_p = self.nodes.ctypes.data_as(self.c_double_p) 
+        
+        maxNumNonNull = self.embD * self.NT * (self.topD+1) + 100
+        
+        # Store observation matrix
+        data = np.NaN * np.ones( (maxNumNonNull) , dtype=np.float64 )
+        row = np.zeros( (maxNumNonNull) , dtype=np.uintc )
+        col = np.zeros( (maxNumNonNull) , dtype=np.uintc )
+        data_p = data.ctypes.data_as(self.c_double_p)
+        row_p = row.ctypes.data_as(self.c_uint_p)
+        col_p = col.ctypes.data_as(self.c_uint_p) 
+        
+        
+        # Compute observation matrix
+        self._libInstance.mesh_getGradientCoefficientMatrix.restype = ctypes.c_int
+        self._libInstance.mesh_getGradientCoefficientMatrix.argtypes = \
+            [ ctypes.c_uint, 
+             self.c_double_p, self.c_uint_p, self.c_uint_p, self.c_uint_p, \
+             self.c_double_p, ctypes.c_uint, \
+             self.c_uint_p, ctypes.c_uint, \
+             ctypes.c_uint, ctypes.c_uint ]
+        index = ctypes.c_uint(0)
+                
+        status = self._libInstance.mesh_getGradientCoefficientMatrix( ctypes.c_uint(maxNumNonNull), \
+            data_p, row_p, col_p, ctypes.byref( index ), \
+            nodes_p, ctypes.c_uint( self.N ), \
+            triangles_p, ctypes.c_uint( self.NT ), \
+            ctypes.c_uint(self.embD), ctypes.c_uint( self.topD ) )
+
+        if status != 0:
+            if status == 1:
+                raise Exception( "Not enough non null elements given!" ) 
+            raise Exception( "Uknown error occured! Error code " + str(status) + " from mesh_getGradientCoefficientMatrix()" ) 
+    
+        # Remove unused
+        row = row[~np.isnan(data)]
+        col = col[~np.isnan(data)]
+        data = data[~np.isnan(data)]
+        out = sparse.coo_matrix( (data, (row, col)), shape=(self.NT * self.embD, self.N) )
+        out = out.tocsr()
+        
+        
+        return( out )
+    
+    
+    
     def getBoundary(self):
         # Acquire the boundary of current mesh
         

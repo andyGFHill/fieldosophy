@@ -158,8 +158,8 @@ class test_meshModule( unittest.TestCase ):
         self.assertTrue( meshSphere1.nodes.shape[0] == 147 )
         self.assertTrue( meshSphere1.triangles.shape[0] == 290 )
         
-        
-        
+
+
     def test_curvaturePointIdentification(self):
         # Test that points can be idetified to correct simplices even with a curved submanifold
         
@@ -181,7 +181,56 @@ class test_meshModule( unittest.TestCase ):
         obsMat2 = meshCircle.getObsMat( points, embTol = 0.1, centersOfCurvature = np.zeros( (1,2) ) )
         # Make sure that the all points were properly handled
         self.assertTrue( np.all(np.isnan(np.sum(obsMat2, axis=1)).flatten() == np.array([False, False, False])) )
-                
+        
+        
+        
+        
+    def test_gradientOfFaces(self):
+        # Tests that gradients are correctly computed
+
+        print("Testing gradients of faces in triangular mesh")        
+        
+        # Create mesh
+        nodes = np.array( [ [0,0], [1,0], [1,1], [0,1] ] )
+        triangles = np.array( [ [0,1,2], [0,2,3] ] )
+        mesh = mesher.Mesh( triangles, nodes )
+        # Get gradient coefficient matrix
+        gradMat = mesh.grad()
+        
+        # Set values at nodes
+        V = np.array( [0,0,0,1] )
+        # Compute gradients at triangles
+        grad = (gradMat * V).reshape( (2,2) )
+        # Make sure that the all gradients are correct
+        self.assertTrue( np.linalg.norm( grad[0,:] - np.array([0,0]) ) < 1e-10 )
+        self.assertTrue( np.linalg.norm( grad[1,:] - np.array([-1,1]) ) < 1e-10 )
+        
+        # Set values at nodes
+        V = np.array( [1,0,0,0] )
+        # Compute gradients at triangles
+        grad = (gradMat * V).reshape( (2,2) )
+        # Make sure that the all gradients are correct
+        self.assertTrue( np.linalg.norm( grad[0,:] - np.array([-1,0]) ) < 1e-10 )
+        self.assertTrue( np.linalg.norm( grad[1,:] - np.array([0,-1]) ) < 1e-10 )
+        
+        # Set values at nodes
+        V = np.array( [0,1,0,0] )
+        # Compute gradients at triangles
+        grad = (gradMat * V).reshape( (2,2) )
+        # Make sure that the all gradients are correct
+        self.assertTrue( np.linalg.norm( grad[0,:] - np.array([1,-1]) ) < 1e-10 )
+        self.assertTrue( np.linalg.norm( grad[1,:] - np.array([0,0]) ) < 1e-10 )
+        
+        # Set values at nodes
+        V = np.array( [0,0,0,1] )
+        # Compute gradients at triangles
+        grad = (gradMat * V).reshape( (2,2) )
+        # Make sure that the all gradients are correct
+        self.assertTrue( np.linalg.norm( grad[0,:] - np.array([0,0]) ) < 1e-10 )
+        self.assertTrue( np.linalg.norm( grad[1,:] - np.array([-1,1]) ) < 1e-10 )
+        
+        
+        
 
 
 

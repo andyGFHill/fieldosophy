@@ -90,6 +90,9 @@ class ConstMesh
         // Get a set of all simplices for which the given set is a member.
         int getAllSimplicesForSet( const std::set<unsigned int> & pSet, unsigned int pSimplexId,
             std::set<unsigned int> & pOutput ) const;
+        // Get coefficients of gradient of linear function on face
+        int getGradientChainCoefficientsOfSimplex( double * const pGradientCoefficients, const unsigned int pNumRows, const unsigned int pNumCols, 
+            const unsigned int pSimplexInd ) const;
         
         // Get standard- and/or barycentric coordinates for points given simplex
         int getCoordinatesGivenSimplex( const double * const pPoints, const unsigned int pNumPoints, const unsigned int pSimplexId,
@@ -335,19 +338,19 @@ class MapToSimp
         // Acquire determinant (of R1 if pTopD < pD)
         double getAbsDeterminant() const {return std::abs(mDeterminant);}
         // Solve 
-        Eigen::VectorXd solve( const Eigen::VectorXd & pVector ) const;
+        Eigen::MatrixXd solve( const Eigen::MatrixXd & pVector ) const;
         // Solve transposed
-        Eigen::VectorXd solveTransposed( const Eigen::VectorXd & pVector ) const;
+        Eigen::MatrixXd solveTransposed( const Eigen::MatrixXd & pVector ) const;
         // Get length between hyperplane of simplex and vector
         double getOrthogonalLength( const Eigen::VectorXd & pVector ) const;
         // Get parameter value 't' of line parameterized as 'pLinePoint' + t*'pLineVector', for the point where line cuts hyperplane of simplex.
         double getLineIntersection( const Eigen::VectorXd & pLinePoint, const Eigen::VectorXd & pLineVector ) const;
         // Get standard coordinates of vector
-        Eigen::VectorXd getStandardCoord( const Eigen::VectorXd & pVector ) const {return solve(pVector - mPoint0);}
+        Eigen::MatrixXd getStandardCoord( const Eigen::MatrixXd & pVector ) const {return solve(pVector.colwise() - mPoint0);}
         // right multiplication of F with vector
-        Eigen::VectorXd multiplyWithF( const Eigen::VectorXd & pVector ) const;        
+        Eigen::MatrixXd multiplyWithF( const Eigen::MatrixXd & pVector ) const;        
         // Map point from standard simplex space to original space
-        Eigen::VectorXd getOriginalCoord( const Eigen::VectorXd & pVector ) const { return ( multiplyWithF( pVector ) + mPoint0 );  }
+        Eigen::MatrixXd getOriginalCoord( const Eigen::MatrixXd & pVector ) const { return ( multiplyWithF( pVector ).colwise() + mPoint0 );  }
     
     private:
     
@@ -469,6 +472,13 @@ extern "C"
         const unsigned int * const pMesh, const unsigned int pNumSimplices,
         const unsigned int pD, const unsigned int pTopD, const double pEmbTol = 0.0d,
         const double * const pCenterOfCurvature = NULL, const unsigned int pNumCentersOfCurvature = 0);
+        
+    // Maps triangle values to matrices
+    int mesh_getGradientCoefficientMatrix( const unsigned int pNonNulls, double * const pData, 
+        unsigned int * const pRow, unsigned int * const pCol, unsigned int * const pDataIndex,
+        const double * const pNodes, const unsigned int pNumNodes,
+        const unsigned int * const pMesh, const unsigned int pNumSimplices,
+        const unsigned int pD, const unsigned int pTopD );
     
     // Recurrent investigation of all edges (or sub-edges) [thread safe]
     int mesh_recurrentEdgeFinder( unsigned int * const pEdgeList, const unsigned int pAllocateSpace,
