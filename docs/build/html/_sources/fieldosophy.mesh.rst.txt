@@ -28,13 +28,6 @@ fieldosophy.mesh.Mesh module
    :undoc-members:
    :show-inheritance:
 
-fieldosophy.mesh.MeshDistanceFinder module
-------------------------------------------
-
-.. automodule:: fieldosophy.mesh.MeshDistanceFinder
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 fieldosophy.mesh.MeshGraph module
 ---------------------------------

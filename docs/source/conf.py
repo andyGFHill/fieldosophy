@@ -22,7 +22,7 @@ copyright = '2020, Anders Gunnar Felix Hildeman'
 author = 'Anders Gunnar Felix Hildeman'
 
 # The full version, including alpha/beta/rc tags
-release = '1.0'
+release = '0.1'
 
 
 # -- General configuration ---------------------------------------------------

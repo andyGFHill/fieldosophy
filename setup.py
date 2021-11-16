@@ -13,7 +13,7 @@ If a copy of the license was not distributed with this file, you can obtain one 
 from setuptools import setup
 
 NAME = "Fieldosophy"
-VERSION = "1.0"
+VERSION = "0.1"
 
 
 
