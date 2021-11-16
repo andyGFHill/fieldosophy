@@ -195,7 +195,10 @@ class test_meshModule( unittest.TestCase ):
         triangles = np.array( [ [0,1,2], [0,2,3] ] )
         mesh = mesher.Mesh( triangles, nodes )
         # Get gradient coefficient matrix
-        gradMat = mesh.grad()
+        gradAndMat = mesh.gradAndAreaForSimplices(grads = True, areas = True)
+        gradMat = gradAndMat["gradMat"]
+        areas = gradAndMat["areas"]
+        self.assertTrue( np.linalg.norm( areas - np.array([0.5,0.5]) ) < 1e-10 )
         
         # Set values at nodes
         V = np.array( [0,0,0,1] )
@@ -228,6 +231,16 @@ class test_meshModule( unittest.TestCase ):
         # Make sure that the all gradients are correct
         self.assertTrue( np.linalg.norm( grad[0,:] - np.array([0,0]) ) < 1e-10 )
         self.assertTrue( np.linalg.norm( grad[1,:] - np.array([-1,1]) ) < 1e-10 )
+        
+        
+        # Acquire gradients of nodes
+        S2N = mesh.S2NByArea( areas )
+        gradNodes = S2N * grad
+        self.assertTrue( np.linalg.norm( gradNodes[0,:] - np.mean(grad, axis=0) ) < 1e-10 )
+        self.assertTrue( np.linalg.norm( gradNodes[1,:] - grad[0,:] ) < 1e-10 )
+        self.assertTrue( np.linalg.norm( gradNodes[2,:] - np.mean(grad, axis=0) ) < 1e-10 )
+        self.assertTrue( np.linalg.norm( gradNodes[3,:] - grad[1,:] ) < 1e-10 )
+        
         
         
         

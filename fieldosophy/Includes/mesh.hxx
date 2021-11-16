@@ -92,7 +92,7 @@ class ConstMesh
             std::set<unsigned int> & pOutput ) const;
         // Get coefficients of gradient of linear function on face
         int getGradientChainCoefficientsOfSimplex( double * const pGradientCoefficients, const unsigned int pNumRows, const unsigned int pNumCols, 
-            const unsigned int pSimplexInd ) const;
+            const unsigned int pSimplexInd, double * const pArea = NULL ) const;
         
         // Get standard- and/or barycentric coordinates for points given simplex
         int getCoordinatesGivenSimplex( const double * const pPoints, const unsigned int pNumPoints, const unsigned int pSimplexId,
@@ -478,7 +478,8 @@ extern "C"
         unsigned int * const pRow, unsigned int * const pCol, unsigned int * const pDataIndex,
         const double * const pNodes, const unsigned int pNumNodes,
         const unsigned int * const pMesh, const unsigned int pNumSimplices,
-        const unsigned int pD, const unsigned int pTopD );
+        const unsigned int pD, const unsigned int pTopD,
+        double * const pAreas = NULL );
     
     // Recurrent investigation of all edges (or sub-edges) [thread safe]
     int mesh_recurrentEdgeFinder( unsigned int * const pEdgeList, const unsigned int pAllocateSpace,

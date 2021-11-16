@@ -245,7 +245,33 @@ class Mesh:
     
     
     
-    def grad( self ):
+    def S2NByArea( self, areas  ):
+        # Get simplex values to nodes by weighting area
+        
+        
+        # Get matrix mapping which nodes each simplex is associated to (simplex to nodes matrix) 
+        cols = np.arange( self.NT ).repeat(self.topD + 1)        
+        rows = self.triangles.reshape( (-1) )
+        S2N = sparse.coo_matrix( (np.ones((self.NT * (self.topD+1))), (rows, cols)), shape=(self.N, self.NT) )
+        S2N = S2N.tocsr()
+        
+        # Acquire total area for each vertex
+        totalArea = S2N * areas
+        # Acquire relative area for each simplex in each node
+        areas = areas.repeat(self.topD + 1) / totalArea[rows]
+        
+        # Acquire simplex values weighted by their relative area matrix
+        S2N = sparse.coo_matrix( (areas, (rows, cols)), shape=(self.N, self.NT) )
+        S2N = S2N.tocsr()
+        
+        return S2N
+
+        
+        
+        
+    
+    
+    def gradAndAreaForSimplices( self, grads = True, areas = True ):
         # Acquire the gradients coefficient matrix of faces in the mesh
             
         # Represent the triangles
@@ -255,15 +281,30 @@ class Mesh:
         
         maxNumNonNull = self.embD * self.NT * (self.topD+1) + 100
         
-        # Store observation matrix
-        data = np.NaN * np.ones( (maxNumNonNull) , dtype=np.float64 )
-        row = np.zeros( (maxNumNonNull) , dtype=np.uintc )
-        col = np.zeros( (maxNumNonNull) , dtype=np.uintc )
-        data_p = data.ctypes.data_as(self.c_double_p)
-        row_p = row.ctypes.data_as(self.c_uint_p)
-        col_p = col.ctypes.data_as(self.c_uint_p) 
+        
+        data_p = None
+        areas_p = None
+        row_p = None
+        col_p = None
+        data = None
+        areasVals = None
+        row = None
+        col = None
+        
+        if grads:
+            data = np.NaN * np.ones( (maxNumNonNull) , dtype=np.float64 )
+            row = np.zeros( (maxNumNonNull) , dtype=np.uintc )
+            col = np.zeros( (maxNumNonNull) , dtype=np.uintc )
+            data_p = data.ctypes.data_as(self.c_double_p)
+            row_p = row.ctypes.data_as(self.c_uint_p)
+            col_p = col.ctypes.data_as(self.c_uint_p) 
+        
+        if areas:
+            areasVals = np.NaN * np.ones( (self.NT) , dtype=np.float64 )
+            areas_p = areasVals.ctypes.data_as(self.c_double_p)
         
         
+        areas
         # Compute observation matrix
         self._libInstance.mesh_getGradientCoefficientMatrix.restype = ctypes.c_int
         self._libInstance.mesh_getGradientCoefficientMatrix.argtypes = \
@@ -271,29 +312,37 @@ class Mesh:
              self.c_double_p, self.c_uint_p, self.c_uint_p, self.c_uint_p, \
              self.c_double_p, ctypes.c_uint, \
              self.c_uint_p, ctypes.c_uint, \
-             ctypes.c_uint, ctypes.c_uint ]
+             ctypes.c_uint, ctypes.c_uint, \
+             self.c_double_p ]
         index = ctypes.c_uint(0)
                 
         status = self._libInstance.mesh_getGradientCoefficientMatrix( ctypes.c_uint(maxNumNonNull), \
             data_p, row_p, col_p, ctypes.byref( index ), \
             nodes_p, ctypes.c_uint( self.N ), \
             triangles_p, ctypes.c_uint( self.NT ), \
-            ctypes.c_uint(self.embD), ctypes.c_uint( self.topD ) )
+            ctypes.c_uint(self.embD), ctypes.c_uint( self.topD ), \
+            areas_p)
 
         if status != 0:
             if status == 1:
                 raise Exception( "Not enough non null elements given!" ) 
             raise Exception( "Uknown error occured! Error code " + str(status) + " from mesh_getGradientCoefficientMatrix()" ) 
     
-        # Remove unused
-        row = row[~np.isnan(data)]
-        col = col[~np.isnan(data)]
-        data = data[~np.isnan(data)]
-        out = sparse.coo_matrix( (data, (row, col)), shape=(self.NT * self.embD, self.N) )
-        out = out.tocsr()
+        out = {}
+    
+        if grads:
+            # Remove unused
+            row = row[~np.isnan(data)]
+            col = col[~np.isnan(data)]
+            data = data[~np.isnan(data)]
+            gradMat = sparse.coo_matrix( (data, (row, col)), shape=(self.NT * self.embD, self.N) )
+            gradMat = gradMat.tocsr()
+            out["gradMat"] = gradMat
+
+        if areas:
+            out["areas"] = areasVals
         
-        
-        return( out )
+        return out
     
     
     

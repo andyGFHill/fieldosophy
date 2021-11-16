@@ -293,15 +293,19 @@ int ConstMesh::getASimplexForPoint( const double * const pPoints, const unsigned
 
 // Get gradient of linear function on face
 int ConstMesh::getGradientChainCoefficientsOfSimplex( double * const pGradientCoefficients, const unsigned int pNumRows, const unsigned int pNumCols, 
-    const unsigned int pSimplexInd ) const
+    const unsigned int pSimplexInd, double * const pArea ) const
 {
 
     if (pSimplexInd >= getNT())
         return 1;
-    if (pNumRows != getD())
-        return 2;
-    if (pNumCols != getTopD() + 1)
-        return 3;
+        
+    if (pGradientCoefficients != NULL)
+    {
+        if (pNumRows != getD())
+            return 2;
+        if (pNumCols != getTopD() + 1)
+            return 3;
+    }
         
     // Get pointer to node indices of current simplex
     const unsigned int * lSimplexIndicesPtr = &getSimplices()[ pSimplexInd * (getTopD()+1) ];
@@ -319,19 +323,21 @@ int ConstMesh::getGradientChainCoefficientsOfSimplex( double * const pGradientCo
     // Acquire standard coordinates transform
     MapToSimp lF( lCurNodeCoords.data(), getD(), getTopD() );
     
-    // Acquire F^-T
-    Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>> lFInvT( &pGradientCoefficients[getD()], getD(), getTopD() );
-    lFInvT = lF.solveTransposed( Eigen::MatrixXd::Identity(getTopD(), getTopD()) );
-    // Acquire first column
-    Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>> lFirstColumn( pGradientCoefficients, getD(), 1 );
-    lFirstColumn = - lFInvT * Eigen::VectorXd::Ones( getTopD() );
+    if (pGradientCoefficients != NULL)
+    {
+        // Acquire F^-T
+        Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>> lFInvT( &pGradientCoefficients[getD()], getD(), getTopD() );
+        lFInvT = lF.solveTransposed( Eigen::MatrixXd::Identity(getTopD(), getTopD()) );
+        // Acquire first column
+        Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>> lFirstColumn( pGradientCoefficients, getD(), 1 );
+        lFirstColumn = - lFInvT * Eigen::VectorXd::Ones( getTopD() );
+    }
     
-    
-
+    if (pArea != NULL)
+        *pArea = 0.5 * lF.getAbsDeterminant();
 
     return 0;
 }
-
 
 
 
@@ -2509,7 +2515,8 @@ extern "C"
         unsigned int * const pRow, unsigned int * const pCol, unsigned int * const pDataIndex,
         const double * const pNodes, const unsigned int pNumNodes,
         const unsigned int * const pMesh, const unsigned int pNumSimplices,
-        const unsigned int pD, const unsigned int pTopD )
+        const unsigned int pD, const unsigned int pTopD,
+        double * const pAreas )
     {
     
         // Create internal representation of mesh
@@ -2531,35 +2538,46 @@ extern "C"
                 // Check status
                 if (lStatus != 0)
                     continue;
-                // Get coefficients of gradient of linear function on face
-                lStatus = lConstMesh.getGradientChainCoefficientsOfSimplex( lGradientCoefficients.data(), pD, pTopD+1, lIterSimp );
+                // Get coefficients of gradient of linear function on faceneeds to be 
+                double lArea;
+                double * lGradientCoefficientsPtr = NULL;
+                if (pData != NULL)
+                    lGradientCoefficientsPtr = lGradientCoefficients.data();
+                
+                lStatus = lConstMesh.getGradientChainCoefficientsOfSimplex( lGradientCoefficientsPtr, pD, pTopD+1, lIterSimp, &lArea );
                 if (lStatus)
                 {
                     lStatus += 1;
                     continue;
                 }
+                // Insert area
+                if (pAreas != NULL)
+                    pAreas[lIterSimp] = lArea;
 
                 // Insert values
-                #pragma omp critical (mesh_gradientCoefficientMatrix)
+                if (pData != NULL)
                 {
-                    if (*pDataIndex + pD * (pTopD+1) >= pNonNulls)
+                    #pragma omp critical (mesh_gradientCoefficientMatrix)
                     {
-                        lStatus = 1;
-                    }
-                    else
-                    {
-                        // Loop through each node
-                        for ( unsigned int lIterNode = 0; lIterNode < pTopD+1; lIterNode++ )
-                            // Loop through each dimension
-                            for ( unsigned int lIterD = 0; lIterD < pD; lIterD++ )
-                            {
-    
-                                pRow[ *pDataIndex ] = lIterSimp * pD + lIterD;
-                                pCol[ *pDataIndex ] = lConstMesh.getSimplices()[ lIterSimp * (pTopD+1) + lIterNode ];
-                                pData[ *pDataIndex ] = lGradientCoefficients[ lIterNode * pD + lIterD];
-                                // Advance counter
-                                (*pDataIndex)++;                        
-                            }
+                        if (*pDataIndex + pD * (pTopD+1) >= pNonNulls)
+                        {
+                            lStatus = 1;
+                        }
+                        else
+                        {
+                            // Loop through each node
+                            for ( unsigned int lIterNode = 0; lIterNode < pTopD+1; lIterNode++ )
+                                // Loop through each dimension
+                                for ( unsigned int lIterD = 0; lIterD < pD; lIterD++ )
+                                {
+        
+                                    pRow[ *pDataIndex ] = lIterSimp * pD + lIterD;
+                                    pCol[ *pDataIndex ] = lConstMesh.getSimplices()[ lIterSimp * (pTopD+1) + lIterNode ];
+                                    pData[ *pDataIndex ] = lGradientCoefficients[ lIterNode * pD + lIterD];
+                                    // Advance counter
+                                    (*pDataIndex)++;                        
+                                }
+                        }
                     }
                 }
             }   // End of for
@@ -2568,7 +2586,6 @@ extern "C"
     
         return lStatus;
     }
-    
     
     
     
