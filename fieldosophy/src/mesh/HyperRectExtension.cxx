@@ -109,9 +109,7 @@ int HyperRectExtension::getASimplexForPoint( double * const pPoints, const unsig
     // Handle when extended
     
     // So far only works for no extension of an implicit mesh
-    int lStatus = getMesh().getASimplexForPoint( pPoints, pNumPoints, pSimplexIds, pBarycentricCoords, pEmbTol, pCenterOfCurvature, pNumCentersOfCurvature );
-    if (lStatus)
-        return lStatus;
+    getMesh().getASimplexForPoint( pPoints, pNumPoints, pSimplexIds, pBarycentricCoords, pEmbTol, pCenterOfCurvature, pNumCentersOfCurvature );
         
     return 0;
 }

@@ -105,7 +105,8 @@ class ConstMesh
             unsigned int * const pSimplices, const unsigned int pNumSimplices, const unsigned int pTopD,
             unsigned int * const pNeighs = NULL ) const;
         // Computes a mesh graph of mesh
-        int computeMeshGraph( const unsigned int pMaxNumNodes, const double pMinDiam, const unsigned int pMinNumTriangles );
+        int computeMeshGraph( const unsigned int pMaxNumNodes, const double pMinDiam, const unsigned int pMinNumTriangles,
+            const double * const pPoints = NULL, const unsigned int * const pNumPoints = NULL );
         // See if two simplices are neighbors
         bool areSimplicesNeighbors( const unsigned int pSimpInd1, const unsigned int pSimpInd2 ) const;
         // See if node is part of simplex

@@ -17,6 +17,7 @@
 
 #include <math.h>
 #include <omp.h>
+#include <limits>
 
 #include "Eigen/Dense"
 
@@ -81,9 +82,8 @@ int ConstMesh::getASimplexForPoint( const double * const pPoints, const unsigned
 {
     // Assume first point belong to node 0
     unsigned int lCurGraphNode = 0;
-    int lStatus = 0;    
     
-    #pragma omp parallel firstprivate(lCurGraphNode) reduction(|:lStatus)
+    #pragma omp parallel firstprivate(lCurGraphNode)
     {
     
         std::vector<double> lTemp;
@@ -92,9 +92,6 @@ int ConstMesh::getASimplexForPoint( const double * const pPoints, const unsigned
         #pragma omp for 
         for ( unsigned int lIterPoints = 0; lIterPoints < pNumPoints; lIterPoints++ )
         {         
-            // If error
-            if (lStatus != 0)
-                continue;
         
             // Get if mesh graph has been computed
             bool lUseMeshGraph = (mMeshGraph != NULL);
@@ -109,18 +106,9 @@ int ConstMesh::getASimplexForPoint( const double * const pPoints, const unsigned
                 // Get node object of current point
                 const MeshGraph::Node * lGraphNode = (lOtherStatus == 0) ? mMeshGraph->getNode(lCurGraphNode) : NULL;
                 // If cannot find graph node
-                if (lGraphNode == NULL)
-                {
-                    if (lOtherStatus == 0)
-                        // flag error
-                        lStatus |= 1;
-                    else
-                        // flag error
-                        lStatus |= lOtherStatus + 2;
-                        
+                if (lGraphNode == NULL)                        
                     // Look without mesh graph
                     lUseMeshGraph = false;
-                }
                 else
                 {
                     // Loop through all triangles in node
@@ -284,7 +272,7 @@ int ConstMesh::getASimplexForPoint( const double * const pPoints, const unsigned
     }   // end of parallell section
 
 
-    return lStatus;
+    return 0;
 }
 
 
@@ -334,7 +322,7 @@ int ConstMesh::getGradientChainCoefficientsOfSimplex( double * const pGradientCo
     }
     
     if (pArea != NULL)
-        *pArea = 0.5 * lF.getAbsDeterminant();
+        *pArea = lF.getAbsDeterminant() / ( (double)getTopD() );
 
     return 0;
 }
@@ -587,13 +575,10 @@ int ConstMesh::getAllSimplicesForPoint( const double * const pPoint, unsigned in
         
     // If have no suggestions of simplexId
     if (pSimplexId == getNT())
-    {
         // Acquire one
-        int lStatus = getASimplexForPoint( pPoint, 1, &pSimplexId, NULL, pEmbTol, pCenterOfCurvature, lNumCentersOfCurvature );
-        // Handle error
-        if (lStatus)
-            return 3;
-    }
+        getASimplexForPoint( pPoint, 1, &pSimplexId, NULL, pEmbTol, pCenterOfCurvature, lNumCentersOfCurvature );
+    if (pSimplexId == getNT())
+        return 0;
        
     // Insert current simplex
     lInclude.insert( pSimplexId );
@@ -843,11 +828,12 @@ int ConstMesh::populateArrays( double * const pNodes, const unsigned int pD, con
     return 0;
 }
 
-int ConstMesh::computeMeshGraph( const unsigned int pMaxNumNodes, const double pMinDiam, const unsigned int pMinNumTriangles )
+int ConstMesh::computeMeshGraph( const unsigned int pMaxNumNodes, const double pMinDiam, const unsigned int pMinNumTriangles,
+    const double * const pPoints, const unsigned int * const pNumPoints )
 {
     if (mMeshGraph == NULL)
         // Create mesh graph
-        mMeshGraph = new MeshGraph( *this, pMaxNumNodes, pMinDiam, pMinNumTriangles );
+        mMeshGraph = new MeshGraph( *this, pMaxNumNodes, pMinDiam, pMinNumTriangles, pPoints, pNumPoints );
 
     return 0;
 }
@@ -2458,15 +2444,13 @@ extern "C"
         // If number of points are many 
         if (pNumPoints > 10)
             // Compute mesh graph to speed up the process
-            lConstMesh.computeMeshGraph( 1000, 0.0d, 20 );
+            lConstMesh.computeMeshGraph( 1000, 0.0d, 20, pPoints, &pNumPoints );
         
         // Get which triangle each point is a member of
         std::vector<unsigned int> lMemberList( pNumPoints, 0 );
         std::vector<double> lBaryList( pNumPoints*(pTopD+1), 0.0d );
-        int lStatus = lConstMesh.getASimplexForPoint( pPoints, pNumPoints, lMemberList.data(), lBaryList.data(), pEmbTol, pCenterOfCurvature, pNumCentersOfCurvature );
-        if (lStatus != 0)
-            // Flag error
-            return lStatus + 1;
+        lConstMesh.getASimplexForPoint( pPoints, pNumPoints, lMemberList.data(), lBaryList.data(), pEmbTol, pCenterOfCurvature, pNumCentersOfCurvature );
+
         
         // Keeps track of which data index the next observation element should be pushed into
         unsigned int lDataIndex = 0;
@@ -2476,28 +2460,42 @@ extern "C"
         {       
             // Get simplex index
             const unsigned int lSimplexId = lMemberList[lIterPoint];
+            // Sum barycentric coordinates
+            double lBarySum = 0;
              
             // Loop through each node in simplex
             for (unsigned int lIterNodes = 0; lIterNodes < (pTopD+1); lIterNodes++)
             {
+                const double lCurBary = lBaryList[lIterPoint*(pTopD+1) + lIterNodes];
+            
+                pRow[lDataIndex + lIterNodes] = lIterPoint;
+                // Insert barycentric coordinate of node
+                pData[lDataIndex + lIterNodes] = lCurBary;
+                // Add to bary sum
+                lBarySum += lCurBary;
+            
                 // If simplex was found
-                if ( lSimplexId  < lConstMesh.getNT() )
-                {
+                if ( lSimplexId < lConstMesh.getNT() )
                     // Get lIterNodes node from the simplex of the current point
-                    const unsigned int lCurNode = pMesh[ lSimplexId * (pTopD+1) + lIterNodes ];
-                
-                    pData[lDataIndex + lIterNodes] = lBaryList[lIterPoint*(pTopD+1) + lIterNodes];
-                    pRow[lDataIndex + lIterNodes] = lIterPoint;
-                    pCol[lDataIndex + lIterNodes] = lCurNode;
-                }
+                    pCol[lDataIndex + lIterNodes] = pMesh[ lSimplexId * (pTopD+1) + lIterNodes ];
                 else
-                {
-                    pData[lDataIndex + lIterNodes] = 0.0;
-                    pRow[lDataIndex + lIterNodes] = lIterPoint;
-                    pCol[lDataIndex + lIterNodes] = 0;
-                }
+                    // Mark current point as bad
+                    lBarySum = std::numeric_limits<double>::quiet_NaN();
     
-            }        
+            }
+
+            // bary sum should be one, take difference
+            lBarySum -= 1.0;
+            // If difference is significantly different from 0
+            if ( (lBarySum > 1e-5) || (lBarySum < -1e-5) || std::isnan(lBarySum)  )
+                // Set all data values to nan for current row
+                for (unsigned int lIterNodes = 0; lIterNodes < (pTopD+1); lIterNodes++)
+                {
+                    // Mark current point as not found by setting a nan in the first column
+                    pCol[lDataIndex + lIterNodes] = 0;
+                    pData[lDataIndex + lIterNodes] = std::numeric_limits<double>::quiet_NaN();
+                }
+            
             // Iterate data index
             lDataIndex += pTopD+1;
 

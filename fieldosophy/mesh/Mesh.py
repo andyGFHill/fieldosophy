@@ -202,7 +202,7 @@ class Mesh:
             centersOfCurvature_p = centersOfCurvature.ctypes.data_as(self.c_double_p)
         
         # Store observation matrix
-        data = np.NaN * np.ones( ( points.shape[0] * (self.topD+1) ), dtype=np.float64 )
+        data = np.zeros( ( points.shape[0] * (self.topD+1) ), dtype=np.float64 )
         row = np.zeros( ( points.shape[0] * (self.topD+1) ), dtype=np.uintc )
         col = np.zeros( ( points.shape[0] * (self.topD+1) ), dtype=np.uintc )
         data_p = data.ctypes.data_as(self.c_double_p)
@@ -231,29 +231,35 @@ class Mesh:
             raise Exception( "Uknown error occured! Error code " + str(status) + " from getObservationMatrix()" ) 
     
         # Remove unused
-        row = row[~np.isnan(data)]
-        col = col[~np.isnan(data)]
-        data = data[~np.isnan(data)]
+        row = row[ data != 0 ]
+        col = col[ data != 0 ]
+        data = data[ data != 0 ]
         out = sparse.coo_matrix( (data, (row, col)), shape=(points.shape[0], self.N) )
         out = out.tocsr()
-        
-        # Get nans
-        zeroInds = (np.sum( out, axis = 1 ) == 0).nonzero()[0]
-        out[ zeroInds, 0 ] = np.nan
         
         return( out )
     
     
     
-    def S2NByArea( self, areas  ):
-        # Get simplex values to nodes by weighting area
-        
+    
+    def S2N( self  ):
+        # Get matrix of which simplices that are associated with which nodes
         
         # Get matrix mapping which nodes each simplex is associated to (simplex to nodes matrix) 
         cols = np.arange( self.NT ).repeat(self.topD + 1)        
         rows = self.triangles.reshape( (-1) )
         S2N = sparse.coo_matrix( (np.ones((self.NT * (self.topD+1))), (rows, cols)), shape=(self.N, self.NT) )
-        S2N = S2N.tocsr()
+        
+        return S2N
+    
+    
+    def S2NByArea( self, areas  ):
+        # Get simplex values to nodes by weighting area
+                
+        # Get matrix mapping which nodes each simplex is associated to (simplex to nodes matrix) 
+        cols = np.arange( self.NT ).repeat(self.topD + 1)        
+        rows = self.triangles.reshape( (-1) )
+        S2N = sparse.coo_matrix( (np.ones((self.NT * (self.topD+1))), (rows, cols)), shape=(self.N, self.NT) )
         
         # Acquire total area for each vertex
         totalArea = S2N * areas
@@ -262,7 +268,6 @@ class Mesh:
         
         # Acquire simplex values weighted by their relative area matrix
         S2N = sparse.coo_matrix( (areas, (rows, cols)), shape=(self.N, self.NT) )
-        S2N = S2N.tocsr()
         
         return S2N
 

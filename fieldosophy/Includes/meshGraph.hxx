@@ -46,7 +46,8 @@ class MeshGraph
         };
         
         // Constructor
-        MeshGraph( const ConstMesh & pMesh, const unsigned int pMaxNumNodes, const double pMinDiam, const unsigned int pMinNumTriangles );
+        MeshGraph( const ConstMesh & pMesh, const unsigned int pMaxNumNodes, const double pMinDiam, const unsigned int pMinNumTriangles,
+            const double * const pPoint = NULL, const unsigned int * const pNumPoints = NULL );
         MeshGraph( const unsigned int pD, const double * const pBoundaries );  
         
         // Populate graph from mesh

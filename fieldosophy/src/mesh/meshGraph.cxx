@@ -54,7 +54,8 @@ MeshGraph::MeshGraph( const unsigned int pD, const double * const pBoundaries )
 }
 
 // Constructor
-MeshGraph::MeshGraph( const ConstMesh & pMesh, const unsigned int pMaxNumNodes, const double pMinDiam, const unsigned int pMinNumTriangles )
+MeshGraph::MeshGraph( const ConstMesh & pMesh, const unsigned int pMaxNumNodes, const double pMinDiam, const unsigned int pMinNumTriangles,
+    const double * const pPoints, const unsigned int * const pNumPoints  )
 {
     // Get dimensionality of cuboid
     mD = pMesh.getD();
@@ -82,6 +83,26 @@ MeshGraph::MeshGraph( const ConstMesh & pMesh, const unsigned int pMaxNumNodes, 
         }
         
     }
+    // Loop through all points given
+    if ( (pPoints != NULL) && (pNumPoints != NULL) )
+        for (unsigned int lIterPoint = 0; lIterPoint < *pNumPoints; lIterPoint++)
+        {
+            // Get current point
+            const double * const pCurPoint = &pPoints[lIterPoint * mD];
+            // Loop through all dimensions
+            for (unsigned int lIterDim = 0; lIterDim < mD; lIterDim++)
+            {
+                // Get value of current point in current dimensions
+                const double lCurPointVal = pCurPoint[lIterDim];
+                // Is the current lower boundary too high
+                if ( mBoundaries.at( lIterDim*2 ) > lCurPointVal )
+                    mBoundaries.at( lIterDim*2 ) = lCurPointVal;
+                // Is the current higher boundary too low
+                if ( mBoundaries.at( lIterDim*2+1 ) < lCurPointVal )
+                    mBoundaries.at( lIterDim*2+1 ) = lCurPointVal;
+            }
+        }
+    
     
     // Create mother node
     mNodeList.push_back( Node( mBoundaries ) );

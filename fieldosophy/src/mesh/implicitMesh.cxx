@@ -667,20 +667,16 @@ int ImplicitMesh::getASimplexForPoint( double * const pPoints, const unsigned in
     unsigned int * const pSimplexIds, double * const pBarycentricCoords, 
     const double pEmbTol, const double * const pCenterOfCurvature, const unsigned int pNumCentersOfCurvature) const
 {    
-    int lStatus = 0;
-
     // If no implicit extension
     if (!isExtended())
         // run through ConstMesh equivalent to acquire explicit simplices for all points
         return mMesh.getASimplexForPoint( pPoints, pNumPoints, pSimplexIds, pBarycentricCoords, pEmbTol, pCenterOfCurvature, pNumCentersOfCurvature );
 
     // Loop through all points to translate them to explicit sectors
-    #pragma omp parallel for reduction(|:lStatus)
+    #pragma omp parallel for
     for (unsigned int lIterPoints = 0; lIterPoints < pNumPoints; lIterPoints++)
     {
-        // If error
-        if (lStatus != 0)
-            continue;
+        int lStatus = 0;
     
         double * const lPointPtr = &pPoints[lIterPoints * getD()];
         unsigned int * const lSimpPtr = &pSimplexIds[lIterPoints];
@@ -694,13 +690,13 @@ int ImplicitMesh::getASimplexForPoint( double * const pPoints, const unsigned in
         for (unsigned int lIterDim = 0; lIterDim < getD(); lIterDim++)
             lPointPtr[lIterDim] -= mOffset[lIterDim] + ((double)getCurDimSector( lSector, lIterDim )) * getBoundingBoxLength(lIterDim);
         // run through ConstMesh equivalent to acquire explicit simplices for all points
-        lStatus = mMesh.getASimplexForPoint( lPointPtr, 1, lSimpPtr, lBarycentricPtr, pEmbTol, pCenterOfCurvature, pNumCentersOfCurvature );
+        mMesh.getASimplexForPoint( lPointPtr, 1, lSimpPtr, lBarycentricPtr, pEmbTol, pCenterOfCurvature, pNumCentersOfCurvature );
+        if ( *lSimpPtr == mMesh.getNT() )
+            lStatus = 2;
+        
         // Go through each dimension and translate to original sector again
         for (unsigned int lIterDim = 0; lIterDim < getD(); lIterDim++)
             lPointPtr[lIterDim] += mOffset[lIterDim] + ((double)getCurDimSector( lSector, lIterDim )) * getBoundingBoxLength(lIterDim);
-        // Handle errors
-        if (lStatus)
-            lStatus = 1+lStatus;
         // Update from explicit simplex to implicit simplex
         *lSimpPtr = sectorAndExplicit2SimplexInd( lSector, *lSimpPtr );
         if (lStatus)
@@ -1447,9 +1443,14 @@ extern "C"
         std::vector<double> lPoint( pPoint, &pPoint[pDim] );
         // Get one simplex index for a simplex where point is a part
         unsigned int lOneSimplex;
-        lStatus = lImplicitMesh->getASimplexForPoint( lPoint.data(), 1, &lOneSimplex, NULL, 0, NULL, 0);
+        lImplicitMesh->getASimplexForPoint( lPoint.data(), 1, &lOneSimplex, NULL, 0, NULL, 0);
         if (lStatus)
             return 3;
+        if ( lOneSimplex >= lImplicitMesh->getNT() )
+        {
+            *pOut = false;
+            return 0;
+        }
         
         // Get a set of all simplices for which the given node is a member.
         std::set<unsigned int> lSimplexIds;
