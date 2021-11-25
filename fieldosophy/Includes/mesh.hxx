@@ -175,7 +175,7 @@ class FullMesh : public ConstMesh
                 const unsigned int * const pNeighs = NULL );
         
         // Method refining all simplices accordingly
-        int refine( const unsigned int pMaxNumNodes, std::vector<double> & pMaxDiam, int (* transformationPtr)(double *, unsigned int) );
+        int refine( const unsigned int pMaxNumNodes, std::vector<double> & pMaxDiam, const unsigned int * const pNumLevels, int (* transformationPtr)(double *, unsigned int) );
         // Method refining a simplex
         int refineSimplex( const unsigned int pChosenSimplex, const double pMaxDiam, const unsigned int pMaxNewSimplices = 1);
         // Overloaded member function for populating arrays from mesh
@@ -513,7 +513,7 @@ extern "C"
         const unsigned int * const pSimplices, const unsigned int pNumSimplices, const unsigned int pTopD,
         unsigned int * const pNewNumNodes, unsigned int * const pNewNumSimplices, unsigned int * const pId,
         const unsigned int pMaxNumNodes, const double * const pMaxDiam, const unsigned int pNumMaxDiam,
-        int (* transformationPtr)(double *, unsigned int) );
+        const unsigned int * const pNumLevels, int (* transformationPtr)(double *, unsigned int) );
         
     // Populate new mesh
     int mesh_acquireMesh( const unsigned int pId, 

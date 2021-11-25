@@ -95,7 +95,7 @@ class Mesh:
     # %% member functions        
     
     
-    def refine( self, maxDiam, maxNumNodes, transformation = None ):
+    def refine( self, maxDiam, maxNumNodes, numLevels = None, transformation = None ):
         # Refine mesh or simplices thereof
         
         # If maxDiam is not an array
@@ -110,6 +110,11 @@ class Mesh:
         nodes_p = self.nodes.ctypes.data_as(self.c_double_p) 
         maxDiam_p = maxDiam.flatten().ctypes.data_as(self.c_double_p) 
         triangles_p = self.triangles.ctypes.data_as(self.c_uint_p) 
+        
+        numLevels_p = None
+        if numLevels is not None:
+            numLevels = ctypes.c_uint( numLevels )
+            numLevels_p = ctypes.byref(numLevels)
         
         newNumNodes = ctypes.c_uint( 0 )
         newNumSimplices = ctypes.c_uint( 0 )
@@ -141,13 +146,13 @@ class Mesh:
               self.c_uint_p, ctypes.c_uint, ctypes.c_uint, \
               self.c_uint_p, self.c_uint_p, self.c_uint_p, \
               ctypes.c_uint, self.c_double_p, ctypes.c_uint,\
-              CMPFUNC ]
+              self.c_uint_p, CMPFUNC ]
         status = self._libInstance.mesh_refineMesh( \
             nodes_p, ctypes.c_uint( self.N ), ctypes.c_uint( self.embD ), \
             triangles_p, ctypes.c_uint( self.NT ), ctypes.c_uint( self.topD ), \
             ctypes.byref(newNumNodes), ctypes.byref(newNumSimplices), ctypes.byref(meshId), \
             ctypes.c_uint(np.uintc(maxNumNodes)), maxDiam_p, ctypes.c_uint(np.uintc(maxDiam.size)), \
-            cmp_func )
+            numLevels_p, cmp_func )
         if status != 0:
             raise Exception( "Uknown error occured! Error code " + str(status) + " from mesh_refineMesh()" ) 
             

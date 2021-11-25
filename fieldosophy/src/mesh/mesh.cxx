@@ -908,7 +908,7 @@ FullMesh::FullMesh( const double * const pNodes, const unsigned int pD, const un
     
     
 // Method refining all nodes accordingly
-int FullMesh::refine( const unsigned int pMaxNumNodes, std::vector<double> & pMaxDiam, int (* transformationPtr)(double *, unsigned int) )
+int FullMesh::refine( const unsigned int pMaxNumNodes, std::vector<double> & pMaxDiam, const unsigned int * const pNumLevels, int (* transformationPtr)(double *, unsigned int) )
 {
     // See if allready reached maximum number of nodes
     if (getNN() >= pMaxNumNodes)
@@ -971,10 +971,24 @@ int FullMesh::refine( const unsigned int pMaxNumNodes, std::vector<double> & pMa
     lCurEdgesNotToRefine.reserve( (getTopD()+1)*2 );
     std::vector< unsigned int > lSimplexList;
     
+    // Get level counter
+    unsigned int lLevelCounter = ( pNumLevels != NULL ) ? *pNumLevels : 0;
     // Try to refine further
     bool lInvestigateFurther = true;
     while ( lInvestigateFurther )
     {
+        // If level counter is zero
+        if (lLevelCounter == 0)
+        {
+            // If given number of levels
+            if ( pNumLevels != NULL )
+                // Finnish refinement
+                break;
+        }
+        else
+            // Decrease the level counter
+            lLevelCounter--;
+    
         // Assume that no more investigation is necessary
         lInvestigateFurther = false;
         
@@ -1022,10 +1036,10 @@ int FullMesh::refine( const unsigned int pMaxNumNodes, std::vector<double> & pMa
                 const double lDistance = (lNode1-lNode2).norm();
                 
                 // If current distance is larger than maximum allowed distance 
-                if ( lDistance > lMaxDiam )
+                if ( ( lDistance > lMaxDiam ) || ( pNumLevels != NULL ) )
                 {
                     // If distance is more than double that of maximum distance
-                    if (lDistance > 2*lMaxDiam)
+                    if ( (lDistance > 2*lMaxDiam) || ( pNumLevels != NULL ) )
                         // Will need further investigation
                         lInvestigateFurther = true;
                 
@@ -1119,7 +1133,7 @@ int FullMesh::refine( const unsigned int pMaxNumNodes, std::vector<double> & pMa
                         {
                             // If not already found index
                             if ( !lStatus )
-                                // If the sought after edge alrady exists
+                                // If the sought after edge already exists
                                 if ( (lNewEdgesParentEdges[ lIterNewParentEdges * 2 ] == lSmallestIndex ) && ( lNewEdgesParentEdges[ lIterNewParentEdges * 2 + 1] == lLargestIndex ) )
                                 {
                                     // Set index
@@ -2933,7 +2947,7 @@ extern "C"
         const unsigned int * const pSimplices, const unsigned int pNumSimplices, const unsigned int pTopD,
         unsigned int * const pNewNumNodes, unsigned int * const pNewNumSimplices, unsigned int * const pId,
         const unsigned int pMaxNumNodes, const double * const pMaxDiam, const unsigned int pNumMaxDiam,
-        int (* transformationPtr)(double *, unsigned int) )
+        const unsigned int * const pNumLevels, int (* transformationPtr)(double *, unsigned int) )
     {
     
         if ( (pNumMaxDiam > 1) && (pNumMaxDiam != pNumNodes) )
@@ -2944,7 +2958,7 @@ extern "C"
         // Create internal mesh
         FullMesh lMesh( pNodes, pD, pNumNodes, pSimplices, pNumSimplices, pTopD );
         // Refine
-        int lStatus = lMesh.refine( pMaxNumNodes, lMaxDiam, transformationPtr );
+        int lStatus = lMesh.refine( pMaxNumNodes, lMaxDiam, pNumLevels, transformationPtr );
         if (lStatus)
             return 1 + lStatus;
             
